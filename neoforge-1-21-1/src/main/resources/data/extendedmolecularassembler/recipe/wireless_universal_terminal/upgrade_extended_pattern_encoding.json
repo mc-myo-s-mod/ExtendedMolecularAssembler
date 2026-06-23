@@ -1,0 +1,7 @@
+{
+  "type": "ae2wtlib:upgrade",
+  "terminal": {
+    "item": "extendedmolecularassembler:wireless_extended_pattern_encoding_terminal"
+  },
+  "terminalName": "extended_pattern_encoding"
+}

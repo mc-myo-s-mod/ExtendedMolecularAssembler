@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "extendedmolecularassembler:block/extended_quantum_crafter_bottom",
+    "north": "extendedmolecularassembler:block/extended_quantum_crafter_grid",
+    "side": "extendedmolecularassembler:block/extended_quantum_crafter_side",
+    "top": "extendedmolecularassembler:block/extended_quantum_crafter_grid"
+  }
+}

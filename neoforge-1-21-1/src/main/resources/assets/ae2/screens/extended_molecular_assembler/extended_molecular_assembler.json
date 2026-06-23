@@ -1,0 +1,145 @@
+{
+  "$schema": "../schema.json",
+  "includes": [
+    "../common/common.json",
+    "../common/player_inventory.json",
+    "../common/toolbox.json"
+  ],
+  "background": {
+    "texture": "guis/extended_molecular_assembler.png",
+    "textureWidth": 512,
+    "textureHeight": 512,
+    "srcRect": [
+      0,
+      0,
+      221,
+      290
+    ]
+  },
+  "helpTopic": "extendedmolecularassembler:extended-molecular-assemblers",
+  "slots": {
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_1": {
+      "left": 10,
+      "top": 30,
+      "grid": "BREAK_AFTER_9COLS"
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_2": {
+      "left": 10,
+      "top": 30,
+      "grid": "BREAK_AFTER_9COLS"
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_3": {
+      "left": 10,
+      "top": 30,
+      "grid": "BREAK_AFTER_9COLS"
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_4": {
+      "left": 10,
+      "top": 30,
+      "grid": "BREAK_AFTER_9COLS"
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_5": {
+      "left": 10,
+      "top": 30,
+      "grid": "BREAK_AFTER_9COLS"
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_6": {
+      "left": 10,
+      "top": 30,
+      "grid": "BREAK_AFTER_9COLS"
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_7": {
+      "left": 10,
+      "top": 30,
+      "grid": "BREAK_AFTER_9COLS"
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_8": {
+      "left": 10,
+      "top": 30,
+      "grid": "BREAK_AFTER_9COLS"
+    },
+    "ENCODED_PATTERN": {
+      "left": 186,
+      "top": 65
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_1": {
+      "left": 186,
+      "top": 98
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_2": {
+      "left": 186,
+      "top": 98
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_3": {
+      "left": 186,
+      "top": 98
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_4": {
+      "left": 186,
+      "top": 98
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_5": {
+      "left": 186,
+      "top": 98
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_6": {
+      "left": 186,
+      "top": 98
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_7": {
+      "left": 186,
+      "top": 98
+    },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_8": {
+      "left": 186,
+      "top": 98
+    },
+    "PLAYER_INVENTORY": {
+      "left": 10,
+      "bottom": 83,
+      "grid": "BREAK_AFTER_9COLS"
+    },
+    "PLAYER_HOTBAR": {
+      "left": 10,
+      "bottom": 25,
+      "grid": "HORIZONTAL"
+    }
+  },
+  "text": {
+    "dialog_title": {
+      "text": {
+        "translate": "gui.extendedmolecularassembler.extendedMolecularAssembler"
+      },
+      "position": {
+        "left": 8,
+        "top": 6
+      }
+    },
+    "player_inventory_title": {
+      "text": {
+        "translate": "container.inventory"
+      },
+      "position": {
+        "left": 10,
+        "bottom": 95
+      }
+    }
+  },
+  "images": {
+    "progressBar": {
+      "texture": "guis/molecular_assembler.png",
+      "srcRect": [
+        176,
+        0,
+        6,
+        18
+      ]
+    }
+  },
+  "widgets": {
+    "progressBar": {
+      "left": 208,
+      "top": 97
+    }
+  }
+}

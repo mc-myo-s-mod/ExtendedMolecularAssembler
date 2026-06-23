@@ -1,0 +1,206 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.82'
+}
+
+version = mod_version
+group = mod_group_id
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = "Jared's maven"
+        url = "https://maven.blamejared.com/"
+    }
+    maven {
+        url = "https://modmaven.dev"
+        content {
+            includeGroup "appeng"
+            includeGroup "de.mari_023"
+        }
+    }
+    maven {
+        url 'https://maven.blakesmods.com'
+    }
+    maven {
+        url "https://cursemaven.com"
+    }
+    maven {
+        url = "https://api.modrinth.com/maven"
+    }
+    maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup("software.bernie.geckolib")
+        }
+    }
+}
+
+base {
+    archivesName = "ExtendedMolecularAssembler-${minecraft_version}"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    // Specify the version of NeoForge to use.
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty("guideme.ae2.guide.sources", "${file("src/main/resources").absolutePath}/assets/${mod_id}/ae2guide")
+            systemProperty("guideme.ae2.guide.sourcesNamespace", mod_id)
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+
+dependencies {
+    implementation "me.myogoo:myotus:${myotus_version}"
+    implementation "org.appliedenergistics:appliedenergistics2:${AE2_version}"
+    compileOnly "de.mari_023:ae2wtlib_api:${AE2WTLib_version}"
+    compileOnly "de.mari_023:ae2wtlib:${AE2WTLib_version}"
+    runtimeOnly "de.mari_023:ae2wtlib:${AE2WTLib_version}"
+    compileOnly "org.appliedenergistics:guideme:${guideme_version}:api"
+    runtimeOnly "org.appliedenergistics:guideme:${guideme_version}"
+
+    implementation "maven.modrinth:cucumber:${Cucumber_version}"
+    compileOnly "maven.modrinth:extended-crafting:${ExtendedCrafting_version}"
+    compileOnly "maven.modrinth:glodium:${Glodium_version}"
+    compileOnly "maven.modrinth:extended-ae:${ExtendedAE_version}"
+    compileOnly "maven.modrinth:extendedae-plus:${ExtendedAEPlus_version}"
+    compileOnly "maven.modrinth:advancedae:${AdvancedAE_version}"
+    compileOnly "io.github.pedroksl:ae2addonlib:${AE2AddonLib_version}"
+    compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${GeckoLib_version}"
+
+    compileOnly "curse.maven:re-avaritia-623969:${ReAvaritia_file}"
+    compileOnly "maven.modrinth:avaritianeo:${AvaritiaNeo_version}"
+
+    implementation "curse.maven:placebo-283644:${Placebo_file}"
+
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${JEI_version}"
+
+    if (project.itemListMod == "jei") {
+        runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${JEI_version}"
+    }
+
+    if (project.enable_excrafting == "true") {
+        runtimeOnly "maven.modrinth:extended-crafting:${ExtendedCrafting_version}"
+    }
+
+    if (project.enable_extendedae == "true") {
+        runtimeOnly "maven.modrinth:glodium:${Glodium_version}"
+        runtimeOnly "maven.modrinth:extended-ae:${ExtendedAE_version}"
+        runtimeOnly "maven.modrinth:extendedae-plus:${ExtendedAEPlus_version}"
+    }
+
+    if (project.enable_advancedae == "true") {
+        runtimeOnly "maven.modrinth:advancedae:${AdvancedAE_version}"
+        runtimeOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${GeckoLib_version}"
+    }
+
+    switch (project.enable_avaritia) {
+        case "neo":
+            runtimeOnly "maven.modrinth:avaritianeo:${AvaritiaNeo_version}"
+            break
+        case "re":
+            runtimeOnly "curse.maven:re-avaritia-623969:${ReAvaritia_file}"
+            break
+        case "none":
+            break
+        default:
+            throw new GradleException("Invalid value for enable_avaritia: ${project.enable_avaritia}")
+    }
+}
+
+// This block of code expands all declared replace properties in the specified resource targets.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [minecraft_version      : minecraft_version,
+                             minecraft_version_range: minecraft_version_range,
+                             neo_version            : neo_version,
+                             neo_version_range      : neo_version_range,
+                             loader_version_range   : loader_version_range,
+                             mod_id                 : mod_id,
+                             mod_name               : mod_name,
+                             mod_license            : mod_license,
+                             mod_version            : mod_version,
+                             mod_authors            : mod_authors,
+                             mod_description        : mod_description,
+                             myotus_version         : myotus_version]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+
+// Include the output of "generateModMetadata" as an input directory for the build
+// this works with both building through Gradle and the IDE.
+sourceSets.main.resources.srcDir generateModMetadata
+// To avoid having to run "generateModMetadata" manually, make it run on every project reload
+neoForge.ideSyncTask generateModMetadata
+
+// Example configuration to allow publishing using the maven-publish plugin
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            groupId = project.mod_group_id
+            artifactId = project.mod_id
+            version = project.mod_version
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

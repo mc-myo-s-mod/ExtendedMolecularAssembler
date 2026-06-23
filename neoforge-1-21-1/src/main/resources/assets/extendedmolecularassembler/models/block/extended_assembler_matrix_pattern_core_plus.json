@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "extendedmolecularassembler:block/assembler_matrix/extended_assembler_matrix_pattern_core_plus"
+  }
+}
