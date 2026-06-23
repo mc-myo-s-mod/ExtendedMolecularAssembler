@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "extendedmolecularassembler:block/extended_molecular_assembler"
+    },
+    "powered=true": {
+      "model": "extendedmolecularassembler:block/extended_molecular_assembler"
+    }
+  }
+}

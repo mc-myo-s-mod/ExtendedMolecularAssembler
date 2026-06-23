@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "formed=false,powered=false": {
+      "model": "extendedmolecularassembler:block/extended_assembler_matrix_pattern_uploader"
+    },
+    "formed=false,powered=true": {
+      "model": "extendedmolecularassembler:block/extended_assembler_matrix_pattern_uploader"
+    },
+    "formed=true,powered=false": {
+      "model": "extendedmolecularassembler:block/extended_assembler_matrix_pattern_uploader"
+    },
+    "formed=true,powered=true": {
+      "model": "extendedmolecularassembler:block/extended_assembler_matrix_pattern_uploader"
+    }
+  }
+}

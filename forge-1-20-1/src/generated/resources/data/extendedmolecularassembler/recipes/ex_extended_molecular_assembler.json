@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "A": {
+      "item": "ae2:engineering_processor"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "M": {
+      "item": "extendedmolecularassembler:extended_molecular_assembler"
+    }
+  },
+  "pattern": [
+    "EDE",
+    "AMA",
+    "EDE"
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:ex_extended_molecular_assembler"
+  },
+  "show_notification": true
+}

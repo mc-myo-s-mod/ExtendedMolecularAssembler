@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "A": {
+      "item": "ae2:engineering_processor"
+    },
+    "C": {
+      "item": "ae2:calculation_processor"
+    },
+    "F": {
+      "item": "ae2:fluix_glass_cable"
+    },
+    "M": {
+      "item": "ae2:molecular_assembler"
+    }
+  },
+  "pattern": [
+    "CFC",
+    "AMA",
+    "CFC"
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:extended_molecular_assembler"
+  },
+  "show_notification": true
+}

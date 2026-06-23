@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "expatternprovider"
+    }
+  ],
+  "key": {
+    "E": {
+      "item": "extendedmolecularassembler:extended_assembler_matrix_pattern_core"
+    },
+    "P": {
+      "item": "ae2:blank_pattern"
+    }
+  },
+  "pattern": [
+    " P ",
+    "PEP",
+    " P "
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader"
+  }
+}

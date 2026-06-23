@@ -1,0 +1,10 @@
+{
+  "itemGroup.extendedmolecularassembler": "Extended Molecular Assembler",
+  "block.extendedmolecularassembler.extended_molecular_assembler": "Extended Molecular Assembler",
+  "block.extendedmolecularassembler.ex_extended_molecular_assembler": "Ex Extended Molecular Assembler",
+  "block.extendedmolecularassembler.extended_assembler_matrix_pattern_core": "Extended Assembler Matrix Pattern Core",
+  "block.extendedmolecularassembler.extended_assembler_matrix_crafting_core": "Extended Assembler Matrix Crafting Core",
+  "block.extendedmolecularassembler.extended_assembler_matrix_pattern_uploader": "Extended Assembler Matrix Pattern Uploader",
+  "item.extendedmolecularassembler.wireless_extended_pattern_encoding_terminal": "Wireless Extended Pattern Encoding Terminal",
+  "message.extendedmolecularassembler.no_menu": "Pattern providers can push extended crafting patterns into this assembler."
+}
