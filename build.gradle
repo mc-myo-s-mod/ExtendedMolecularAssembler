@@ -1,0 +1,148 @@
+plugins {
+    id 'base'
+    id 'idea'
+}
+
+def loadProjectProperties = { Project target ->
+    def propertiesFile = target.file('gradle.properties')
+    if (!propertiesFile.isFile()) {
+        return
+    }
+
+    def properties = new Properties()
+    propertiesFile.withInputStream { properties.load(it) }
+    properties.each { key, value ->
+        def propertyName = key.toString()
+        if (!target.hasProperty(propertyName)) {
+            target.extensions.extraProperties.set(propertyName, value)
+        }
+    }
+}
+
+allprojects {
+    loadProjectProperties(project)
+
+    group = findProperty('mod_group_id') ?: 'me.myogoo'
+    version = findProperty('mod_version') ?: 'unspecified'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url = 'https://maven.blamejared.com/' }
+        maven {
+            name = 'ModMaven'
+            url = 'https://modmaven.dev'
+            content {
+                includeGroup 'appeng'
+                includeGroup 'de.mari_023'
+            }
+        }
+        maven { url = 'https://maven.blakesmods.com' }
+        maven { url = 'https://cursemaven.com' }
+        maven { url = 'https://api.modrinth.com/maven' }
+        maven {
+            name = 'projectLocal'
+            url = rootProject.layout.projectDirectory.dir('repo').asFile.toURI()
+        }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    idea {
+        module {
+            downloadSources = true
+            downloadJavadoc = true
+        }
+    }
+}
+
+def modProjects = [
+        project(':forge-1-20-1'),
+        project(':neoforge-1-21-1')
+]
+
+configure(project(':common')) {
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
+    }
+
+    dependencies {
+        // Lets the EMA common module resolve Myotus API annotations while editing shared sources.
+        compileOnly "me.myogoo:myotus:${project(':neoforge-1-21-1').myotus_version}"
+    }
+}
+
+configure(modProjects) {
+    def commonJavaSourceDir = rootProject.layout.projectDirectory.dir('common/src/main/java').asFile
+    def commonResourcesSourceDir = rootProject.layout.projectDirectory.dir('common/src/main/resources').asFile
+    def generatedCommonJavaDir = layout.buildDirectory.dir('generated/sources/extendedMolecularAssemblerCommon/java')
+    def generatedCommonResourcesDir = layout.buildDirectory.dir('generated/resources/extendedMolecularAssemblerCommon')
+
+    def syncEMACommonJava = tasks.register('syncEMACommonJava', Sync) {
+        from commonJavaSourceDir
+        into generatedCommonJavaDir
+    }
+
+    def syncEMACommonResources = tasks.register('syncEMACommonResources', Sync) {
+        from commonResourcesSourceDir
+        into generatedCommonResourcesDir
+    }
+
+    def generatedCommonJavaSources = files(generatedCommonJavaDir).builtBy(syncEMACommonJava)
+    def generatedCommonResources = files(generatedCommonResourcesDir).builtBy(syncEMACommonResources)
+
+    base {
+        archivesName = "${project.mod_name}-${project.minecraft_version}"
+    }
+
+    sourceSets {
+        main {
+            java.srcDir generatedCommonJavaSources
+            resources.srcDir generatedCommonResources
+            resources.srcDir 'src/generated/resources'
+        }
+    }
+
+    tasks.named('compileJava').configure {
+        dependsOn syncEMACommonJava
+    }
+
+    tasks.named('processResources').configure {
+        dependsOn syncEMACommonResources
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    tasks.matching { it.name in ['genIntellijRuns', 'neoForgeIdeSync', 'idea', 'ideaModule'] }.configureEach {
+        dependsOn syncEMACommonJava
+        dependsOn syncEMACommonResources
+    }
+
+    idea {
+        module {
+            sourceDirs += generatedCommonJavaDir.get().asFile
+            generatedSourceDirs += generatedCommonJavaDir.get().asFile
+            resourceDirs += generatedCommonResourcesDir.get().asFile
+        }
+    }
+}
+
+tasks.register('compileAllJava') {
+    group = 'verification'
+    description = 'Compiles all EMA version modules.'
+    dependsOn ':neoforge-1-21-1:compileJava'
+    dependsOn ':forge-1-20-1:compileJava'
+}
+
+tasks.register('syncIntellij') {
+    group = 'ide'
+    description = 'Prepares IntelliJ metadata and run configurations for all EMA modules.'
+    dependsOn ':forge-1-20-1:genIntellijRuns'
+    dependsOn ':neoforge-1-21-1:neoForgeIdeSync'
+}

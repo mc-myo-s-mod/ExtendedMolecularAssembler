@@ -1,0 +1,12 @@
+.gradle/
+build/
+run/
+run-*/
+out/
+*.log
+*.iml
+.idea/workspace.xml
+.DS_Store
+
+*.cache
+.idea/
