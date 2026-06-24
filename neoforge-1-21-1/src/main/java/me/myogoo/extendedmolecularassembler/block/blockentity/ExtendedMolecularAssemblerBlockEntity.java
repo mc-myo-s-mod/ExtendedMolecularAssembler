@@ -199,7 +199,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
         final int tableTier = pattern.tableTier();
         final TieredMECraftingProviderTier providerTier;
         try {
-            providerTier = TieredMECraftingProviderTier.byTier(tableTier);
+            providerTier = TieredMECraftingProviderTier.requiredFor(pattern.tableType(), tableTier);
         } catch (IllegalArgumentException ignored) {
             this.setTierRejectReason(Component.translatable(
                     "tooltip.extendedmolecularassembler.tiered_mode.unsupported_tier",
@@ -216,7 +216,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
         }
 
         for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
-            if (provider.getProviderTier() == tableTier && provider.isOnline()) {
+            if (provider.getTier().provides(pattern.tableType(), tableTier) && provider.isOnline()) {
                 this.clearTierRejectReason();
                 return true;
             }

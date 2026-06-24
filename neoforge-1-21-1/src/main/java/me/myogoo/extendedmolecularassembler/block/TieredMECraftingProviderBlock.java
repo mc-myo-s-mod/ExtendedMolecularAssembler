@@ -60,8 +60,8 @@ public class TieredMECraftingProviderBlock extends AEBaseEntityBlock<TieredMECra
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
             TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        tooltip.add(Component.translatable("tooltip.extendedmolecularassembler.me_crafting_provider.tier",
-                tier.displayName(), tier.tier()).withStyle(tier.color()));
+        tooltip.add(Component.translatable("tooltip.extendedmolecularassembler.me_crafting_provider.provides",
+                tier.displayName(), tier.providedTables()).withStyle(tier.color()));
         tooltip.add(Component.translatable("tooltip.extendedmolecularassembler.me_crafting_provider.requirement"));
     }
 }

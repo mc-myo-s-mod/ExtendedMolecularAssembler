@@ -181,9 +181,8 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     }
 
     private boolean hasMatchingProvider(ExtendedTableCraftingPattern pattern) {
-        final int tableTier = pattern.tableTier();
         try {
-            TieredMECraftingProviderTier.byTier(tableTier);
+            TieredMECraftingProviderTier.requiredFor(pattern.tableType(), pattern.tableTier());
         } catch (IllegalArgumentException ignored) {
             return false;
         }
@@ -194,7 +193,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         }
 
         for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
-            if (provider.getProviderTier() == tableTier && provider.isOnline()) {
+            if (provider.getTier().provides(pattern.tableType(), pattern.tableTier()) && provider.isOnline()) {
                 return true;
             }
         }
