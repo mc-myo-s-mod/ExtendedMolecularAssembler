@@ -60,7 +60,10 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         super(type, pos, blockState);
         this.patternInventory = new AppEngInternalInventory(this, patternSlotCount, 1);
         this.patternInventory.setFilter(new ExtendedPatternFilter(this::getLevel));
-        this.getMainNode().addService(ICraftingProvider.class, this);
+        this.getMainNode()
+                .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixPatternCorePassivePowerUsage(
+                        patternSlotCount > DEFAULT_INV_SIZE))
+                .addService(ICraftingProvider.class, this);
     }
 
     public AppEngInternalInventory getPatternInventory() {

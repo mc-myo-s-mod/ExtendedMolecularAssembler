@@ -110,7 +110,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
         this.machineBlock = getMachineBlock(blockState);
         this.laneCount = blockState.is(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get()) ? PARALLEL_LANE_COUNT : 1;
         getMainNode()
-                .setIdlePowerUsage(0.0)
+                .setIdlePowerUsage(EMAConfig.extendedMolecularAssemblerPassivePowerUsage(blockState.is(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get())))
                 .addService(IGridTickable.class, this);
         this.upgrades = UpgradeInventories.forMachine(this.machineBlock, 5,
                 this::saveChanges);
@@ -139,6 +139,10 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
             return EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get();
         }
         return EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get();
+    }
+
+    private boolean isExAssembler() {
+        return this.machineBlock == EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get();
     }
 
     @Override
@@ -462,11 +466,19 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
 
     private int userPower(int ticksPassed, int bonusValue, double acceleratorTax) {
         var grid = getMainNode().getGrid();
-        if (grid != null) {
-            return (int) (grid.getEnergyService().extractAEPower(ticksPassed * bonusValue * acceleratorTax,
-                    Actionable.MODULATE, PowerMultiplier.CONFIG) / acceleratorTax);
+        if (grid == null) {
+            return 0;
         }
-        return 0;
+
+        var powerMultiplier = EMAConfig.extendedMolecularAssemblerCraftingPowerMultiplier(this.isExAssembler());
+        var progress = ticksPassed * bonusValue;
+        if (powerMultiplier <= 0) {
+            return progress;
+        }
+
+        var requestedPower = progress * acceleratorTax * powerMultiplier;
+        return (int) (grid.getEnergyService().extractAEPower(requestedPower,
+                Actionable.MODULATE, PowerMultiplier.CONFIG) / acceleratorTax / powerMultiplier);
     }
 
     private SpeedProfile getSpeedProfile() {

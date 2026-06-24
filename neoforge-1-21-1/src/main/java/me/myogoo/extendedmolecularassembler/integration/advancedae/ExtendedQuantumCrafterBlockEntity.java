@@ -1,5 +1,6 @@
 package me.myogoo.extendedmolecularassembler.integration.advancedae;
 
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -14,5 +15,6 @@ import net.pedroksl.advanced_ae.common.entities.QuantumCrafterEntity;
 public class ExtendedQuantumCrafterBlockEntity extends QuantumCrafterEntity {
     public ExtendedQuantumCrafterBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState blockState) {
         super(blockEntityType, pos, blockState);
+        this.getMainNode().setIdlePowerUsage(EMAConfig.extendedQuantumCrafterPassivePowerUsage());
     }
 }

@@ -109,7 +109,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
         this.machineBlock = getMachineBlock(blockState);
         this.laneCount = isExAssemblerBlock(blockState) ? PARALLEL_LANE_COUNT : 1;
         getMainNode()
-                .setIdlePowerUsage(EMAConfig.extendedMolecularAssemblerPassivePowerUsage())
+                .setIdlePowerUsage(EMAConfig.extendedMolecularAssemblerPassivePowerUsage(isExAssemblerBlock(blockState)))
                 .addService(IGridTickable.class, this);
         this.upgrades = UpgradeInventories.forMachine(this.machineBlock, 5,
                 this::saveChanges);
@@ -143,6 +143,10 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     private static boolean isExAssemblerBlock(BlockState blockState) {
         return EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER != null
                 && blockState.is(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
+    }
+
+    private boolean isExAssembler() {
+        return this.machineBlock == EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get();
     }
 
     @Override
@@ -480,7 +484,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
             return 0;
         }
 
-        var powerMultiplier = EMAConfig.extendedMolecularAssemblerCraftingPowerMultiplier();
+        var powerMultiplier = EMAConfig.extendedMolecularAssemblerCraftingPowerMultiplier(this.isExAssembler());
         var progress = ticksPassed * bonusValue;
         if (powerMultiplier <= 0) {
             return progress;

@@ -4,6 +4,7 @@ import appeng.api.crafting.PatternDetailsHelper;
 import appeng.crafting.pattern.EncodedPatternItem;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixFunction;
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,6 +29,7 @@ public class ExtendedAssemblerMatrixPatternUploaderBlockEntity extends TileAssem
     public ExtendedAssemblerMatrixPatternUploaderBlockEntity(BlockEntityType<?> type, BlockPos pos,
             BlockState blockState) {
         super(type, pos, blockState);
+        this.getMainNode().setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixPatternUploaderPassivePowerUsage());
     }
 
     @Override
