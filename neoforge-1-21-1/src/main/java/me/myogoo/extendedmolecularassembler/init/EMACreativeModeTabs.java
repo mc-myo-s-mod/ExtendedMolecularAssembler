@@ -25,8 +25,7 @@ public final class EMACreativeModeTabs {
                         output.accept(EMAItems.RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER.get());
                         output.accept(EMAItems.RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER.get());
                         output.accept(EMAItems.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get());
-                        output.accept(EMAItems.RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER.get());
-                        output.accept(EMAItems.AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER.get());
+                        output.accept(EMAItems.XTREME_ME_CRAFTING_PROVIDER.get());
                         output.accept(EMAParts.EXTENDED_PATTERN_ENCODING_TERMINAL);
                         output.accept(EMAItems.wirelessExtendedPatternEncodingTerminal());
                         EMAOptionalIntegrations.addCreativeTabItems(output);

@@ -3,7 +3,7 @@
   "conditions": [
     {
       "type": "myotus:mod_condition",
-      "active_mod": "Avaritia"
+      "active_mod": "avaritia_neo"
     }
   ],
   "category": "redstone",
@@ -27,7 +27,7 @@
     }
   },
   "result": {
-    "item": "extendedmolecularassembler:avaritia_neo_xtreme_me_crafting_provider"
+    "item": "extendedmolecularassembler:xtreme_me_crafting_provider"
   },
   "show_notification": true
 }

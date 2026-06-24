@@ -75,11 +75,9 @@
   "block.extendedmolecularassembler.re_avaritia_sculk_me_crafting_provider": "Re:Avaritia Sculk ME 조합 공급기",
   "block.extendedmolecularassembler.re_avaritia_nether_me_crafting_provider": "Re:Avaritia Nether ME 조합 공급기",
   "block.extendedmolecularassembler.re_avaritia_end_me_crafting_provider": "Re:Avaritia End ME 조합 공급기",
-  "block.extendedmolecularassembler.re_avaritia_xtreme_me_crafting_provider": "Re:Avaritia Xtreme ME 조합 공급기",
-  "block.extendedmolecularassembler.avaritia_neo_xtreme_me_crafting_provider": "AvaritiaNeo Xtreme ME 조합 공급기",
   "tier.extendedmolecularassembler.re_avaritia_sculk": "Re:Avaritia Sculk",
   "tier.extendedmolecularassembler.re_avaritia_nether": "Re:Avaritia Nether",
   "tier.extendedmolecularassembler.re_avaritia_end": "Re:Avaritia End",
-  "tier.extendedmolecularassembler.re_avaritia_xtreme": "Re:Avaritia Xtreme",
-  "tier.extendedmolecularassembler.avaritia_neo_xtreme": "AvaritiaNeo Xtreme"
+  "block.extendedmolecularassembler.xtreme_me_crafting_provider": "Xtreme ME 조합 공급기",
+  "tier.extendedmolecularassembler.xtreme": "Xtreme"
 }

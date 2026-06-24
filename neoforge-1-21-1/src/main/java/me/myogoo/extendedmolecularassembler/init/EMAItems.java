@@ -43,12 +43,9 @@ public final class EMAItems {
     public static final DeferredItem<BlockItem> RE_AVARITIA_END_ME_CRAFTING_PROVIDER =
             ITEMS.register("re_avaritia_end_me_crafting_provider",
                     () -> new BlockItem(EMABlocks.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
-    public static final DeferredItem<BlockItem> RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER =
-            ITEMS.register("re_avaritia_xtreme_me_crafting_provider",
-                    () -> new BlockItem(EMABlocks.RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
-    public static final DeferredItem<BlockItem> AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER =
-            ITEMS.register("avaritia_neo_xtreme_me_crafting_provider",
-                    () -> new BlockItem(EMABlocks.AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> XTREME_ME_CRAFTING_PROVIDER =
+            ITEMS.register("xtreme_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.XTREME_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
 
     public static final DeferredItem<Item> EXTENDED_CRAFTING_PATTERN =
             ITEMS.register("extended_crafting_pattern", () -> PatternDetailsHelper

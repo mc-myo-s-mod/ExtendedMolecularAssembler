@@ -37,10 +37,8 @@ public final class EMABlocks {
             registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_NETHER);
     public static final RegistryObject<TieredMECraftingProviderBlock> RE_AVARITIA_END_ME_CRAFTING_PROVIDER =
             registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_END);
-    public static final RegistryObject<TieredMECraftingProviderBlock> RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_XTREME);
-    public static final RegistryObject<TieredMECraftingProviderBlock> AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.AVARITIA_NEO_XTREME);
+    public static final RegistryObject<TieredMECraftingProviderBlock> XTREME_ME_CRAFTING_PROVIDER =
+            registerProvider(TieredMECraftingProviderTier.XTREME);
 
     private static RegistryObject<TieredMECraftingProviderBlock> registerProvider(TieredMECraftingProviderTier tier) {
         return BLOCKS.register(tier.blockId(), () -> new TieredMECraftingProviderBlock(tier, providerProperties()));

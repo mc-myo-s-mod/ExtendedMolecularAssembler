@@ -54,13 +54,9 @@ public final class EMABlockEntities {
                     () -> createProviderType(EMABlocks.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get(),
                             TieredMECraftingProviderTier.RE_AVARITIA_END));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
-            RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("re_avaritia_xtreme_me_crafting_provider",
-                    () -> createProviderType(EMABlocks.RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.RE_AVARITIA_XTREME));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
-            AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("avaritia_neo_xtreme_me_crafting_provider",
-                    () -> createProviderType(EMABlocks.AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.AVARITIA_NEO_XTREME));
+            XTREME_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("xtreme_me_crafting_provider",
+                    () -> createProviderType(EMABlocks.XTREME_ME_CRAFTING_PROVIDER.get(),
+                            TieredMECraftingProviderTier.XTREME));
 
     private static BlockEntityType<ExtendedMolecularAssemblerBlockEntity> createAssemblerType(
             ExtendedMolecularAssemblerBlock block) {
@@ -113,11 +109,8 @@ public final class EMABlockEntities {
                 RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get(),
                 EMAItems.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get());
         AEBaseBlockEntity.registerBlockEntityItem(
-                RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER.get(),
-                EMAItems.RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER.get());
-        AEBaseBlockEntity.registerBlockEntityItem(
-                AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER.get(),
-                EMAItems.AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER.get());
+                XTREME_ME_CRAFTING_PROVIDER.get(),
+                EMAItems.XTREME_ME_CRAFTING_PROVIDER.get());
     }
 
     private EMABlockEntities() {

@@ -1,9 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "myotus:mod_condition",
-      "active_mod": "Re-Avaritia"
+      "active_mod": "avaritia_neo"
     }
   ],
   "category": "redstone",
@@ -27,7 +27,7 @@
     }
   },
   "result": {
-    "item": "extendedmolecularassembler:re_avaritia_xtreme_me_crafting_provider"
+    "id": "extendedmolecularassembler:xtreme_me_crafting_provider"
   },
   "show_notification": true
 }

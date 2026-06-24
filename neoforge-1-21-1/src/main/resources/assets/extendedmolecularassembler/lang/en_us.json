@@ -75,11 +75,9 @@
   "block.extendedmolecularassembler.re_avaritia_sculk_me_crafting_provider": "Re:Avaritia Sculk ME Crafting Provider",
   "block.extendedmolecularassembler.re_avaritia_nether_me_crafting_provider": "Re:Avaritia Nether ME Crafting Provider",
   "block.extendedmolecularassembler.re_avaritia_end_me_crafting_provider": "Re:Avaritia End ME Crafting Provider",
-  "block.extendedmolecularassembler.re_avaritia_xtreme_me_crafting_provider": "Re:Avaritia Xtreme ME Crafting Provider",
-  "block.extendedmolecularassembler.avaritia_neo_xtreme_me_crafting_provider": "AvaritiaNeo Xtreme ME Crafting Provider",
   "tier.extendedmolecularassembler.re_avaritia_sculk": "Re:Avaritia Sculk",
   "tier.extendedmolecularassembler.re_avaritia_nether": "Re:Avaritia Nether",
   "tier.extendedmolecularassembler.re_avaritia_end": "Re:Avaritia End",
-  "tier.extendedmolecularassembler.re_avaritia_xtreme": "Re:Avaritia Xtreme",
-  "tier.extendedmolecularassembler.avaritia_neo_xtreme": "AvaritiaNeo Xtreme"
+  "block.extendedmolecularassembler.xtreme_me_crafting_provider": "Xtreme ME Crafting Provider",
+  "tier.extendedmolecularassembler.xtreme": "Xtreme"
 }

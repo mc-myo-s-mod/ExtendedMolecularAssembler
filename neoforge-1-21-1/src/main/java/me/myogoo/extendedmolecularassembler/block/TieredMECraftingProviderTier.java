@@ -15,19 +15,20 @@ public enum TieredMECraftingProviderTier {
     RE_AVARITIA_SCULK(1, "re_avaritia_sculk", ChatFormatting.DARK_AQUA, ExtendedPatternTableTypes.RE_AVARITIA_SCULK),
     RE_AVARITIA_NETHER(2, "re_avaritia_nether", ChatFormatting.RED, ExtendedPatternTableTypes.RE_AVARITIA_NETHER),
     RE_AVARITIA_END(3, "re_avaritia_end", ChatFormatting.LIGHT_PURPLE, ExtendedPatternTableTypes.RE_AVARITIA_END),
-    RE_AVARITIA_XTREME(4, "re_avaritia_xtreme", ChatFormatting.GOLD, ExtendedPatternTableTypes.RE_AVARITIA_EXTREME),
-    AVARITIA_NEO_XTREME(4, "avaritia_neo_xtreme", ChatFormatting.YELLOW, ExtendedPatternTableTypes.AVARITIA_NEO_EXTREME);
+    XTREME(4, "xtreme", ChatFormatting.GOLD,
+            ExtendedPatternTableTypes.RE_AVARITIA_EXTREME,
+            ExtendedPatternTableTypes.AVARITIA_NEO_EXTREME);
 
     private final int tier;
     private final String id;
     private final ChatFormatting color;
-    private final ResourceLocation tableType;
+    private final ResourceLocation[] tableTypes;
 
-    TieredMECraftingProviderTier(int tier, String id, ChatFormatting color, ResourceLocation tableType) {
+    TieredMECraftingProviderTier(int tier, String id, ChatFormatting color, ResourceLocation... tableTypes) {
         this.tier = tier;
         this.id = id;
         this.color = color;
-        this.tableType = tableType;
+        this.tableTypes = tableTypes;
     }
 
     public int tier() {
@@ -51,16 +52,25 @@ public enum TieredMECraftingProviderTier {
     }
 
     public Component providedTable() {
-        return ExtendedPatternTableTypes.displayName(tableType, tier, 2 * tier + 1);
-    }
-
-    public ResourceLocation tableType() {
-        return tableType;
+        if (this == XTREME) {
+            return Component.translatable("tier.extendedmolecularassembler.xtreme");
+        }
+        return ExtendedPatternTableTypes.displayName(tableTypes[0], tier, 2 * tier + 1);
     }
 
     public boolean provides(ResourceLocation tableType, int tableTier) {
-        return this.tableType.equals(tableType) && this.tier == tableTier
-                || this == BASIC && tableType.equals(ExtendedPatternTableTypes.VANILLA_CRAFTING) && tableTier == 1;
+        if (this == BASIC && tableType.equals(ExtendedPatternTableTypes.VANILLA_CRAFTING) && tableTier == 1) {
+            return true;
+        }
+        if (this.tier != tableTier) {
+            return false;
+        }
+        for (var supportedTableType : tableTypes) {
+            if (supportedTableType.equals(tableType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static TieredMECraftingProviderTier requiredFor(ResourceLocation tableType, int tableTier) {
