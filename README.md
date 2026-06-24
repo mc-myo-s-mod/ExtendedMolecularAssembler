@@ -1,44 +1,62 @@
-# Extended Molecular Assembler Multi-Version Layout
+<p align="center">
+    <img width="200" src="neoforge-1-21-1/src/main/resources/assets/extendedmolecularassembler/textures/block/extended_molecular_assembler.png" alt="logo">
+</p>
+<h1 align="center">Extended Molecular Assembler</h1>
+<p align="center">
+    <img alt="Minecraft 1.21.1" src="https://img.shields.io/badge/Minecraft-1.21.1-62b47a?style=flat-square">
+    <img alt="Minecraft 1.20.1" src="https://img.shields.io/badge/Minecraft-1.20.1-62b47a?style=flat-square">
+    <img alt="Loader NeoForge / Forge" src="https://img.shields.io/badge/Loader-NeoForge%20%2F%20Forge-f16436?style=flat-square">
+    <img alt="GitHub License" src="https://img.shields.io/github/license/mc-myo-s-mod/ExtendedMolecularAseembler?style=flat-square">
+</p>
 
-This directory now acts as the multi-version Gradle root for Extended Molecular Assembler.
+## Feature
 
-## Modules
+- Adds an AE2 Molecular Assembler-style machine for larger crafting tables.
+- Supports encoding and crafting patterns beyond vanilla 3x3 grids.
+- Provides an Extended Pattern Encoding Terminal for selecting supported recipe table providers.
+- Includes Wireless Universal Terminal support for the Extended Pattern Encoding Terminal on 1.21.1.
+- You can add **Extended Molecular Assembler** to your modpack.
 
-- `:neoforge-1-21-1`
-  - Project directory: `neoforge-1-21-1`
-  - Status: existing NeoForge 1.21.1 implementation.
+## Support Version
 
-- `:common`
-  - Project directory: `common`
-  - Status: shared API/annotation sources copied into loader modules by Gradle sync tasks.
+| Loader   | Minecraft | Module             | Status |
+|----------|-----------|--------------------|--------|
+| NeoForge | 1.21.1    | `neoforge-1-21-1`  | ✔️     |
+| Forge    | 1.20.1    | `forge-1-20-1`     | ✔️     |
 
-- `:forge-1-20-1`
-  - Project directory: `forge-1-20-1`
-  - Status: compileable Forge 1.20.1 shell.
-  - Purpose: safe landing zone for feature-by-feature 1.20.1 porting.
+## Support Recipe Table
 
-## Commands
+| Mod                                                                     | Version        | Pattern Encoding | Link                                                                                                                                         |
+|-------------------------------------------------------------------------|----------------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| [Extended Crafting](https://modrinth.com/mod/extended-crafting)         | 1.21.1, 1.20.1 | ✔️               | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/extended-crafting), [Modrinth](https://modrinth.com/mod/extended-crafting)         |
+| [Re:Avaritia](https://modrinth.com/mod/re-avaritia)                     | 1.21.1, 1.20.1 | ✔️               | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/re-avaritia), [Modrinth](https://modrinth.com/mod/re-avaritia)                     |
+| [AvaritiaNeo](https://www.curseforge.com/minecraft/mc-mods/avaritianeo) | 1.21.1, 1.20.1 | ✔️               | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/avaritianeo), [Modrinth](https://www.curseforge.com/minecraft/mc-mods/avaritianeo) |
 
-Run from this directory using Windows `cmd.exe` from WSL:
+## Integrated My Mod
+
+| Mod                                                                 | Version        | Support | Link                                                                                                                 |
+|---------------------------------------------------------------------|----------------|---------|----------------------------------------------------------------------------------------------------------------------|
+| [Myotus](https://modrinth.com/mod/myotus)                           | 1.21.1, 1.20.1 | ✔️      | [Modrinth](https://modrinth.com/mod/myotus)                                                                          |
+| [Extended Terminal](https://modrinth.com/mod/extended-terminal)      | 1.21.1, 1.20.1 | ✔️      | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/extended-terminal), [Modrinth](https://modrinth.com/mod/extended-terminal) |
+
+## Build
+
+Run from the repository root:
 
 ```bash
-/mnt/c/Windows/System32/cmd.exe /c "gradlew.bat projects --console=plain"
-/mnt/c/Windows/System32/cmd.exe /c "gradlew.bat :neoforge-1-21-1:compileJava --console=plain"
-/mnt/c/Windows/System32/cmd.exe /c "gradlew.bat :forge-1-20-1:compileJava --console=plain"
-/mnt/c/Windows/System32/cmd.exe /c "gradlew.bat :neoforge-1-21-1:compileJava :forge-1-20-1:compileJava --console=plain"
+./gradlew :neoforge-1-21-1:build
+./gradlew :forge-1-20-1:build
 ```
 
-## Porting Strategy
+If you are building on Windows from WSL and Gradle artifacts are locked by IntelliJ or Minecraft, close the process that holds the files or build from a clean copy on the Linux filesystem.
 
-Do not copy the full 1.21.1 source tree into 1.20.1 all at once. Port feature-by-feature:
+## License
 
-1. Core constants and registration wrappers.
-2. Pattern metadata storage using 1.20.1 NBT instead of 1.21.1 DataComponents.
-3. Recipe adapter and 9x9 grid placement logic.
-4. Basic EMA block/item/block entity.
-5. Pattern encoding terminal menu/screen.
-6. JEI transfer integration.
-7. Optional Extended Crafting/Re:Avaritia/Avaritia Neo adapters.
-8. ExtendedAE Matrix integration last.
+- Code: LGPL 3.0
+- Assets:
+  - AE2-derived screen assets follow their original asset license where applicable.
+  - Mod-specific assets are distributed with this project unless otherwise noted.
 
-Keep extracting only stable, loader-neutral code or resources into `common/`.
+### Badges
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mc-myo-s-mod/ExtendedMolecularAseembler)
