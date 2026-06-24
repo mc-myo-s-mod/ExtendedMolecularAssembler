@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "online=false": { "model": "extendedmolecularassembler:block/ultimate_me_crafting_provider" },
+    "online=true": { "model": "extendedmolecularassembler:block/ultimate_me_crafting_provider" }
+  }
+}

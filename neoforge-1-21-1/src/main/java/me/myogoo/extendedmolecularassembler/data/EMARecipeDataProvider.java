@@ -44,6 +44,22 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 new String[]{"QPQ", "RCR", "QPQ"},
                 key('C', "minecraft:crafting_table", 'P', "ae2:blank_pattern", 'Q', "ae2:certus_quartz_crystal", 'R', "minecraft:redstone"),
                 "extendedmolecularassembler:extended_crafting_pattern", true);
+        saveShaped(output, "basic_me_crafting_provider", null, "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:extended_crafting_pattern", 'L', "ae2:logic_processor", 'P', "ae2:fluix_glass_cable", 'T', "minecraft:crafting_table"),
+                "extendedmolecularassembler:basic_me_crafting_provider", true);
+        saveShaped(output, "advanced_me_crafting_provider", null, "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:basic_me_crafting_provider", 'L', "ae2:calculation_processor", 'P', "ae2:fluix_glass_cable", 'T', "minecraft:gold_block"),
+                "extendedmolecularassembler:advanced_me_crafting_provider", true);
+        saveShaped(output, "elite_me_crafting_provider", null, "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:advanced_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:fluix_glass_cable", 'T', "minecraft:diamond_block"),
+                "extendedmolecularassembler:elite_me_crafting_provider", true);
+        saveShaped(output, "ultimate_me_crafting_provider", null, "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:elite_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "minecraft:netherite_block"),
+                "extendedmolecularassembler:ultimate_me_crafting_provider", true);
     }
 
     private static void buildIntegrationRecipes(JsonRecipeOutput output) {

@@ -18,6 +18,9 @@ import appeng.util.inv.InternalInventoryHost;
 import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixFunction;
+import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.blockentity.TieredMECraftingProviderBlockEntity;
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -170,7 +173,32 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         if (!formed || !active || !knownPattern) {
             return false;
         }
+        if (EMAConfig.tieredMode() && patternDetails instanceof ExtendedTableCraftingPattern pattern
+                && !hasMatchingProvider(pattern)) {
+            return false;
+        }
         return this.cluster != null && this.cluster.pushCraftingJob(patternDetails, inputHolder);
+    }
+
+    private boolean hasMatchingProvider(ExtendedTableCraftingPattern pattern) {
+        final int tableTier = pattern.tableTier();
+        try {
+            TieredMECraftingProviderTier.byTier(tableTier);
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+
+        var grid = this.getMainNode().getGrid();
+        if (grid == null) {
+            return false;
+        }
+
+        for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
+            if (provider.getProviderTier() == tableTier && provider.isOnline()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

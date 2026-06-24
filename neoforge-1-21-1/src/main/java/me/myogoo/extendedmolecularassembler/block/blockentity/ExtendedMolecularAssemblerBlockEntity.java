@@ -33,6 +33,7 @@ import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.filter.IAEItemFilter;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
@@ -58,6 +59,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEntity
@@ -96,6 +98,8 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     private final IUpgradeInventory upgrades;
     private boolean isPowered = false;
     private boolean isAwake = false;
+    @Nullable
+    private Component lastTierRejectReason;
     @OnlyIn(Dist.CLIENT)
     private AssemblerAnimationStatus animationStatus;
 
@@ -148,14 +152,19 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                 : this.machineBlock.asItem().getDescription();
         var icon = AEItemKey.of(this.machineBlock);
 
-        List<Component> tooltip;
+        List<Component> tooltip = new ArrayList<>();
         var accelerationCards = getInstalledUpgrades(AEItems.SPEED_CARD);
-        if (accelerationCards == 0) {
-            tooltip = List.of();
-        } else {
-            tooltip = List.of(GuiText.CompatibleUpgrade.text(
+        if (accelerationCards != 0) {
+            tooltip.add(GuiText.CompatibleUpgrade.text(
                     Tooltips.of(AEItems.SPEED_CARD.asItem().getDescription()),
                     Tooltips.ofUnformattedNumber(accelerationCards)));
+        }
+        if (EMAConfig.tieredMode()) {
+            tooltip.add(Component.translatable("tooltip.extendedmolecularassembler.tiered_mode.enabled"));
+            if (this.lastTierRejectReason != null) {
+                tooltip.add(Component.translatable("tooltip.extendedmolecularassembler.tiered_mode.last_reject",
+                        this.lastTierRejectReason));
+            }
         }
 
         return new PatternContainerGroup(icon, name, tooltip);
@@ -167,13 +176,68 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
             return false;
         }
 
+        if (!this.isTierAllowed(pattern)) {
+            return false;
+        }
+
         for (int i = 0; i < this.laneCount; i++) {
             var lane = this.lanes[i];
             if (lane.acceptJob(pattern, table, where)) {
+                this.clearTierRejectReason();
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean isTierAllowed(ExtendedTableCraftingPattern pattern) {
+        if (!EMAConfig.tieredMode()) {
+            this.clearTierRejectReason();
+            return true;
+        }
+
+        final int tableTier = pattern.tableTier();
+        final TieredMECraftingProviderTier providerTier;
+        try {
+            providerTier = TieredMECraftingProviderTier.byTier(tableTier);
+        } catch (IllegalArgumentException ignored) {
+            this.setTierRejectReason(Component.translatable(
+                    "tooltip.extendedmolecularassembler.tiered_mode.unsupported_tier",
+                    TieredMECraftingProviderTier.tierName(tableTier), tableTier));
+            return false;
+        }
+
+        var grid = this.getMainNode().getGrid();
+        if (grid == null) {
+            this.setTierRejectReason(Component.translatable(
+                    "tooltip.extendedmolecularassembler.tiered_mode.offline_grid",
+                    providerTier.displayName(), tableTier));
+            return false;
+        }
+
+        for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
+            if (provider.getProviderTier() == tableTier && provider.isOnline()) {
+                this.clearTierRejectReason();
+                return true;
+            }
+        }
+
+        this.setTierRejectReason(Component.translatable(
+                "tooltip.extendedmolecularassembler.tiered_mode.missing_provider",
+                providerTier.displayName(), tableTier));
+        return false;
+    }
+
+    private void setTierRejectReason(Component reason) {
+        this.lastTierRejectReason = reason;
+        this.markForUpdate();
+    }
+
+    private void clearTierRejectReason() {
+        if (this.lastTierRejectReason != null) {
+            this.lastTierRejectReason = null;
+            this.markForUpdate();
+        }
     }
 
     private void updateSleepiness() {

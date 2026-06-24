@@ -8,6 +8,7 @@ public final class EMAConfig {
 
     private static final ModConfigSpec.DoubleValue EXTENDED_MOLECULAR_ASSEMBLER_CRAFTING_POWER_MULTIPLIER;
     private static final ModConfigSpec.DoubleValue EXTENDED_MOLECULAR_ASSEMBLER_PASSIVE_POWER_USAGE;
+    private static final ModConfigSpec.BooleanValue TIERED_MODE;
     private static final ModConfigSpec.DoubleValue EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_CRAFTING_POWER_MULTIPLIER;
     private static final ModConfigSpec.DoubleValue EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PASSIVE_POWER_USAGE;
 
@@ -20,6 +21,11 @@ public final class EMAConfig {
         EXTENDED_MOLECULAR_ASSEMBLER_PASSIVE_POWER_USAGE = BUILDER
                 .comment("Passive AE/t idle drain for each Extended Molecular Assembler network node.")
                 .defineInRange("passivePowerUsage", 0.0, 0.0, Double.MAX_VALUE);
+        TIERED_MODE = BUILDER
+                .comment(
+                        "When enabled, extended table auto-crafting is accepted only if an online ME tiered crafting provider of the exact table tier exists in the same ME network.",
+                        "Basic provider = tier 1, Advanced = tier 2, Elite = tier 3, Ultimate = tier 4.")
+                .define("TieredMode", false);
 
         BUILDER.pop();
 
@@ -45,6 +51,10 @@ public final class EMAConfig {
 
     public static double extendedMolecularAssemblerPassivePowerUsage() {
         return EXTENDED_MOLECULAR_ASSEMBLER_PASSIVE_POWER_USAGE.get();
+    }
+
+    public static boolean tieredMode() {
+        return TIERED_MODE.get();
     }
 
     public static double extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier() {
