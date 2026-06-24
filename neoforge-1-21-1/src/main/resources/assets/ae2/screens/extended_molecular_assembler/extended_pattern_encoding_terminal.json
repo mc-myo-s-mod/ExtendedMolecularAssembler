@@ -30,9 +30,6 @@
       "left": 8,
       "bottom": 25,
       "grid": "HORIZONTAL"
-    },
-    "UPGRADE": {
-      "left": -6
     }
   },
   "text": {
