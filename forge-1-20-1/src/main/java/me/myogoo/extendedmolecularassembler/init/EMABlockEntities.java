@@ -51,6 +51,31 @@ public final class EMABlockEntities {
                     () -> createProviderType(TieredMECraftingProviderTier.ULTIMATE,
                             EMABlocks.ULTIMATE_ME_CRAFTING_PROVIDER.get(),
                             EMAItems.ULTIMATE_ME_CRAFTING_PROVIDER.get()));
+    public static final RegistryObject<BlockEntityType<TieredMECraftingProviderBlockEntity>> RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER =
+            BLOCK_ENTITIES.register("re_avaritia_sculk_me_crafting_provider",
+                    () -> createProviderType(TieredMECraftingProviderTier.RE_AVARITIA_SCULK,
+                            EMABlocks.RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER.get(),
+                            EMAItems.RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER.get()));
+    public static final RegistryObject<BlockEntityType<TieredMECraftingProviderBlockEntity>> RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER =
+            BLOCK_ENTITIES.register("re_avaritia_nether_me_crafting_provider",
+                    () -> createProviderType(TieredMECraftingProviderTier.RE_AVARITIA_NETHER,
+                            EMABlocks.RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER.get(),
+                            EMAItems.RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER.get()));
+    public static final RegistryObject<BlockEntityType<TieredMECraftingProviderBlockEntity>> RE_AVARITIA_END_ME_CRAFTING_PROVIDER =
+            BLOCK_ENTITIES.register("re_avaritia_end_me_crafting_provider",
+                    () -> createProviderType(TieredMECraftingProviderTier.RE_AVARITIA_END,
+                            EMABlocks.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get(),
+                            EMAItems.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get()));
+    public static final RegistryObject<BlockEntityType<TieredMECraftingProviderBlockEntity>> RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER =
+            BLOCK_ENTITIES.register("re_avaritia_xtreme_me_crafting_provider",
+                    () -> createProviderType(TieredMECraftingProviderTier.RE_AVARITIA_XTREME,
+                            EMABlocks.RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER.get(),
+                            EMAItems.RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER.get()));
+    public static final RegistryObject<BlockEntityType<TieredMECraftingProviderBlockEntity>> AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER =
+            BLOCK_ENTITIES.register("avaritia_neo_xtreme_me_crafting_provider",
+                    () -> createProviderType(TieredMECraftingProviderTier.AVARITIA_NEO_XTREME,
+                            EMABlocks.AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER.get(),
+                            EMAItems.AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER.get()));
 
     private static BlockEntityType<ExtendedMolecularAssemblerBlockEntity> createAssemblerType(
             ExtendedMolecularAssemblerBlock block, Item item) {

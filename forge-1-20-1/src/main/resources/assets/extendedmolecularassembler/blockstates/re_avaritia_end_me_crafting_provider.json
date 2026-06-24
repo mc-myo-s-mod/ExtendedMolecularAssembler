@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "online=false": {
+      "model": "extendedmolecularassembler:block/re_avaritia_end_me_crafting_provider"
+    },
+    "online=true": {
+      "model": "extendedmolecularassembler:block/re_avaritia_end_me_crafting_provider"
+    }
+  }
+}

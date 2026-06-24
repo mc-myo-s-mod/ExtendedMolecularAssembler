@@ -28,6 +28,16 @@ public final class EMABlocks {
             registerProvider(TieredMECraftingProviderTier.ELITE);
     public static final DeferredBlock<TieredMECraftingProviderBlock> ULTIMATE_ME_CRAFTING_PROVIDER =
             registerProvider(TieredMECraftingProviderTier.ULTIMATE);
+    public static final DeferredBlock<TieredMECraftingProviderBlock> RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER =
+            registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_SCULK);
+    public static final DeferredBlock<TieredMECraftingProviderBlock> RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER =
+            registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_NETHER);
+    public static final DeferredBlock<TieredMECraftingProviderBlock> RE_AVARITIA_END_ME_CRAFTING_PROVIDER =
+            registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_END);
+    public static final DeferredBlock<TieredMECraftingProviderBlock> RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER =
+            registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_XTREME);
+    public static final DeferredBlock<TieredMECraftingProviderBlock> AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER =
+            registerProvider(TieredMECraftingProviderTier.AVARITIA_NEO_XTREME);
 
     private static DeferredBlock<TieredMECraftingProviderBlock> registerProvider(TieredMECraftingProviderTier tier) {
         return BLOCKS.register(tier.blockId(), () -> new TieredMECraftingProviderBlock(tier, providerProperties()));

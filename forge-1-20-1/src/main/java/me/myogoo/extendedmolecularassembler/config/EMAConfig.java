@@ -11,8 +11,8 @@ public final class EMAConfig {
         builder.push("general");
         TIERED_MODE = builder
                 .comment(
-                        "When enabled, extended table auto-crafting is accepted only if an online ME tiered crafting provider for the encoded table type exists in the same ME network.",
-                        "Extended Crafting maps Basic/Advanced/Elite/Ultimate normally; Re:Avaritia maps Sculk/Nether/End/Xtreme; AvaritiaNeo maps Xtreme only.")
+                        "When enabled, extended table auto-crafting is accepted only if an online ME crafting provider for the exact encoded table exists in the same ME network.",
+                        "Use the Extended Crafting providers for Extended Crafting tables, Re:Avaritia providers for Re:Avaritia Sculk/Nether/End/Xtreme tables, and the AvaritiaNeo Xtreme provider for AvaritiaNeo Xtreme recipes.")
                 .define("TieredMode", false);
         builder.pop();
         SPEC = builder.build();

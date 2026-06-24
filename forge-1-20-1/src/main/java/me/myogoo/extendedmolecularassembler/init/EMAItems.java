@@ -32,6 +32,21 @@ public final class EMAItems {
     public static final RegistryObject<BlockItem> ULTIMATE_ME_CRAFTING_PROVIDER =
             ITEMS.register("ultimate_me_crafting_provider",
                     () -> new BlockItem(EMABlocks.ULTIMATE_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER =
+            ITEMS.register("re_avaritia_sculk_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER =
+            ITEMS.register("re_avaritia_nether_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> RE_AVARITIA_END_ME_CRAFTING_PROVIDER =
+            ITEMS.register("re_avaritia_end_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER =
+            ITEMS.register("re_avaritia_xtreme_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.RE_AVARITIA_XTREME_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER =
+            ITEMS.register("avaritia_neo_xtreme_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.AVARITIA_NEO_XTREME_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
 
     public static final RegistryObject<Item> EXTENDED_CRAFTING_PATTERN =
             ITEMS.register("extended_crafting_pattern", () -> new Item(new Item.Properties().stacksTo(1)));
