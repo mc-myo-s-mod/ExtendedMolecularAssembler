@@ -1,6 +1,7 @@
 package me.myogoo.extendedmolecularassembler.block.blockentity;
 
 import appeng.api.implementations.IPowerChannelState;
+import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridNodeListener;
 import appeng.blockentity.grid.AENetworkedBlockEntity;
 import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
@@ -17,7 +18,9 @@ public class TieredMECraftingProviderBlockEntity extends AENetworkedBlockEntity 
             TieredMECraftingProviderTier tier) {
         super(blockEntityType, pos, blockState);
         this.tier = tier;
-        getMainNode().setIdlePowerUsage(EMAConfig.tieredMECraftingProviderPassivePowerUsage(tier));
+        getMainNode()
+                .setIdlePowerUsage(EMAConfig.tieredMECraftingProviderPassivePowerUsage(tier))
+                .setFlags(GridFlags.REQUIRE_CHANNEL);
     }
 
     public TieredMECraftingProviderTier getTier() {
