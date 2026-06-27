@@ -16,11 +16,9 @@ import appeng.helpers.InventoryAction;
 import com.glodblock.github.extendedae.client.button.ActionEPPButton;
 import com.glodblock.github.extendedae.client.button.CycleEPPButton;
 import com.glodblock.github.extendedae.util.FCUtil;
-import me.myogoo.extendedmolecularassembler.client.widget.EMAIconButton;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu.PatternEntry;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAOpenExtendedAEAssemblerMatrixScreenPacket;
-import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMARequestMatrixCraftingStatusPacket;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
@@ -44,7 +42,6 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
 
     private final ActionEPPButton cancelJobsButton;
     private final ActionEPPButton backToMatrixButton;
-    private final EMAIconButton craftingStatusButton;
     private final CycleEPPButton patternAccessButton;
     private final Scrollbar patternScrollbar;
     private final AETextField searchField;
@@ -73,11 +70,6 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
                 Icon.BACK);
         this.backToMatrixButton.setMessage(Component.translatable("gui.extendedmolecularassembler.matrix.backToMatrix"));
 
-        this.craftingStatusButton = new EMAIconButton(Icon.CRAFT_HAMMER,
-                Component.translatable("gui.extendedmolecularassembler.matrix.craftingStatus"),
-                btn -> PacketDistributor.sendToServer(new EMARequestMatrixCraftingStatusPacket(
-                        this.menu.getHost().getBlockPos())));
-
         this.patternAccessButton = new CycleEPPButton();
         this.patternAccessButton.addActionPair(Icon.PATTERN_ACCESS_SHOW,
                 Component.translatable("gui.extendedmolecularassembler.matrix.showInPatternAccess"),
@@ -100,9 +92,6 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
     public void init() {
         super.init();
         this.setInitialFocus(this.searchField);
-        this.craftingStatusButton.setX(this.leftPos + this.imageWidth - 22);
-        this.craftingStatusButton.setY(this.topPos + 4);
-        this.addRenderableWidget(this.craftingStatusButton);
         this.refreshFilteredPatternEntries();
     }
 
