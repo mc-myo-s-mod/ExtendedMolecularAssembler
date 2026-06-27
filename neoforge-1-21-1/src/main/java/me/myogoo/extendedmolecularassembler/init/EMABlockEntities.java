@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class EMABlockEntities {
@@ -111,6 +112,18 @@ public final class EMABlockEntities {
         AEBaseBlockEntity.registerBlockEntityItem(
                 XTREME_ME_CRAFTING_PROVIDER.get(),
                 EMAItems.XTREME_ME_CRAFTING_PROVIDER.get());
+    }
+
+    public static List<BlockEntityType<TieredMECraftingProviderBlockEntity>> providerTypes() {
+        return List.of(
+                BASIC_ME_CRAFTING_PROVIDER.get(),
+                ADVANCED_ME_CRAFTING_PROVIDER.get(),
+                ELITE_ME_CRAFTING_PROVIDER.get(),
+                ULTIMATE_ME_CRAFTING_PROVIDER.get(),
+                RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER.get(),
+                RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER.get(),
+                RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get(),
+                XTREME_ME_CRAFTING_PROVIDER.get());
     }
 
     private EMABlockEntities() {

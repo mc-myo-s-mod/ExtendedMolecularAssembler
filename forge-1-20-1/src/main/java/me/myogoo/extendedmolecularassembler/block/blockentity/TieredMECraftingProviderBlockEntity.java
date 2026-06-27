@@ -3,16 +3,17 @@ package me.myogoo.extendedmolecularassembler.block.blockentity;
 import appeng.api.implementations.IPowerChannelState;
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridNodeListener;
-import appeng.blockentity.grid.AENetworkBlockEntity;
 import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class TieredMECraftingProviderBlockEntity extends AENetworkBlockEntity implements IPowerChannelState {
+public class TieredMECraftingProviderBlockEntity extends EMABaseProvider implements IPowerChannelState {
     private final TieredMECraftingProviderTier tier;
-    private boolean online;
+    private boolean clientSideOnline;
 
     public TieredMECraftingProviderBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState blockState,
             TieredMECraftingProviderTier tier) {
@@ -33,25 +34,67 @@ public class TieredMECraftingProviderBlockEntity extends AENetworkBlockEntity im
 
     @Override
     public void onMainNodeStateChanged(IGridNodeListener.State reason) {
-        var node = getMainNode().getNode();
-        boolean newOnline = node != null && node.isOnline();
-        if (this.online != newOnline) {
-            this.online = newOnline;
+        updateVisualStateIfNeeded();
+    }
+
+    private void updateVisualStateIfNeeded() {
+        if (updateClientSideState()) {
             this.markForUpdate();
         }
     }
 
+    private boolean updateClientSideState() {
+        if (this.isClientSide()) {
+            return false;
+        }
+
+        var newOnline = getMainNode().isOnline();
+        if (this.clientSideOnline == newOnline) {
+            return false;
+        }
+
+        this.clientSideOnline = newOnline;
+        return true;
+    }
+
+    @Override
+    protected void saveVisualState(CompoundTag data) {
+        super.saveVisualState(data);
+        data.putBoolean("online", this.isOnline());
+    }
+
+    @Override
+    protected void loadVisualState(CompoundTag data) {
+        super.loadVisualState(data);
+        this.clientSideOnline = data.getBoolean("online");
+    }
+
+    @Override
+    protected boolean readFromStream(FriendlyByteBuf data) {
+        var changed = super.readFromStream(data);
+        var oldOnline = this.clientSideOnline;
+        this.clientSideOnline = data.readBoolean();
+        return changed || oldOnline != this.clientSideOnline;
+    }
+
+    @Override
+    protected void writeToStream(FriendlyByteBuf data) {
+        super.writeToStream(data);
+        updateClientSideState();
+        data.writeBoolean(this.clientSideOnline);
+    }
+
     @Override
     public boolean isPowered() {
-        return this.online;
+        return this.isOnline();
     }
 
     @Override
     public boolean isActive() {
-        return this.online;
+        return this.isOnline();
     }
 
     public boolean isOnline() {
-        return this.online;
+        return this.isClientSide() ? this.clientSideOnline : getMainNode().isOnline();
     }
 }

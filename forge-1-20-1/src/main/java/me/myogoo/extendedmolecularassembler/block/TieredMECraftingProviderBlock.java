@@ -46,7 +46,7 @@ public class TieredMECraftingProviderBlock extends AEBaseEntityBlock<TieredMECra
     @Override
     protected BlockState updateBlockStateFromBlockEntity(BlockState currentState,
             TieredMECraftingProviderBlockEntity blockEntity) {
-        return currentState.setValue(ONLINE, blockEntity.isOnline());
+        return currentState;
     }
 
     @Override

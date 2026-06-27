@@ -24,6 +24,7 @@ import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssemblerMatrixFunction
@@ -66,7 +67,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     }
 
     @Override
-    public void addAdditionalDrops(Level level, BlockPos pos, java.util.List<ItemStack> drops) {
+    public void addAdditionalDrops(Level level, BlockPos pos, List<ItemStack> drops) {
         super.addAdditionalDrops(level, pos, drops);
         for (var pattern : this.patternInventory) {
             if (!pattern.isEmpty()) {

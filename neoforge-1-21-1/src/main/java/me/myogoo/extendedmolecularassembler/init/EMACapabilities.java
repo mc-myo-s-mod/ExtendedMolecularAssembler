@@ -2,6 +2,7 @@ package me.myogoo.extendedmolecularassembler.init;
 
 import appeng.api.AECapabilities;
 import appeng.blockentity.AEBaseInvBlockEntity;
+import me.myogoo.extendedmolecularassembler.block.blockentity.EMABaseProvider;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -15,6 +16,9 @@ public final class EMACapabilities {
         registerAssembler(event, EMABlockEntities.EXTENDED_MOLECULAR_ASSEMBLER.get());
         if (EMABlockEntities.EX_EXTENDED_MOLECULAR_ASSEMBLER != null) {
             registerAssembler(event, EMABlockEntities.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
+        }
+        for (var providerType : EMABlockEntities.providerTypes()) {
+            registerProvider(event, providerType);
         }
         EMAOptionalIntegrations.registerCapabilities(event);
     }
@@ -33,5 +37,13 @@ public final class EMACapabilities {
                 Capabilities.ItemHandler.BLOCK,
                 type,
                 AEBaseInvBlockEntity::getExposedItemHandler);
+    }
+
+    private static <T extends EMABaseProvider> void registerProvider(RegisterCapabilitiesEvent event,
+            BlockEntityType<T> type) {
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                type,
+                (provider, context) -> provider);
     }
 }

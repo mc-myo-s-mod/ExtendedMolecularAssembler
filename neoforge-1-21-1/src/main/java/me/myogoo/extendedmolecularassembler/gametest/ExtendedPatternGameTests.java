@@ -44,6 +44,7 @@ import net.pedroksl.advanced_ae.gui.QuantumCrafterMenu;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @GameTestHolder(ExtendedMolecularAssembler.MODID)
 @PrefixGameTestTemplate(false)
@@ -531,7 +532,7 @@ public final class ExtendedPatternGameTests {
     }
 
     private static ExtendedPatternRecipeMatch requireMatch(GameTestHelper helper,
-            java.util.Optional<ExtendedPatternRecipeMatch> match, PatternCase testCase) {
+            Optional<ExtendedPatternRecipeMatch> match, PatternCase testCase) {
         if (match.isEmpty()) {
             helper.fail(testCase.label() + " was not found from a centered 9x9 machine grid");
         }
