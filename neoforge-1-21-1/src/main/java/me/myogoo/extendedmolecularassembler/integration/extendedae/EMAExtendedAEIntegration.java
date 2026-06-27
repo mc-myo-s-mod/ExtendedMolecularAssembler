@@ -11,6 +11,8 @@ import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContex
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAMatrixPatternCoreUpdatePacket;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAOpenExtendedAEAssemblerMatrixScreenPacket;
+import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMARequestMatrixCraftingStatusPacket;
+import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAShowMatrixCraftingStatusPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -187,10 +189,18 @@ public final class EMAExtendedAEIntegration {
                 EMAOpenExtendedAEAssemblerMatrixScreenPacket.TYPE,
                 EMAOpenExtendedAEAssemblerMatrixScreenPacket.STREAM_CODEC,
                 EMAOpenExtendedAEAssemblerMatrixScreenPacket::handle);
+        registrar.playToServer(
+                EMARequestMatrixCraftingStatusPacket.TYPE,
+                EMARequestMatrixCraftingStatusPacket.STREAM_CODEC,
+                EMARequestMatrixCraftingStatusPacket::handle);
         registrar.playToClient(
                 EMAMatrixPatternCoreUpdatePacket.TYPE,
                 EMAMatrixPatternCoreUpdatePacket.STREAM_CODEC,
                 EMAMatrixPatternCoreUpdatePacket::handle);
+        registrar.playToClient(
+                EMAShowMatrixCraftingStatusPacket.TYPE,
+                EMAShowMatrixCraftingStatusPacket.STREAM_CODEC,
+                EMAShowMatrixCraftingStatusPacket::handle);
     }
 
     public static ItemStack tryInsertIntoAssemblerMatrix(Level level, BlockPos pos, ItemStack stack) {

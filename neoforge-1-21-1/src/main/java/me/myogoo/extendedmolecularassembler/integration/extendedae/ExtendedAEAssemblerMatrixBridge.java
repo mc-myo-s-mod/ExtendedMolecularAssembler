@@ -6,11 +6,14 @@ import appeng.api.implementations.blockentities.ICraftingMachine;
 import appeng.api.stacks.AEItemKey;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixBase;
+import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixCrafter;
+import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixPattern;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
 import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContext;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +25,8 @@ import java.util.WeakHashMap;
 
 public final class ExtendedAEAssemblerMatrixBridge {
     private static final Direction[] DIRECTIONS = Direction.values();
+    private static final String EXTENDEDAE_PLUS_NAMESPACE = "extendedae_plus";
+    private static final String MATRIX_CRAFTER_PLUS_ID = "assembler_matrix_crafter_plus";
     private static final Map<ClusterAssemblerMatrix, ClusterJobState> JOB_STATES =
             Collections.synchronizedMap(new WeakHashMap<>());
     private static final ThreadLocal<ReservedMatrixJob> CURRENT_JOB = new ThreadLocal<>();
@@ -40,6 +45,74 @@ public final class ExtendedAEAssemblerMatrixBridge {
 
     public static boolean hasAvailableExtendedAssembler(ClusterAssemblerMatrix cluster) {
         return getAvailableExtendedCraftingSlots(cluster) > 0;
+    }
+
+    public static MatrixStatusSummary describeMatrixStatus(TileAssemblerMatrixBase matrixBlock) {
+        if (matrixBlock == null || !matrixBlock.isFormed()) {
+            return MatrixStatusSummary.EMPTY;
+        }
+        return describeMatrixStatus(matrixBlock.getCluster());
+    }
+
+    public static MatrixStatusSummary describeMatrixStatus(ClusterAssemblerMatrix cluster) {
+        if (cluster == null || cluster.isDestroyed()) {
+            return MatrixStatusSummary.EMPTY;
+        }
+
+        var matrixTotalParallelCrafters = 0;
+        var matrixUsedParallelCrafters = 0;
+        var matrixPatternSlots = 0;
+        var emaTotalParallelCrafters = 0;
+        var emaUsedParallelCrafters = 0;
+        var emaPatternSlots = 0;
+
+        var iterator = cluster.getBlockEntities();
+        while (iterator.hasNext()) {
+            var matrixBlock = iterator.next();
+            if (matrixBlock instanceof TileAssemblerMatrixCrafter crafter) {
+                var capacity = matrixCrafterCapacity(crafter);
+                matrixTotalParallelCrafters += capacity;
+                matrixUsedParallelCrafters += Math.min(capacity, Math.max(0, crafter.usedThread()));
+            }
+            if (matrixBlock instanceof TileAssemblerMatrixPattern patternCore) {
+                matrixPatternSlots += patternCore.getPatternInventory().size();
+            }
+            if (matrixBlock instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity emaCrafter) {
+                var capacity = emaCrafter.extendedmolecularassembler$getExtendedThreadCapacity();
+                emaTotalParallelCrafters += capacity;
+                emaUsedParallelCrafters += Math.min(capacity,
+                        Math.max(0, emaCrafter.extendedmolecularassembler$getExtendedUsedThreadCount()));
+            }
+            if (matrixBlock instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity emaPatternCore) {
+                emaPatternSlots += emaPatternCore.getPatternInventory().size();
+            }
+        }
+
+        var speed = cluster.getSpeedCore();
+        return new MatrixStatusSummary(
+                new MatrixCraftingStatus(
+                        Math.max(0, matrixTotalParallelCrafters - matrixUsedParallelCrafters),
+                        matrixTotalParallelCrafters,
+                        matrixPatternSlots,
+                        speed,
+                        MatrixCraftingStatus.MAX_SPEED),
+                new MatrixCraftingStatus(
+                        Math.max(0, emaTotalParallelCrafters - emaUsedParallelCrafters),
+                        emaTotalParallelCrafters,
+                        emaPatternSlots,
+                        speed,
+                        MatrixCraftingStatus.MAX_SPEED));
+    }
+
+    private static int matrixCrafterCapacity(TileAssemblerMatrixCrafter crafter) {
+        return isExtendedAEPlusBlock(crafter, MATRIX_CRAFTER_PLUS_ID)
+                ? ExtendedAssemblerMatrixCraftingCoreBlockEntity.PLUS_THREAD_COUNT
+                : TileAssemblerMatrixCrafter.MAX_THREAD;
+    }
+
+    private static boolean isExtendedAEPlusBlock(TileAssemblerMatrixBase matrixBlock, String path) {
+        var key = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(matrixBlock.getType());
+        return EXTENDEDAE_PLUS_NAMESPACE.equals(key.getNamespace()) && path.equals(key.getPath());
     }
 
     public static boolean hasAvailableExtendedAssembler(Level level, BlockPos matrixPos) {
@@ -81,6 +154,12 @@ public final class ExtendedAEAssemblerMatrixBridge {
         INACTIVE,
         BUSY,
         USABLE
+    }
+
+    public record MatrixStatusSummary(MatrixCraftingStatus matrix, MatrixCraftingStatus ema) {
+        public static final MatrixStatusSummary EMPTY = new MatrixStatusSummary(
+                MatrixCraftingStatus.EMPTY,
+                MatrixCraftingStatus.EMPTY);
     }
 
     public static boolean hasExtendedPatternCore(ClusterAssemblerMatrix cluster) {

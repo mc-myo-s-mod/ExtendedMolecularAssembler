@@ -79,5 +79,11 @@
   "tier.extendedmolecularassembler.re_avaritia_nether": "Re:Avaritia Nether",
   "tier.extendedmolecularassembler.re_avaritia_end": "Re:Avaritia End",
   "block.extendedmolecularassembler.xtreme_me_crafting_provider": "Xtreme ME Crafting Provider",
-  "tier.extendedmolecularassembler.xtreme": "Xtreme"
+  "tier.extendedmolecularassembler.xtreme": "Xtreme",
+  "gui.extendedmolecularassembler.matrix.craftingStatus": "Crafting Status",
+  "gui.extendedmolecularassembler.matrix.status.tab.matrix": "Matrix",
+  "gui.extendedmolecularassembler.matrix.status.tab.ema": "EMA Matrix",
+  "gui.extendedmolecularassembler.matrix.status.parallelCrafters": "Available Parallel Crafters",
+  "gui.extendedmolecularassembler.matrix.status.patternSlots": "Total Pattern Slots",
+  "gui.extendedmolecularassembler.matrix.status.speed": "Total Speed / Max Speed"
 }
