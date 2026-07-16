@@ -20,9 +20,6 @@ import java.util.Set;
 
 public final class ExtendedPatternRecipeFinder {
     private static final int[] TABLE_SIDES = { 3, 5, 7, 9 };
-    private static RecipeManager cachedRecipeManager;
-    private static int cachedRecipeCount;
-    private static Map<Integer, List<RecipeCandidate>> cachedCandidatesBySide = Map.of();
 
     private ExtendedPatternRecipeFinder() {
     }
@@ -38,6 +35,7 @@ public final class ExtendedPatternRecipeFinder {
         }
 
         var matchedRecipeIds = new HashSet<ResourceLocation>();
+        var candidatesBySide = candidatesBySide(level.getRecipeManager());
 
         for (var side : TABLE_SIDES) {
             for (var offsetY : orderedOffsets(side)) {
@@ -51,7 +49,7 @@ public final class ExtendedPatternRecipeFinder {
                         continue;
                     }
 
-                    findMatchesForInput(input, side, level, matches, matchedRecipeIds);
+                    findMatchesForInput(input, side, level, candidatesBySide, matches, matchedRecipeIds);
                 }
             }
         }
@@ -60,8 +58,9 @@ public final class ExtendedPatternRecipeFinder {
     }
 
     private static void findMatchesForInput(List<ItemStack> input, int side, Level level,
+            Map<Integer, List<RecipeCandidate>> candidatesBySide,
             List<ExtendedPatternRecipeMatch> matches, Set<ResourceLocation> matchedRecipeIds) {
-        for (var candidate : candidatesForSide(level.getRecipeManager(), side)) {
+        for (var candidate : candidatesBySide.getOrDefault(side, List.of())) {
             if (matchedRecipeIds.contains(candidate.recipe().getId()) || !candidate.adapter().matches(input, level)) {
                 continue;
             }
@@ -74,16 +73,8 @@ public final class ExtendedPatternRecipeFinder {
         }
     }
 
-    private static List<RecipeCandidate> candidatesForSide(RecipeManager recipeManager, int side) {
-        return candidatesBySide(recipeManager).getOrDefault(side, List.of());
-    }
-
     private static Map<Integer, List<RecipeCandidate>> candidatesBySide(RecipeManager recipeManager) {
         var recipes = recipeManager.getRecipes();
-        if (recipeManager == cachedRecipeManager && recipes.size() == cachedRecipeCount) {
-            return cachedCandidatesBySide;
-        }
-
         var candidatesBySide = new HashMap<Integer, List<RecipeCandidate>>();
         for (Recipe<?> recipe : recipes) {
             var adapter = tryCreateAdapter(recipe);
@@ -94,10 +85,7 @@ public final class ExtendedPatternRecipeFinder {
                     .add(new RecipeCandidate(recipe, adapter));
         }
 
-        cachedRecipeManager = recipeManager;
-        cachedRecipeCount = recipes.size();
-        cachedCandidatesBySide = Map.copyOf(candidatesBySide);
-        return cachedCandidatesBySide;
+        return Map.copyOf(candidatesBySide);
     }
 
     private static IMyotusTableRecipe<?> tryCreateAdapter(Recipe<?> recipe) {
