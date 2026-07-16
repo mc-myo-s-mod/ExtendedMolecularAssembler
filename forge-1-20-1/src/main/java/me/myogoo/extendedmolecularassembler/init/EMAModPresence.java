@@ -13,11 +13,13 @@ public final class EMAModPresence {
     }
 
     public static boolean isReAvaritiaLoaded() {
-        return isLoaded("reavaritia") || isLoaded("avaritia");
+        return isLoaded("avaritia")
+                && hasDisplayName("avaritia", "Re-Avaritia");
     }
 
     public static boolean isAvaritiaNeoLoaded() {
-        return isLoaded("avaritianeo") || isLoaded("avaritia");
+        return isLoaded("avaritia")
+                && hasDisplayName("avaritia", "Avaritia");
     }
 
     public static boolean isExtendedAELoaded() {
@@ -28,5 +30,16 @@ public final class EMAModPresence {
         return ModList.get() != null
                 ? ModList.get().isLoaded(modId)
                 : LoadingModList.get().getMods().stream().map(ModInfo::getModId).anyMatch(modId::equals);
+    }
+
+    private static boolean hasDisplayName(String modId, String displayName) {
+        if (ModList.get() != null) {
+            return ModList.get().getModContainerById(modId)
+                    .map(container -> displayName.equals(container.getModInfo().getDisplayName()))
+                    .orElse(false);
+        }
+
+        return LoadingModList.get().getMods().stream()
+                .anyMatch(info -> modId.equals(info.getModId()) && displayName.equals(info.getDisplayName()));
     }
 }
