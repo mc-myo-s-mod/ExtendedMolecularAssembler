@@ -15,6 +15,6 @@ import net.pedroksl.advanced_ae.common.entities.QuantumCrafterEntity;
 public class ExtendedQuantumCrafterBlockEntity extends QuantumCrafterEntity {
     public ExtendedQuantumCrafterBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState blockState) {
         super(blockEntityType, pos, blockState);
-        this.getMainNode().setIdlePowerUsage(EMAConfig.extendedQuantumCrafterPassivePowerUsage());
+        this.getMainNode().setIdlePowerUsage(EMAConfig.extendedQuantumCrafterIdlePowerUsage());
     }
 }

@@ -1,6 +1,7 @@
 package me.myogoo.extendedmolecularassembler.init;
 
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -13,7 +14,7 @@ public final class EMACreativeModeTabs {
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXTENDED_MOLECULAR_ASSEMBLER =
             CREATIVE_MODE_TABS.register("extended_molecular_assembler", () -> CreativeModeTab.builder()
-                    .title(Component.translatable("itemGroup.extendedmolecularassembler"))
+                    .title(Component.translatable(EMATranslationKey.ITEM_GROUP.key()))
                     .icon(() -> EMAItems.EXTENDED_MOLECULAR_ASSEMBLER.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(EMAItems.EXTENDED_MOLECULAR_ASSEMBLER.get());

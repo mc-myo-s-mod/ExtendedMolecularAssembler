@@ -1,6 +1,7 @@
 package me.myogoo.extendedmolecularassembler.integration.jei.handler;
 
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
@@ -17,9 +18,21 @@ import java.util.Optional;
 public class ExtendedPatternHolderRecipeTransferHandler<R extends Recipe<?>>
         implements IRecipeTransferHandler<ExtendedPatternEncodingTermMenu, RecipeHolder<R>> {
     private final RecipeType<RecipeHolder<R>> recipeType;
+    @Nullable
+    private final RecipeProvider transferredRecipeProvider;
+    private final int transferredRecipeTier;
+    private final int transferredRecipeSide;
 
     public ExtendedPatternHolderRecipeTransferHandler(RecipeType<RecipeHolder<R>> recipeType) {
+        this(recipeType, null, 0, 0);
+    }
+
+    public ExtendedPatternHolderRecipeTransferHandler(RecipeType<RecipeHolder<R>> recipeType,
+            @Nullable RecipeProvider transferredRecipeProvider, int transferredRecipeTier, int transferredRecipeSide) {
         this.recipeType = recipeType;
+        this.transferredRecipeProvider = transferredRecipeProvider;
+        this.transferredRecipeTier = transferredRecipeTier;
+        this.transferredRecipeSide = transferredRecipeSide;
     }
 
     @Override
@@ -45,7 +58,8 @@ public class ExtendedPatternHolderRecipeTransferHandler<R extends Recipe<?>>
         }
 
         if (doTransfer) {
-            ExtendedPatternRecipeTransfer.transfer(menu, recipe);
+            ExtendedPatternRecipeTransfer.transfer(menu, recipe, transferredRecipeProvider,
+                    transferredRecipeTier, transferredRecipeSide);
         }
         return null;
     }

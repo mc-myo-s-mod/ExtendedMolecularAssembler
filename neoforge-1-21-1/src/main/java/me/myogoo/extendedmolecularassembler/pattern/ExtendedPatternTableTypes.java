@@ -1,6 +1,7 @@
 package me.myogoo.extendedmolecularassembler.pattern;
 
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
@@ -50,14 +51,44 @@ public final class ExtendedPatternTableTypes {
     }
 
     public static Component displayName(ResourceLocation tableType, int tier, int sideLength) {
-        if (tableType.equals(UNKNOWN)) {
-            return Component.translatable("table.extendedmolecularassembler.unknown", tier, sideLength);
+        var key = displayNameKey(tableType);
+        if (key == EMATranslationKey.TABLE.UNKNOWN) {
+            return Component.translatable(key.key(), tier, sideLength);
         }
+        return Component.translatable(key.key());
+    }
 
-        var key = "table.extendedmolecularassembler."
-                + tableType.getNamespace()
-                + "."
-                + tableType.getPath().replace('/', '.');
-        return Component.translatable(key);
+    private static EMATranslationKey.TABLE displayNameKey(ResourceLocation tableType) {
+        if (tableType.equals(VANILLA_CRAFTING)) {
+            return EMATranslationKey.TABLE.MINECRAFT_CRAFTING_TABLE;
+        }
+        if (tableType.equals(EXTENDED_CRAFTING_BASIC)) {
+            return EMATranslationKey.TABLE.EXTENDEDCRAFTING_BASIC_TABLE;
+        }
+        if (tableType.equals(EXTENDED_CRAFTING_ADVANCED)) {
+            return EMATranslationKey.TABLE.EXTENDEDCRAFTING_ADVANCED_TABLE;
+        }
+        if (tableType.equals(EXTENDED_CRAFTING_ELITE)) {
+            return EMATranslationKey.TABLE.EXTENDEDCRAFTING_ELITE_TABLE;
+        }
+        if (tableType.equals(EXTENDED_CRAFTING_ULTIMATE)) {
+            return EMATranslationKey.TABLE.EXTENDEDCRAFTING_ULTIMATE_TABLE;
+        }
+        if (tableType.equals(RE_AVARITIA_SCULK)) {
+            return EMATranslationKey.TABLE.REAVARITIA_SCULK_TABLE;
+        }
+        if (tableType.equals(RE_AVARITIA_NETHER)) {
+            return EMATranslationKey.TABLE.REAVARITIA_NETHER_TABLE;
+        }
+        if (tableType.equals(RE_AVARITIA_END)) {
+            return EMATranslationKey.TABLE.REAVARITIA_END_TABLE;
+        }
+        if (tableType.equals(RE_AVARITIA_EXTREME)) {
+            return EMATranslationKey.TABLE.REAVARITIA_EXTREME_TABLE;
+        }
+        if (tableType.equals(AVARITIA_NEO_EXTREME)) {
+            return EMATranslationKey.TABLE.AVARITIANEO_EXTREME_TABLE;
+        }
+        return EMATranslationKey.TABLE.UNKNOWN;
     }
 }

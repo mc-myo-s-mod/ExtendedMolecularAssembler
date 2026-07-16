@@ -12,6 +12,9 @@ import appeng.api.storage.StorageHelper;
 import appeng.blockentity.grid.AENetworkedPoweredBlockEntity;
 import appeng.util.inv.AppEngInternalInventory;
 import com.mojang.datafixers.util.Pair;
+import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.blockentity.TieredMECraftingProviderBlockEntity;
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
 import me.myogoo.extendedmolecularassembler.integration.advancedae.EMAAdvancedAEIntegration;
 import me.myogoo.extendedmolecularassembler.integration.advancedae.ExtendedQuantumCraftingJob;
@@ -326,6 +329,10 @@ public abstract class QuantumCrafterEntityMixin {
         }
 
         var grid = node.getGrid();
+        if (!this.extendedmolecularassembler$canCraftExtendedPattern(job)) {
+            return 0;
+        }
+
         var totalCrafts = EXTENDEDMOLECULARASSEMBLER$MAX_CRAFT_AMOUNT;
         for (var input : inputs) {
             var minStock = job.minimumInputToKeep(input);
@@ -392,6 +399,34 @@ public abstract class QuantumCrafterEntityMixin {
             return totalCrafts;
         }
         return (int) Math.floor((double) extracted / output.amount());
+    }
+
+    @Unique
+    private boolean extendedmolecularassembler$canCraftExtendedPattern(ExtendedQuantumCraftingJob job) {
+        if (!EMAConfig.tieredMode()) {
+            return true;
+        }
+        if (job == null || job.pattern == null) {
+            return false;
+        }
+
+        try {
+            TieredMECraftingProviderTier.requiredFor(job.pattern.tableType(), job.pattern.tableTier());
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+
+        var node = this.extendedmolecularassembler$self().getGridNode();
+        if (node == null) {
+            return false;
+        }
+        var grid = node.getGrid();
+        for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
+            if (provider.isOnline() && provider.getTier().provides(job.pattern.tableType(), job.pattern.tableTier())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Unique

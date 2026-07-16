@@ -19,6 +19,7 @@ The mod provides two main approaches:
 
 * [Extended Pattern Encoding Terminal](pattern-encoding-terminal.md)
 * [Extended Molecular Assemblers](extended-molecular-assemblers.md)
+* [ME Crafting Providers](me-crafting-providers.md)
 * [EMA Matrix Cores](matrix-cores.md)
 * [ExtendedAE Plus Matrix Blocks](matrix-plus.md)
 * [Compatibility Notes](compatibility.md)

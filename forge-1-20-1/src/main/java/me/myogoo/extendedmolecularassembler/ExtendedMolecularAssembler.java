@@ -17,6 +17,7 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
@@ -37,6 +38,7 @@ public final class ExtendedMolecularAssembler {
         EMABlockEntities.BLOCK_ENTITIES.register(modBus);
         EMAMenus.MENUS.register(modBus);
         EMAAE2WTLibIntegration.registerTerminal();
+        modBus.addListener(ExtendedMolecularAssembler::onCommonSetup);
         modBus.addListener(EMAAE2WTLibIntegration::onCommonSetup);
         modBus.addListener(EMADataGenerators::onGatherData);
         DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
@@ -45,5 +47,12 @@ public final class ExtendedMolecularAssembler {
 
     public static ResourceLocation makeId(String path) {
         return new ResourceLocation(MODID, path);
+    }
+
+    private static void onCommonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            EMABlockEntities.registerRepresentativeItems();
+            EMAOptionalIntegrations.registerRepresentativeItems();
+        });
     }
 }

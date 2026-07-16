@@ -40,6 +40,7 @@ import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
 import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContext;
 import me.myogoo.extendedmolecularassembler.network.clientbound.EMAAssemblerAnimationPacket;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -109,7 +110,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
         this.machineBlock = getMachineBlock(blockState);
         this.laneCount = isExAssemblerBlock(blockState) ? PARALLEL_LANE_COUNT : 1;
         getMainNode()
-                .setIdlePowerUsage(EMAConfig.extendedMolecularAssemblerPassivePowerUsage(isExAssemblerBlock(blockState)))
+                .setIdlePowerUsage(EMAConfig.extendedMolecularAssemblerIdlePowerUsage(isExAssemblerBlock(blockState)))
                 .addService(IGridTickable.class, this);
         this.upgrades = UpgradeInventories.forMachine(this.machineBlock, 5,
                 this::saveChanges);
@@ -164,9 +165,9 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                     Tooltips.ofUnformattedNumber(accelerationCards)));
         }
         if (EMAConfig.tieredMode()) {
-            tooltip.add(Component.translatable("tooltip.extendedmolecularassembler.tiered_mode.enabled"));
+            tooltip.add(Component.translatable(EMATranslationKey.TOOLTIP.TIERED_MODE_ENABLED.key()));
             if (this.lastTierRejectReason != null) {
-                tooltip.add(Component.translatable("tooltip.extendedmolecularassembler.tiered_mode.last_reject",
+                tooltip.add(Component.translatable(EMATranslationKey.TOOLTIP.TIERED_MODE_LAST_REJECT.key(),
                         this.lastTierRejectReason));
             }
         }
@@ -206,7 +207,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
             providerTier = TieredMECraftingProviderTier.requiredFor(pattern.tableType(), tableTier);
         } catch (IllegalArgumentException ignored) {
             this.setTierRejectReason(Component.translatable(
-                    "tooltip.extendedmolecularassembler.tiered_mode.unsupported_tier",
+                    EMATranslationKey.TOOLTIP.TIERED_MODE_UNSUPPORTED_TIER.key(),
                     TieredMECraftingProviderTier.tierName(tableTier), tableTier));
             return false;
         }
@@ -214,7 +215,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
         var grid = this.getMainNode().getGrid();
         if (grid == null) {
             this.setTierRejectReason(Component.translatable(
-                    "tooltip.extendedmolecularassembler.tiered_mode.offline_grid",
+                    EMATranslationKey.TOOLTIP.TIERED_MODE_OFFLINE_GRID.key(),
                     providerTier.displayName(), tableTier));
             return false;
         }
@@ -227,7 +228,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
         }
 
         this.setTierRejectReason(Component.translatable(
-                "tooltip.extendedmolecularassembler.tiered_mode.missing_provider",
+                EMATranslationKey.TOOLTIP.TIERED_MODE_MISSING_PROVIDER.key(),
                 providerTier.displayName(), tableTier));
         return false;
     }

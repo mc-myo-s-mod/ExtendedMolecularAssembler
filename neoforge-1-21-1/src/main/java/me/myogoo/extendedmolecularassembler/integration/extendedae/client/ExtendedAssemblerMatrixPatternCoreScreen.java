@@ -20,6 +20,7 @@ import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.Extended
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu.PatternEntry;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAOpenExtendedAEAssemblerMatrixScreenPacket;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderType;
@@ -61,25 +62,25 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
         this.searchField.setResponder(ignored -> this.refreshFilteredPatternEntries());
         this.searchField.setPlaceholder(GuiText.SearchPlaceholder.text());
         this.searchField.setTooltipMessage(List.of(
-                Component.translatable("gui.extendedmolecularassembler.matrix.searchPatterns")));
+                Component.translatable(EMATranslationKey.GUI.MATRIX_SEARCH_PATTERNS.key())));
 
         this.backToMatrixButton = new ActionEPPButton(
                 btn -> PacketDistributor.sendToServer(new EMAOpenExtendedAEAssemblerMatrixScreenPacket(
                         AssemblerMatrixNavigationContext.consumeMatrixPosOr(this.menu.getHost().getBlockPos()),
                         EMAOpenExtendedAEAssemblerMatrixScreenPacket.Target.MATRIX)),
                 Icon.BACK);
-        this.backToMatrixButton.setMessage(Component.translatable("gui.extendedmolecularassembler.matrix.backToMatrix"));
+        this.backToMatrixButton.setMessage(Component.translatable(EMATranslationKey.GUI.MATRIX_BACK_TO_MATRIX.key()));
 
         this.patternAccessButton = new CycleEPPButton();
         this.patternAccessButton.addActionPair(Icon.PATTERN_ACCESS_SHOW,
-                Component.translatable("gui.extendedmolecularassembler.matrix.showInPatternAccess"),
+                Component.translatable(EMATranslationKey.GUI.MATRIX_SHOW_IN_PATTERN_ACCESS.key()),
                 btn -> this.menu.setPatternAccessVisibleFromClient(true));
         this.patternAccessButton.addActionPair(Icon.PATTERN_ACCESS_HIDE,
-                Component.translatable("gui.extendedmolecularassembler.matrix.hideFromPatternAccess"),
+                Component.translatable(EMATranslationKey.GUI.MATRIX_HIDE_FROM_PATTERN_ACCESS.key()),
                 btn -> this.menu.setPatternAccessVisibleFromClient(false));
 
         this.cancelJobsButton = new ActionEPPButton(btn -> this.menu.cancelJobsFromClient(), Icon.CLEAR);
-        this.cancelJobsButton.setMessage(Component.translatable("gui.extendedmolecularassembler.matrix.cancelJobs"));
+        this.cancelJobsButton.setMessage(Component.translatable(EMATranslationKey.GUI.MATRIX_CANCEL_JOBS.key()));
 
         addToLeftToolbar(this.cancelJobsButton);
         addToLeftToolbar(this.patternAccessButton);
@@ -135,7 +136,7 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
         if (this.lastRunningThreads != this.menu.runningThreads) {
             this.lastRunningThreads = this.menu.runningThreads;
             this.runningThreadsText = Component.translatable(
-                    "gui.extendedmolecularassembler.matrix.activeJobs", this.menu.runningThreads);
+                    EMATranslationKey.GUI.MATRIX_ACTIVE_JOBS.key(), this.menu.runningThreads);
         }
 
         updatePatternScrollbar();

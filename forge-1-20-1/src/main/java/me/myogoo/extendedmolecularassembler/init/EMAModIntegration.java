@@ -22,12 +22,30 @@ public final class EMAModIntegration {
 
             @Override
             public IPatternDetails decodePattern(AEItemKey what, Level level) {
+                if (what == null) {
+                    return null;
+                }
+
+                var stack = what.toStack();
+                if (EncodedExtendedCraftingPattern.get(stack) == null) {
+                    return null;
+                }
+
                 return new ExtendedTableCraftingPattern(what, level);
             }
 
             @Override
             public IPatternDetails decodePattern(ItemStack stack, Level level, boolean tryRecovery) {
-                return new ExtendedTableCraftingPattern(AEItemKey.of(stack), level);
+                if (stack.isEmpty() || EncodedExtendedCraftingPattern.get(stack) == null) {
+                    return null;
+                }
+
+                var key = AEItemKey.of(stack);
+                if (key == null) {
+                    return null;
+                }
+
+                return new ExtendedTableCraftingPattern(key, level);
             }
         });
     }

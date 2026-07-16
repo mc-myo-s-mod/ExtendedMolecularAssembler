@@ -22,6 +22,7 @@ import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.block.blockentity.TieredMECraftingProviderBlockEntity;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -61,7 +62,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         this.patternInventory = new AppEngInternalInventory(this, patternSlotCount, 1);
         this.patternInventory.setFilter(new ExtendedPatternFilter(this::getLevel));
         this.getMainNode()
-                .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixPatternCorePassivePowerUsage(
+                .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixPatternCoreIdlePowerUsage(
                         patternSlotCount > DEFAULT_INV_SIZE))
                 .addService(ICraftingProvider.class, this);
     }
@@ -238,7 +239,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
                 ? this.getCustomName()
                 : EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_ITEM.get().getDescription();
         return new PatternContainerGroup(icon, name,
-                List.of(Component.translatable("gui.extendedmolecularassembler.matrix.patternCore")));
+                List.of(Component.translatable(EMATranslationKey.GUI.MATRIX_PATTERN_CORE.key())));
     }
 
     public record ExtendedPatternFilter(Supplier<Level> world) implements IAEItemFilter {

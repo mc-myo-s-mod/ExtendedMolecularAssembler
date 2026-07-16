@@ -41,7 +41,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             this.extendedThreads[i] = new ExtendedMatrixThread(i);
         }
         this.getMainNode()
-                .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixCraftingCorePassivePowerUsage(this.isPlusCore()))
+                .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixCraftingCoreIdlePowerUsage(this.isPlusCore()))
                 .addService(IGridTickable.class, this);
     }
 

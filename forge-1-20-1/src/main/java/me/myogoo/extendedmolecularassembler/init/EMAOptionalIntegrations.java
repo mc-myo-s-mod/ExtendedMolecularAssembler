@@ -25,6 +25,12 @@ public final class EMAOptionalIntegrations {
         }
     }
 
+    public static void registerRepresentativeItems() {
+        if (extendedAERegistered) {
+            EMAExtendedAEIntegration.registerRepresentativeItems();
+        }
+    }
+
     @Nullable
     public static AssemblerMatrixJobContext claimExtendedAEAssemblerMatrixJobContext() {
         return null;

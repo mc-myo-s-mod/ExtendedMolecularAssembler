@@ -55,7 +55,6 @@ public final class EMAExtendedAEIntegration {
         var type = BlockEntityType.Builder.of(supplier, block).build(null);
         typeHolder.setPlain(type);
         block.setBlockEntity(ExtendedAssemblerMatrixPatternCoreBlockEntity.class, type, null, null);
-        AEBaseBlockEntity.registerBlockEntityItem(type, EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_ITEM.get());
         return type;
     }
 
@@ -67,7 +66,15 @@ public final class EMAExtendedAEIntegration {
         var type = BlockEntityType.Builder.of(supplier, block).build(null);
         typeHolder.setPlain(type);
         block.setBlockEntity(ExtendedAssemblerMatrixPatternUploaderBlockEntity.class, type, null, null);
-        AEBaseBlockEntity.registerBlockEntityItem(type, EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ITEM.get());
         return type;
+    }
+
+    public static void registerRepresentativeItems() {
+        AEBaseBlockEntity.registerBlockEntityItem(
+                EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_ENTITY.get(),
+                EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_ITEM.get());
+        AEBaseBlockEntity.registerBlockEntityItem(
+                EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ENTITY.get(),
+                EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ITEM.get());
     }
 }

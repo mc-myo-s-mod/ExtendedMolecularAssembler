@@ -7,6 +7,7 @@ import appeng.helpers.InventoryAction;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
 import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 
@@ -44,6 +46,16 @@ final class ExtendedPatternRecipeTransfer {
     static void transfer(ExtendedPatternEncodingTermMenu menu, RecipeHolder<?> recipe) {
         transfer(menu, recipe.value());
         menu.selectTransferredRecipe(recipe.id());
+    }
+
+    static void transfer(ExtendedPatternEncodingTermMenu menu, RecipeHolder<?> recipe,
+            @Nullable RecipeProvider recipeProvider, int tableTier, int tableSide) {
+        transfer(menu, recipe.value());
+        if (recipeProvider == null) {
+            menu.selectTransferredRecipe(recipe.id());
+        } else {
+            menu.selectTransferredRecipe(recipe.id(), recipeProvider, tableTier, tableSide);
+        }
     }
 
     private static NonNullList<ItemStack> buildMachineInputs(ExtendedPatternEncodingTermMenu menu,

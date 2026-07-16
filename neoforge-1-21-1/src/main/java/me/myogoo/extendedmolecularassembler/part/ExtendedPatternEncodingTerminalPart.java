@@ -7,10 +7,12 @@ import appeng.parts.PartModel;
 import appeng.parts.reporting.AbstractTerminalPart;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingLogic;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeType;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
 import me.myogoo.extendedmolecularassembler.menu.pattern.IExtendedPatternEncodingTerminalHost;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -20,6 +22,11 @@ import java.util.List;
 
 public class ExtendedPatternEncodingTerminalPart extends AbstractTerminalPart
         implements IExtendedPatternEncodingTerminalHost {
+    private static final String REMEMBER_RECIPE_TYPE = "rememberExtendedPatternRecipeType";
+    private static final String SELECTED_RECIPE_PROVIDER = "selectedExtendedPatternRecipeProvider";
+    private static final String SELECTED_RECIPE_TABLE_TIER = "selectedExtendedPatternRecipeTableTier";
+    private static final String SELECTED_RECIPE_TABLE_SIDE = "selectedExtendedPatternRecipeTableSide";
+
     @PartModels
     public static final ResourceLocation MODEL_OFF =
             ExtendedMolecularAssembler.makeId("part/extended_pattern_encoding_terminal_off");
@@ -32,6 +39,8 @@ public class ExtendedPatternEncodingTerminalPart extends AbstractTerminalPart
     public static final IPartModel MODELS_HAS_CHANNEL = new PartModel(MODEL_BASE, MODEL_ON, MODEL_STATUS_HAS_CHANNEL);
 
     private final ExtendedPatternEncodingLogic logic = new ExtendedPatternEncodingLogic(this);
+    private boolean rememberRecipeType = true;
+    private ExtendedPatternRecipeType rememberedRecipeType;
 
     public ExtendedPatternEncodingTerminalPart(IPartItem<?> partItem) {
         super(partItem);
@@ -62,12 +71,29 @@ public class ExtendedPatternEncodingTerminalPart extends AbstractTerminalPart
     public void readFromNBT(CompoundTag data, HolderLookup.Provider registries) {
         super.readFromNBT(data, registries);
         logic.readFromNBT(data, registries);
+        this.rememberRecipeType = !data.contains(REMEMBER_RECIPE_TYPE, Tag.TAG_BYTE)
+                || data.getBoolean(REMEMBER_RECIPE_TYPE);
+        this.rememberedRecipeType = ExtendedPatternRecipeType.readFromNBT(data,
+                SELECTED_RECIPE_PROVIDER,
+                SELECTED_RECIPE_TABLE_TIER,
+                SELECTED_RECIPE_TABLE_SIDE);
     }
 
     @Override
     public void writeToNBT(CompoundTag data, HolderLookup.Provider registries) {
         super.writeToNBT(data, registries);
         logic.writeToNBT(data, registries);
+        data.putBoolean(REMEMBER_RECIPE_TYPE, rememberRecipeType);
+        if (rememberedRecipeType != null) {
+            rememberedRecipeType.writeToNBT(data,
+                    SELECTED_RECIPE_PROVIDER,
+                    SELECTED_RECIPE_TABLE_TIER,
+                    SELECTED_RECIPE_TABLE_SIDE);
+        } else {
+            data.remove(SELECTED_RECIPE_PROVIDER);
+            data.remove(SELECTED_RECIPE_TABLE_TIER);
+            data.remove(SELECTED_RECIPE_TABLE_SIDE);
+        }
     }
 
     @Override
@@ -83,6 +109,31 @@ public class ExtendedPatternEncodingTerminalPart extends AbstractTerminalPart
     @Override
     public ExtendedPatternEncodingLogic getExtendedPatternEncodingLogic() {
         return logic;
+    }
+
+    @Override
+    public boolean rememberRecipeType() {
+        return rememberRecipeType;
+    }
+
+    @Override
+    public void setRememberRecipeType(boolean remember) {
+        this.rememberRecipeType = remember;
+        if (!remember) {
+            this.rememberedRecipeType = null;
+        }
+        markForSave();
+    }
+
+    @Override
+    public ExtendedPatternRecipeType getRememberedRecipeType() {
+        return rememberedRecipeType;
+    }
+
+    @Override
+    public void setRememberedRecipeType(ExtendedPatternRecipeType recipeType) {
+        this.rememberedRecipeType = recipeType;
+        markForSave();
     }
 
     @Override

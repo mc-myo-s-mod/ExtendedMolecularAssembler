@@ -8,6 +8,7 @@ import me.myogoo.extendedmolecularassembler.integration.extendedae.client.Assemb
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAOpenExtendedAEAssemblerMatrixScreenPacket;
 import me.myogoo.myotus.client.gui.MyoIcon;
 import me.myogoo.myotus.client.gui.widgets.button.CustomImageButton;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -33,7 +34,7 @@ public abstract class GuiAssemblerMatrixMixin extends AEBaseScreen<ContainerAsse
                     matrixPos,
                     EMAOpenExtendedAEAssemblerMatrixScreenPacket.Target.PATTERN_CORE));
         });
-        button.setMessage(Component.translatable("gui.extendedmolecularassembler.matrix.openExtendedPatterns"));
+        button.setMessage(Component.translatable(EMATranslationKey.GUI.MATRIX_OPEN_EXTENDED_PATTERNS.key()));
         this.addToLeftToolbar(button);
     }
 }

@@ -9,7 +9,7 @@ import appeng.client.gui.widgets.ToggleButton;
 import appeng.core.AEConfig;
 import appeng.core.localization.ButtonToolTips;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
-import me.myogoo.myotus.client.gui.widgets.button.MyoCycleOverlayButton;
+import me.myogoo.myotus.client.gui.widgets.button.MyoCycleButton;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -23,7 +23,7 @@ import java.util.List;
 public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedPatternEncodingTermMenu> {
     private final ActionButton encodeBtn;
     private final ActionButton clearBtn;
-    private final MyoCycleOverlayButton recipeCycleBtn;
+    private final MyoCycleButton recipeCycleBtn;
     private final ToggleButton substitutionsBtn;
     private final ToggleButton fluidSubstitutionsBtn;
 
@@ -39,11 +39,12 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
         clearBtn.setDisableBackground(true);
         widgets.add("clearPattern", clearBtn);
 
-        this.recipeCycleBtn = new MyoCycleOverlayButton(
+        this.recipeCycleBtn = new MyoCycleButton(
+                () -> Icon.ARROW_RIGHT,
                 menu::cycleRecipeTable,
                 menu::cycleRecipeTableBackwards,
                 this::selectedRecipeProviderItem,
-                () -> List.of(selectedRecipeProviderTooltip()));
+                this::recipeCycleTooltip);
         widgets.add("recipeCycle", recipeCycleBtn);
 
         this.substitutionsBtn = new ToggleButton(
@@ -98,6 +99,13 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
                 .append(Component.literal(" "))
                 .append(Component.literal(getMenu().getSelectedRecipeTableSide() + "x"
                         + getMenu().getSelectedRecipeTableSide()));
+    }
+
+    private List<Component> recipeCycleTooltip() {
+        return List.of(
+                selectedRecipeProviderTooltip(),
+                Component.literal("Left-click: Next table"),
+                Component.literal("Right-click: Previous table"));
     }
 
     private Component selectedRecipeProviderLabel() {

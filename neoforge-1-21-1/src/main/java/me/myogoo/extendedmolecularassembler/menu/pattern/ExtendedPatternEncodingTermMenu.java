@@ -15,6 +15,7 @@ import me.myogoo.extendedmolecularassembler.init.EMAModPresence;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAssemblerMatrixPatternUploadUtil;
 import me.myogoo.extendedmolecularassembler.menu.EMASlotSemantics;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,6 +37,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
     private static final String ACTION_CYCLE_RECIPE = "cycleRecipe";
     private static final String ACTION_CYCLE_RECIPE_TABLE = "cycleRecipeTable";
     private static final String ACTION_SELECT_RECIPE = "selectRecipe";
+    private static final String ACTION_REMEMBER_RECIPE_TYPE = "rememberRecipeType";
     private static final String ACTION_UPLOAD_TO_MATRIX = "uploadToMatrix";
     private static final int MATRIX_UPLOADER_SYNC_INTERVAL = 20;
 
@@ -48,6 +50,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
     private final PatternTermSlot craftOutputSlot;
     private final RestrictedInputSlot blankPatternSlot;
     private final RestrictedInputSlot encodedPatternSlot;
+    private final IExtendedPatternEncodingTerminalHost host;
 
     @Nullable
     private ExtendedPatternRecipeMatch currentMatch;
@@ -76,6 +79,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
     public ExtendedPatternEncodingTermMenu(MenuType<?> menuType, int id, Inventory playerInventory,
             IExtendedPatternEncodingTerminalHost host) {
         super(menuType, id, playerInventory, host);
+        this.host = host;
         this.encodingLogic = host.getExtendedPatternEncodingLogic();
 
         var encodedInputs = encodingLogic.getEncodedInputInv().createMenuWrapper();
@@ -100,11 +104,14 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
         registerClientAction(ACTION_CYCLE_RECIPE, this::cycleRecipe);
         registerClientAction(ACTION_CYCLE_RECIPE_TABLE, Boolean.class, this::cycleRecipeTable);
         registerClientAction(ACTION_SELECT_RECIPE, String.class, this::selectRecipeById);
+        registerClientAction(ACTION_REMEMBER_RECIPE_TYPE, Boolean.class, this::setRememberRecipeType);
         registerClientAction(ACTION_UPLOAD_TO_MATRIX, this::uploadToMatrix);
 
         this.substitute = encodingLogic.isSubstitution();
         this.substituteFluids = encodingLogic.isFluidSubstitution();
-        setSelectedRecipeDisplay(null);
+        if (!loadRememberedRecipeType()) {
+            setSelectedRecipeDisplay(null);
+        }
         getAndUpdateOutput();
     }
 
@@ -222,7 +229,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
             uploadToMatrix();
         } else if (ExtendedAssemblerMatrixPatternUploadUtil.matrixAlreadyContainsPatternFromEncodingMenu(serverPlayer,
                 this, encodedPattern)) {
-            serverPlayer.sendSystemMessage(Component.translatable("message.extendedmolecularassembler.matrix_upload.duplicate"));
+            serverPlayer.sendSystemMessage(Component.translatable(EMATranslationKey.MESSAGE.MATRIX_UPLOAD_DUPLICATE.key()));
         }
     }
 
@@ -255,11 +262,11 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
             return;
         }
         if (!EMAModPresence.isExtendedAELoaded()) {
-            serverPlayer.sendSystemMessage(Component.translatable("message.extendedmolecularassembler.matrix_upload.no_extendedae"));
+            serverPlayer.sendSystemMessage(Component.translatable(EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_EXTENDEDAE.key()));
             return;
         }
         if (!EMAModPresence.isExtendedAEPlusLoaded()) {
-            serverPlayer.sendSystemMessage(Component.translatable("message.extendedmolecularassembler.matrix_upload.no_extendedae_plus"));
+            serverPlayer.sendSystemMessage(Component.translatable(EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_EXTENDEDAE_PLUS.key()));
             return;
         }
 
@@ -337,6 +344,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
         this.selectedRecipeTableTier = display.tableTier();
         this.selectedRecipeTableSide = display.tableSide();
         this.selectedRecipeId = null;
+        saveRememberedRecipeType(display);
         getAndUpdateOutput();
         broadcastChanges();
     }
@@ -353,17 +361,64 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
         }
     }
 
-    private void selectRecipeById(String recipeId) {
-        var parsed = ResourceLocation.tryParse(recipeId);
-        if (parsed != null) {
-            selectRecipe(parsed);
+    public void selectTransferredRecipe(ResourceLocation recipeId, RecipeProvider provider, int tableTier, int tableSide) {
+        if (isClientSide()) {
+            sendClientAction(ACTION_SELECT_RECIPE,
+                    recipeId + "|" + provider.name() + "|" + tableTier + "|" + tableSide);
+        } else {
+            selectRecipe(recipeId, provider, tableTier, tableSide);
         }
+    }
+
+    private void selectRecipeById(String recipeId) {
+        var parts = recipeId.split("\\|", -1);
+        var parsed = ResourceLocation.tryParse(parts[0]);
+        if (parsed == null) {
+            return;
+        }
+        if (parts.length == 4) {
+            var provider = parseRecipeProvider(parts[1]);
+            var tableTier = parsePositiveInt(parts[2]);
+            var tableSide = parsePositiveInt(parts[3]);
+            if (provider != null && tableTier > 0 && tableSide > 0) {
+                selectRecipe(parsed, provider, tableTier, tableSide);
+                return;
+            }
+        }
+        selectRecipe(parsed);
     }
 
     private void selectRecipe(ResourceLocation recipeId) {
         selectedRecipeId = recipeId;
         getAndUpdateOutput();
         broadcastChanges();
+    }
+
+    private void selectRecipe(ResourceLocation recipeId, RecipeProvider provider, int tableTier, int tableSide) {
+        this.selectedRecipeProvider = provider.ordinal();
+        this.selectedRecipeTableTier = tableTier;
+        this.selectedRecipeTableSide = tableSide;
+        this.selectedRecipeId = recipeId;
+        saveRememberedRecipeType(new RecipeDisplay(provider, tableTier, tableSide));
+        getAndUpdateOutput();
+        broadcastChanges();
+    }
+
+    @Nullable
+    private static RecipeProvider parseRecipeProvider(String name) {
+        try {
+            return RecipeProvider.valueOf(name);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    private static int parsePositiveInt(String value) {
+        try {
+            return Math.max(0, Integer.parseInt(value));
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
     }
 
     public RecipeProvider getSelectedRecipeProvider() {
@@ -387,6 +442,52 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
 
     private RecipeDisplay getSelectedRecipeDisplay() {
         return new RecipeDisplay(getSelectedRecipeProvider(), getSelectedRecipeTableTier(), getSelectedRecipeTableSide());
+    }
+
+    private boolean loadRememberedRecipeType() {
+        if (!host.rememberRecipeType()) {
+            return false;
+        }
+
+        var remembered = host.getRememberedRecipeType();
+        if (remembered == null || !remembered.isActive()) {
+            return false;
+        }
+
+        var display = new RecipeDisplay(remembered.provider(), remembered.tableTier(), remembered.tableSide());
+        if (!supportedRecipeDisplays().contains(display)) {
+            return false;
+        }
+
+        this.selectedRecipeProvider = remembered.provider().ordinal();
+        this.selectedRecipeTableTier = remembered.tableTier();
+        this.selectedRecipeTableSide = remembered.tableSide();
+        return true;
+    }
+
+    public boolean rememberRecipeType() {
+        return host.rememberRecipeType();
+    }
+
+    public void setRememberRecipeType(boolean remember) {
+        if (isClientSide()) {
+            sendClientAction(ACTION_REMEMBER_RECIPE_TYPE, remember);
+            return;
+        }
+
+        host.setRememberRecipeType(remember);
+        if (remember) {
+            saveRememberedRecipeType(getSelectedRecipeDisplay());
+        }
+    }
+
+    private void saveRememberedRecipeType(RecipeDisplay display) {
+        if (!isClientSide() && host.rememberRecipeType()) {
+            host.setRememberedRecipeType(new ExtendedPatternRecipeType(
+                    display.provider(),
+                    display.tableTier(),
+                    display.tableSide()));
+        }
     }
 
     public boolean isSubstituteFluids() {
@@ -610,6 +711,9 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
         this.selectedRecipeProvider = provider.ordinal();
         this.selectedRecipeTableTier = tierForDisplay(provider, side);
         this.selectedRecipeTableSide = side;
+        if (match != null) {
+            saveRememberedRecipeType(getSelectedRecipeDisplay());
+        }
     }
 
     public enum RecipeProvider {

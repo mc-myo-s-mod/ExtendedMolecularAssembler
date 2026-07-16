@@ -69,11 +69,11 @@ public final class EMAConfig {
         var craftingPowerMultiplier = BUILDER
                 .comment("Multiplier for AE power consumed while this block performs EMA-managed crafting. 1.0 keeps the default cost. Blocks without crafting work keep this setting for consistency.")
                 .defineInRange("craftingPowerMultiplier", 1.0, 0.0, Double.MAX_VALUE);
-        var passivePowerUsage = BUILDER
-                .comment("Passive AE/t idle drain for this block's ME network node.")
-                .defineInRange("passivePowerUsage", 0.0, 0.0, Double.MAX_VALUE);
+        var idlePowerUsage = BUILDER
+                .comment("Idle AE/t drain for this block's ME network node.")
+                .defineInRange("idlePowerUsage", 0.0, 0.0, Double.MAX_VALUE);
         BUILDER.pop();
-        return new PowerSettings(craftingPowerMultiplier, passivePowerUsage);
+        return new PowerSettings(craftingPowerMultiplier, idlePowerUsage);
     }
 
     public static double extendedMolecularAssemblerCraftingPowerMultiplier() {
@@ -85,21 +85,21 @@ public final class EMAConfig {
                 .craftingPowerMultiplier().get();
     }
 
-    public static double extendedMolecularAssemblerPassivePowerUsage() {
-        return extendedMolecularAssemblerPassivePowerUsage(false);
+    public static double extendedMolecularAssemblerIdlePowerUsage() {
+        return extendedMolecularAssemblerIdlePowerUsage(false);
     }
 
-    public static double extendedMolecularAssemblerPassivePowerUsage(boolean exAssembler) {
+    public static double extendedMolecularAssemblerIdlePowerUsage(boolean exAssembler) {
         return (exAssembler ? EX_EXTENDED_MOLECULAR_ASSEMBLER : EXTENDED_MOLECULAR_ASSEMBLER)
-                .passivePowerUsage().get();
+                .idlePowerUsage().get();
     }
 
     public static double tieredMECraftingProviderCraftingPowerMultiplier(TieredMECraftingProviderTier tier) {
         return TIERED_ME_CRAFTING_PROVIDERS.get(tier).craftingPowerMultiplier().get();
     }
 
-    public static double tieredMECraftingProviderPassivePowerUsage(TieredMECraftingProviderTier tier) {
-        return TIERED_ME_CRAFTING_PROVIDERS.get(tier).passivePowerUsage().get();
+    public static double tieredMECraftingProviderIdlePowerUsage(TieredMECraftingProviderTier tier) {
+        return TIERED_ME_CRAFTING_PROVIDERS.get(tier).idlePowerUsage().get();
     }
 
     public static boolean tieredMode() {
@@ -115,13 +115,13 @@ public final class EMAConfig {
                 .craftingPowerMultiplier().get();
     }
 
-    public static double extendedAssemblerMatrixPatternCorePassivePowerUsage() {
-        return extendedAssemblerMatrixPatternCorePassivePowerUsage(false);
+    public static double extendedAssemblerMatrixPatternCoreIdlePowerUsage() {
+        return extendedAssemblerMatrixPatternCoreIdlePowerUsage(false);
     }
 
-    public static double extendedAssemblerMatrixPatternCorePassivePowerUsage(boolean plus) {
+    public static double extendedAssemblerMatrixPatternCoreIdlePowerUsage(boolean plus) {
         return (plus ? EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS : EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE)
-                .passivePowerUsage().get();
+                .idlePowerUsage().get();
     }
 
     public static double extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier() {
@@ -133,32 +133,32 @@ public final class EMAConfig {
                 .craftingPowerMultiplier().get();
     }
 
-    public static double extendedAssemblerMatrixCraftingCorePassivePowerUsage() {
-        return extendedAssemblerMatrixCraftingCorePassivePowerUsage(false);
+    public static double extendedAssemblerMatrixCraftingCoreIdlePowerUsage() {
+        return extendedAssemblerMatrixCraftingCoreIdlePowerUsage(false);
     }
 
-    public static double extendedAssemblerMatrixCraftingCorePassivePowerUsage(boolean plus) {
+    public static double extendedAssemblerMatrixCraftingCoreIdlePowerUsage(boolean plus) {
         return (plus ? EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS : EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE)
-                .passivePowerUsage().get();
+                .idlePowerUsage().get();
     }
 
     public static double extendedAssemblerMatrixPatternUploaderCraftingPowerMultiplier() {
         return EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER.craftingPowerMultiplier().get();
     }
 
-    public static double extendedAssemblerMatrixPatternUploaderPassivePowerUsage() {
-        return EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER.passivePowerUsage().get();
+    public static double extendedAssemblerMatrixPatternUploaderIdlePowerUsage() {
+        return EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER.idlePowerUsage().get();
     }
 
     public static double extendedQuantumCrafterCraftingPowerMultiplier() {
         return EXTENDED_QUANTUM_CRAFTER.craftingPowerMultiplier().get();
     }
 
-    public static double extendedQuantumCrafterPassivePowerUsage() {
-        return EXTENDED_QUANTUM_CRAFTER.passivePowerUsage().get();
+    public static double extendedQuantumCrafterIdlePowerUsage() {
+        return EXTENDED_QUANTUM_CRAFTER.idlePowerUsage().get();
     }
 
     private record PowerSettings(ModConfigSpec.DoubleValue craftingPowerMultiplier,
-            ModConfigSpec.DoubleValue passivePowerUsage) {
+            ModConfigSpec.DoubleValue idlePowerUsage) {
     }
 }

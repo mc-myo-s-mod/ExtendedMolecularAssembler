@@ -25,7 +25,7 @@ public class ExtendedAssemblerMatrixPatternUploaderBlockEntity extends TileAssem
     public ExtendedAssemblerMatrixPatternUploaderBlockEntity(BlockEntityType<?> type, BlockPos pos,
             BlockState blockState) {
         super(type, pos, blockState);
-        this.getMainNode().setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixPatternUploaderPassivePowerUsage());
+        this.getMainNode().setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixPatternUploaderIdlePowerUsage());
     }
 
     @Override

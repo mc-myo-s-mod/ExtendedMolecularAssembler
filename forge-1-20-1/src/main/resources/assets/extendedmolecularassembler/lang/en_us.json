@@ -31,5 +31,7 @@
   "tier.extendedmolecularassembler.re_avaritia_nether": "Re:Avaritia Nether",
   "tier.extendedmolecularassembler.re_avaritia_end": "Re:Avaritia End",
   "block.extendedmolecularassembler.xtreme_me_crafting_provider": "Xtreme ME Crafting Provider",
-  "tier.extendedmolecularassembler.xtreme": "Xtreme"
+  "tier.extendedmolecularassembler.xtreme": "Xtreme",
+  "gui.extendedmolecularassembler.config.extendedPatternEncodingTerminal.title": "Extended Pattern Encoding Terminal Config",
+  "gui.extendedmolecularassembler.config.extendedPatternEncodingTerminal.rememberRecipeType": "Remember last recipe type"
 }

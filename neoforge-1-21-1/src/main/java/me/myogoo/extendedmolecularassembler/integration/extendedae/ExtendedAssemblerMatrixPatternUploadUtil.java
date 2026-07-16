@@ -10,6 +10,7 @@ import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerM
 import me.myogoo.extendedmolecularassembler.init.EMADataComponents;
 import me.myogoo.extendedmolecularassembler.pattern.EncodedExtendedCraftingPattern;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -59,28 +60,28 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
 
     public static ItemStack uploadFromEncodingMenuToMatrix(ServerPlayer player, Object menu, ItemStack stack) {
         if (player == null || stack == null || stack.isEmpty()) {
-            send(player, "message.extendedmolecularassembler.matrix_upload.no_pattern");
+            send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_PATTERN.key());
             return stack;
         }
         if (!isExtendedEncodedPattern(player.level(), stack)) {
-            send(player, "message.extendedmolecularassembler.matrix_upload.invalid_pattern");
+            send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_INVALID_PATTERN.key());
             return stack;
         }
 
         var grid = findGrid(menu);
         if (grid == null) {
-            send(player, "message.extendedmolecularassembler.matrix_upload.no_network");
+            send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_NETWORK.key());
             return stack;
         }
 
         var targets = findEligiblePatternCoreInventories(grid);
         if (targets.isEmpty()) {
-            send(player, "message.extendedmolecularassembler.matrix_upload.no_matrix");
+            send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_MATRIX.key());
             return stack;
         }
 
         if (matrixContainsPattern(targets, stack)) {
-            send(player, "message.extendedmolecularassembler.matrix_upload.duplicate");
+            send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_DUPLICATE.key());
             return stack;
         }
 
@@ -91,17 +92,17 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
             }
             remainder = inv.addItems(remainder);
             if (remainder.isEmpty()) {
-                send(player, "message.extendedmolecularassembler.matrix_upload.success");
+                send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_SUCCESS.key());
                 return ItemStack.EMPTY;
             }
         }
 
         if (remainder.getCount() < stack.getCount()) {
-            send(player, "message.extendedmolecularassembler.matrix_upload.success");
+            send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_SUCCESS.key());
             return remainder;
         }
 
-        send(player, "message.extendedmolecularassembler.matrix_upload.full");
+        send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_FULL.key());
         return stack;
     }
 

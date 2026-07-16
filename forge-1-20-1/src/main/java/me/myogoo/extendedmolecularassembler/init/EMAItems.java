@@ -48,10 +48,13 @@ public final class EMAItems {
     public static final RegistryObject<Item> EXTENDED_CRAFTING_PATTERN =
             ITEMS.register("extended_crafting_pattern", () -> new Item(new Item.Properties().stacksTo(1)));
 
+    public static final WirelessExtendedPatternEncodingTerminalItem WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL_ITEM =
+            new WirelessExtendedPatternEncodingTerminalItem();
+
     public static final RegistryObject<WirelessExtendedPatternEncodingTerminalItem>
             WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL = ITEMS.register(
                     "wireless_extended_pattern_encoding_terminal",
-                    WirelessExtendedPatternEncodingTerminalItem::new);
+                    () -> WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL_ITEM);
 
     private EMAItems() {
     }

@@ -1,0 +1,11 @@
+{
+  "parent": "extendedmolecularassembler:block/provider/template_tinted_cube",
+  "textures": {
+    "base": "extendedmolecularassembler:block/provider/advanced_me_crafting_provider",
+    "lightsDark": "extendedmolecularassembler:block/provider/base/dark",
+    "lightsMedium": "extendedmolecularassembler:block/provider/base/medium",
+    "lightsBright": "extendedmolecularassembler:block/provider/base/bright",
+    "particle": "extendedmolecularassembler:block/provider/advanced_me_crafting_provider"
+  },
+  "render_type": "minecraft:cutout"
+}

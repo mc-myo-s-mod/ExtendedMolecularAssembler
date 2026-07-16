@@ -31,5 +31,7 @@
   "tier.extendedmolecularassembler.re_avaritia_nether": "Re:Avaritia Nether",
   "tier.extendedmolecularassembler.re_avaritia_end": "Re:Avaritia End",
   "block.extendedmolecularassembler.xtreme_me_crafting_provider": "Xtreme ME 조합 공급기",
-  "tier.extendedmolecularassembler.xtreme": "Xtreme"
+  "tier.extendedmolecularassembler.xtreme": "Xtreme",
+  "gui.extendedmolecularassembler.config.extendedPatternEncodingTerminal.title": "확장 패턴 인코딩 터미널 설정",
+  "gui.extendedmolecularassembler.config.extendedPatternEncodingTerminal.rememberRecipeType": "마지막 레시피 타입 기억"
 }

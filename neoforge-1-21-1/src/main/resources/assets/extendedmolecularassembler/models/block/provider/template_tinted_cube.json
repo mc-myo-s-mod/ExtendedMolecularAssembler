@@ -1,0 +1,179 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "#base"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#base",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#base",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#base",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#base",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#base",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#base",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#lightsDark",
+          "tintindex": 1,
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#lightsDark",
+          "tintindex": 1,
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#lightsDark",
+          "tintindex": 1,
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#lightsDark",
+          "tintindex": 1,
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#lightsDark",
+          "tintindex": 1,
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#lightsDark",
+          "tintindex": 1,
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#lightsMedium",
+          "tintindex": 2,
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#lightsMedium",
+          "tintindex": 2,
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#lightsMedium",
+          "tintindex": 2,
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#lightsMedium",
+          "tintindex": 2,
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#lightsMedium",
+          "tintindex": 2,
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#lightsMedium",
+          "tintindex": 2,
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#lightsBright",
+          "tintindex": 3,
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#lightsBright",
+          "tintindex": 3,
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#lightsBright",
+          "tintindex": 3,
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#lightsBright",
+          "tintindex": 3,
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#lightsBright",
+          "tintindex": 3,
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#lightsBright",
+          "tintindex": 3,
+          "cullface": "down"
+        }
+      }
+    }
+  ],
+  "render_type": "minecraft:cutout"
+}
