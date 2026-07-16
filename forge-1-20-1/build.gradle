@@ -84,6 +84,7 @@ dependencies {
     compileOnly fg.deobf("maven.modrinth:extended-ae:${ExtendedAE_version}")
     compileOnly fg.deobf("maven.modrinth:glodium:${Glodium_version}")
     compileOnly fg.deobf("maven.modrinth:avaritianeo:${AvaritiaNeo_version}")
+    compileOnly fg.deobf("maven.modrinth:re-avaritia:${ReAvaritia_version}")
 
     if (project.itemListMod == 'jei') {
         runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${JEI_version}")
@@ -104,7 +105,7 @@ dependencies {
             runtimeOnly fg.deobf("maven.modrinth:avaritianeo:${AvaritiaNeo_version}")
             break
         case 're':
-            runtimeOnly fg.deobf("curse.maven:re-avaritia-623969:${ReAvaritia_file}")
+            runtimeOnly fg.deobf("maven.modrinth:re-avaritia:${ReAvaritia_version}")
             break
         case 'none':
             break

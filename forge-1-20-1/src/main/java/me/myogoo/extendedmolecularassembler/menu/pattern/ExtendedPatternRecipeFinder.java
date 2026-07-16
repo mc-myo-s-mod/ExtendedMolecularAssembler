@@ -1,18 +1,28 @@
 package me.myogoo.extendedmolecularassembler.menu.pattern;
 
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
+import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public final class ExtendedPatternRecipeFinder {
     private static final int[] TABLE_SIDES = { 3, 5, 7, 9 };
+    private static RecipeManager cachedRecipeManager;
+    private static int cachedRecipeCount;
+    private static Map<Integer, List<RecipeCandidate>> cachedCandidatesBySide = Map.of();
 
     private ExtendedPatternRecipeFinder() {
     }
@@ -27,6 +37,8 @@ public final class ExtendedPatternRecipeFinder {
             return matches;
         }
 
+        var matchedRecipeIds = new HashSet<ResourceLocation>();
+
         for (var side : TABLE_SIDES) {
             for (var offsetY : orderedOffsets(side)) {
                 for (var offsetX : orderedOffsets(side)) {
@@ -39,7 +51,7 @@ public final class ExtendedPatternRecipeFinder {
                         continue;
                     }
 
-                    findMatchesForInput(input, side, level, matches);
+                    findMatchesForInput(input, side, level, matches, matchedRecipeIds);
                 }
             }
         }
@@ -48,24 +60,47 @@ public final class ExtendedPatternRecipeFinder {
     }
 
     private static void findMatchesForInput(List<ItemStack> input, int side, Level level,
-            List<ExtendedPatternRecipeMatch> matches) {
-        for (Recipe<?> recipe : level.getRecipeManager().getRecipes()) {
-            var adapter = tryCreateAdapter(recipe);
-            if (adapter == null || adapter.sideLength() != side) {
-                continue;
-            }
-            if (!adapter.matches(input, level)) {
+            List<ExtendedPatternRecipeMatch> matches, Set<ResourceLocation> matchedRecipeIds) {
+        for (var candidate : candidatesForSide(level.getRecipeManager(), side)) {
+            if (matchedRecipeIds.contains(candidate.recipe().getId()) || !candidate.adapter().matches(input, level)) {
                 continue;
             }
 
-            var result = adapter.assemble(input, level);
+            var result = candidate.adapter().assemble(input, level);
             if (!result.isEmpty()) {
-                matches.add(new ExtendedPatternRecipeMatch(recipe, toArray(input), result));
+                matchedRecipeIds.add(candidate.recipe().getId());
+                matches.add(new ExtendedPatternRecipeMatch(candidate.recipe(), toArray(input), result));
             }
         }
     }
 
-    private static me.myogoo.myotus.api.recipe.IMyotusTableRecipe<?> tryCreateAdapter(Recipe<?> recipe) {
+    private static List<RecipeCandidate> candidatesForSide(RecipeManager recipeManager, int side) {
+        return candidatesBySide(recipeManager).getOrDefault(side, List.of());
+    }
+
+    private static Map<Integer, List<RecipeCandidate>> candidatesBySide(RecipeManager recipeManager) {
+        var recipes = recipeManager.getRecipes();
+        if (recipeManager == cachedRecipeManager && recipes.size() == cachedRecipeCount) {
+            return cachedCandidatesBySide;
+        }
+
+        var candidatesBySide = new HashMap<Integer, List<RecipeCandidate>>();
+        for (Recipe<?> recipe : recipes) {
+            var adapter = tryCreateAdapter(recipe);
+            if (adapter == null) {
+                continue;
+            }
+            candidatesBySide.computeIfAbsent(adapter.sideLength(), ignored -> new ArrayList<>())
+                    .add(new RecipeCandidate(recipe, adapter));
+        }
+
+        cachedRecipeManager = recipeManager;
+        cachedRecipeCount = recipes.size();
+        cachedCandidatesBySide = Map.copyOf(candidatesBySide);
+        return cachedCandidatesBySide;
+    }
+
+    private static IMyotusTableRecipe<?> tryCreateAdapter(Recipe<?> recipe) {
         var className = recipe.getClass().getName();
         if (!className.startsWith("com.blakebr0.extendedcrafting.")
                 && !className.startsWith("net.byAqua3.avaritia.")
@@ -78,6 +113,9 @@ public final class ExtendedPatternRecipeFinder {
         } catch (RuntimeException ignored) {
             return null;
         }
+    }
+
+    private record RecipeCandidate(Recipe<?> recipe, IMyotusTableRecipe<?> adapter) {
     }
 
     private static List<ItemStack> copyWindow(List<ItemStack> machineGrid, int side, int offsetX, int offsetY) {
