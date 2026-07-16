@@ -11,36 +11,19 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 import java.util.List;
 
 public class TieredMECraftingProviderBlock extends AEBaseEntityBlock<TieredMECraftingProviderBlockEntity> {
-    public static final BooleanProperty ONLINE = BooleanProperty.create("online");
-
     private final TieredMECraftingProviderTier tier;
 
     public TieredMECraftingProviderBlock(TieredMECraftingProviderTier tier, Properties properties) {
         super(properties);
         this.tier = tier;
-        registerDefaultState(defaultBlockState().setValue(ONLINE, false));
     }
 
     public TieredMECraftingProviderTier getTier() {
         return tier;
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        super.createBlockStateDefinition(builder);
-        builder.add(ONLINE);
-    }
-
-    @Override
-    protected BlockState updateBlockStateFromBlockEntity(BlockState currentState,
-            TieredMECraftingProviderBlockEntity blockEntity) {
-        return currentState;
     }
 
     @Override
