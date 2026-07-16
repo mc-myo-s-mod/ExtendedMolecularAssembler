@@ -377,28 +377,25 @@ public abstract class QuantumCrafterEntityMixin {
 
         var output = outputs.getFirst();
         var maxStock = job.limitMaxOutput;
-        if (maxStock <= 0) {
-            return totalCrafts;
-        }
-
-        var extracted = grid.getStorageService()
-                .getInventory()
-                .extract(output.what(), maxStock, Actionable.SIMULATE, this.mySrc);
-        var amountInOutput = 0;
-        for (int i = 0; i < this.outputInv.size(); i++) {
-            var stack = this.outputInv.getStackInSlot(i);
-            if (stack.is(output.what().wrapForDisplayOrFilter().getItem())) {
-                amountInOutput += stack.getCount();
+        if (maxStock > 0) {
+            var extracted = grid.getStorageService()
+                    .getInventory()
+                    .extract(output.what(), maxStock, Actionable.SIMULATE, this.mySrc);
+            var amountInOutput = 0;
+            for (int i = 0; i < this.outputInv.size(); i++) {
+                var stack = this.outputInv.getStackInSlot(i);
+                if (stack.is(output.what().wrapForDisplayOrFilter().getItem())) {
+                    amountInOutput += stack.getCount();
+                }
             }
+
+            var producedAmount = job.outputAmountPerCraft(output);
+            var limitByOutput = (int) Math.floor((double) (maxStock - extracted - amountInOutput) / producedAmount);
+            totalCrafts = Math.max(0, Math.min(totalCrafts, limitByOutput));
         }
 
-        var producedAmount = job.outputAmountPerCraft(output);
-        var limitByOutput = (int) Math.floor((double) (maxStock - extracted - amountInOutput) / producedAmount);
-        totalCrafts = Math.max(0, Math.min(totalCrafts, limitByOutput));
-        if (extracted <= maxStock) {
-            return totalCrafts;
-        }
-        return (int) Math.floor((double) extracted / output.amount());
+        return QuantumCraftingBatch.maximumCrafts(totalCrafts,
+                crafts -> this.extendedmolecularassembler$canStoreLocalOutputs(job, crafts));
     }
 
     @Unique
@@ -438,23 +435,67 @@ public abstract class QuantumCrafterEntityMixin {
         if (this.extendedmolecularassembler$isExportToMe()) {
             return this.sendList.stream().noneMatch(p -> p.what().matches(job.pattern.getOutputs().getFirst()));
         }
+        return true;
+    }
 
-        for (var output : job.pattern.getOutputs()) {
-            if (output.what() instanceof AEItemKey key) {
-                var stack = key.toStack((int) output.amount());
-                for (int i = 0; i < this.outputInv.size(); i++) {
-                    stack = this.outputInv.insertItem(i, stack, true);
-                    if (stack.isEmpty()) {
-                        break;
-                    }
-                }
+    @Unique
+    private boolean extendedmolecularassembler$canStoreLocalOutputs(ExtendedQuantumCraftingJob job, int crafts) {
+        var simulatedOutput = new AppEngInternalInventory(this.outputInv.size());
+        for (int i = 0; i < this.outputInv.size(); i++) {
+            simulatedOutput.setMaxStackSize(i, this.outputInv.getSlotLimit(i));
+            simulatedOutput.setItemDirect(i, this.outputInv.getStackInSlot(i).copy());
+        }
 
-                if (!stack.isEmpty()) {
-                    return false;
-                }
+        for (var stack : this.extendedmolecularassembler$getLocalOutputs(job, crafts)) {
+            if (!this.extendedmolecularassembler$insertOutput(simulatedOutput, stack).isEmpty()) {
+                return false;
             }
         }
         return true;
+    }
+
+    @Unique
+    private List<ItemStack> extendedmolecularassembler$getLocalOutputs(ExtendedQuantumCraftingJob job, int crafts) {
+        var localOutputs = new ArrayList<ItemStack>();
+        if (!this.extendedmolecularassembler$isExportToMe()) {
+            for (var output : job.pattern.getOutputs()) {
+                if (output.what() instanceof AEItemKey key) {
+                    var amount = job.outputAmountPerCraft(output) * crafts;
+                    if (amount > 0) {
+                        localOutputs.add(key.toStack((int) Math.min(amount, Integer.MAX_VALUE)));
+                    }
+                }
+            }
+        }
+
+        for (var stack : job.remainingItems) {
+            if (!job.isStackAnInput(stack)) {
+                var amount = (long) stack.getCount() * crafts;
+                if (amount > 0) {
+                    localOutputs.add(stack.copyWithCount((int) Math.min(amount, Integer.MAX_VALUE)));
+                }
+            }
+        }
+        return localOutputs;
+    }
+
+    @Unique
+    private ItemStack extendedmolecularassembler$insertOutput(AppEngInternalInventory inventory, ItemStack stack) {
+        for (int i = 0; i < inventory.size() && !stack.isEmpty(); i++) {
+            stack = inventory.insertItem(i, stack, false);
+        }
+        return stack;
+    }
+
+    @Unique
+    private void extendedmolecularassembler$insertLocalOutput(ItemStack stack) {
+        var remainder = this.extendedmolecularassembler$insertOutput(this.outputInv, stack);
+        if (!remainder.isEmpty()) {
+            var key = AEItemKey.of(remainder);
+            if (key != null) {
+                this.extendedmolecularassembler$addToSendList(key, remainder.getCount());
+            }
+        }
     }
 
     @Unique
@@ -468,11 +509,13 @@ public abstract class QuantumCrafterEntityMixin {
         var outputs = job.pattern.getOutputs();
         var requiredPerCraft = new ArrayList<Long>();
         var extractedItems = new ArrayList<GenericStack>();
+        var extractions = new ArrayList<QuantumCraftingBatch.Extraction>();
         var grid = node.getGrid();
         var energy = grid.getEnergyService();
         var storage = grid.getStorageService();
 
         for (var input : inputs) {
+            var extractedInput = false;
             for (var genericInput : input.getPossibleInputs()) {
                 if (genericInput == null) {
                     continue;
@@ -486,54 +529,32 @@ public abstract class QuantumCrafterEntityMixin {
 
                 var extracted = StorageHelper.poweredExtraction(
                         energy, storage.getInventory(), genericInput.what(), toExtract, this.mySrc);
-                if (extracted >= inputAmount) {
+                if (extracted > 0) {
                     requiredPerCraft.add(inputAmount);
                     extractedItems.add(new GenericStack(genericInput.what(), extracted));
+                    extractions.add(new QuantumCraftingBatch.Extraction(toExtract, extracted));
+                    extractedInput = extracted == toExtract;
                     break;
                 }
             }
-        }
-
-        var completeRecipes = extractedItems.size() == inputs.length ? toCraft : 0;
-        for (int i = 0; i < extractedItems.size(); i++) {
-            if (!job.isInputConsumed(extractedItems.get(i))) {
-                continue;
+            if (!extractedInput) {
+                break;
             }
-            var required = requiredPerCraft.get(i);
-            var extracted = extractedItems.get(i).amount();
-            var recipes = (int) (extracted / required);
-            completeRecipes = Math.min(completeRecipes, recipes);
         }
 
-        for (var output : outputs) {
-            if (output.what() instanceof AEItemKey key) {
-                var stack = key.toStack();
-                stack.setCount((int) job.outputAmountPerCraft(output) * completeRecipes);
-
-                if (this.extendedmolecularassembler$isExportToMe()) {
-                    this.extendedmolecularassembler$addToSendList(key, stack.getCount());
-                } else {
-                    for (int i = 0; i < this.outputInv.size(); i++) {
-                        stack = this.outputInv.insertItem(i, stack, Actionable.MODULATE.isSimulate());
-                        if (stack.isEmpty()) {
-                            break;
-                        }
+        var completeRecipes = QuantumCraftingBatch.completedCrafts(toCraft, inputs.length, extractions);
+        if (completeRecipes > 0) {
+            if (this.extendedmolecularassembler$isExportToMe()) {
+                for (var output : outputs) {
+                    if (output.what() instanceof AEItemKey key) {
+                        this.extendedmolecularassembler$addToSendList(
+                                key, job.outputAmountPerCraft(output) * completeRecipes);
                     }
                 }
             }
-        }
 
-        for (var stack : job.remainingItems) {
-            var newStack = stack.copy();
-            if (job.isStackAnInput(stack)) {
-                continue;
-            }
-            newStack.setCount(stack.getCount() * completeRecipes);
-            for (int i = 0; i < this.outputInv.size(); i++) {
-                newStack = this.outputInv.insertItem(i, newStack, Actionable.MODULATE.isSimulate());
-                if (newStack.isEmpty()) {
-                    break;
-                }
+            for (var stack : this.extendedmolecularassembler$getLocalOutputs(job, completeRecipes)) {
+                this.extendedmolecularassembler$insertLocalOutput(stack);
             }
         }
 
