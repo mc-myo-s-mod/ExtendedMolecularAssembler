@@ -7,6 +7,7 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.util.AECableType;
 import appeng.menu.AEBaseMenu;
+import appeng.menu.SlotSemantics;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
@@ -503,8 +504,9 @@ public final class ExtendedPatternGameTests {
     }
 
     private static Slot getAdvancedAEQuantumCrafterPatternSlot(GameTestHelper helper, AEBaseMenu menu) {
-        helper.assertTrue(!menu.slots.isEmpty(), "AdvancedAE Quantum Crafter menu has no slots");
-        return menu.slots.getFirst();
+        var patternSlots = menu.getSlots(SlotSemantics.MACHINE_INPUT);
+        assertEqual(helper, 9, patternSlots.size(), "AdvancedAE Quantum Crafter pattern slot count");
+        return patternSlots.getFirst();
     }
 
     private static KeyCounter[] countersForPattern(ExtendedTableCraftingPattern pattern) {
