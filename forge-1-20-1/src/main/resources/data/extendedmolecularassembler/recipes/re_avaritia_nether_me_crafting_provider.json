@@ -3,7 +3,7 @@
   "conditions": [
     {
       "type": "myotus:mod_condition",
-      "active_mod": "re_avaritia"
+      "active_mod": "Re-Avaritia"
     }
   ],
   "category": "redstone",

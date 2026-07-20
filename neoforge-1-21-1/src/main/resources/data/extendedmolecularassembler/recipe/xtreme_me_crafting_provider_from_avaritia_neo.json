@@ -3,7 +3,7 @@
   "neoforge:conditions": [
     {
       "type": "myotus:mod_condition",
-      "active_mod": "avaritia_neo"
+      "active_mod": "Avaritia"
     }
   ],
   "category": "redstone",

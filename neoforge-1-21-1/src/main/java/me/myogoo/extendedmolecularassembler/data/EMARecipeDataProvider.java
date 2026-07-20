@@ -60,23 +60,23 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 new String[]{" L ", "PCP", " T "},
                 key('C', "extendedmolecularassembler:elite_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "minecraft:netherite_block"),
                 "extendedmolecularassembler:ultimate_me_crafting_provider", true);
-        saveShaped(output, "re_avaritia_sculk_me_crafting_provider", myoConditions("re_avaritia"), "redstone",
+        saveShaped(output, "re_avaritia_sculk_me_crafting_provider", myoConditions("Re-Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
                 key('C', "extendedmolecularassembler:basic_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:sculk_crafting_table"),
                 "extendedmolecularassembler:re_avaritia_sculk_me_crafting_provider", true);
-        saveShaped(output, "re_avaritia_nether_me_crafting_provider", myoConditions("re_avaritia"), "redstone",
+        saveShaped(output, "re_avaritia_nether_me_crafting_provider", myoConditions("Re-Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
                 key('C', "extendedmolecularassembler:advanced_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:nether_crafting_table"),
                 "extendedmolecularassembler:re_avaritia_nether_me_crafting_provider", true);
-        saveShaped(output, "re_avaritia_end_me_crafting_provider", myoConditions("re_avaritia"), "redstone",
+        saveShaped(output, "re_avaritia_end_me_crafting_provider", myoConditions("Re-Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
                 key('C', "extendedmolecularassembler:elite_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:end_crafting_table"),
                 "extendedmolecularassembler:re_avaritia_end_me_crafting_provider", true);
-        saveShaped(output, "xtreme_me_crafting_provider_from_re_avaritia", myoConditions("re_avaritia"), "redstone",
+        saveShaped(output, "xtreme_me_crafting_provider_from_re_avaritia", myoConditions("Re-Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
                 key('C', "extendedmolecularassembler:ultimate_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:extreme_crafting_table"),
                 "extendedmolecularassembler:xtreme_me_crafting_provider", true);
-        saveShaped(output, "xtreme_me_crafting_provider_from_avaritia_neo", myoConditions("avaritia_neo"), "redstone",
+        saveShaped(output, "xtreme_me_crafting_provider_from_avaritia_neo", myoConditions("Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
                 key('C', "extendedmolecularassembler:ultimate_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:extreme_crafting_table"),
                 "extendedmolecularassembler:xtreme_me_crafting_provider", true);
