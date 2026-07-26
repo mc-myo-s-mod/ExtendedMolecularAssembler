@@ -83,11 +83,6 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
     }
 
     private static void buildIntegrationRecipes(JsonRecipeOutput output) {
-        saveShaped(output, "extended_quantum_crafter", conditions("advanced_ae"), "redstone",
-                new String[]{"EPE", "QMQ", "EPE"},
-                key('E', "extendedmolecularassembler:extended_crafting_pattern", 'M', "advanced_ae:quantum_crafter", 'P', "ae2:engineering_processor", 'Q', "ae2:quantum_link"),
-                "extendedmolecularassembler:extended_quantum_crafter", true);
-
         JsonArray extendedAE = conditions("extendedae");
         JsonArray extendedAEPlus = modLoadedConditions("extendedae", "extendedae_plus");
         saveShaped(output, "extended_assembler_matrix_crafting_core", extendedAE, "redstone",

@@ -114,6 +114,18 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         }
     }
 
+    @Override
+    public int hashCode() {
+        return this.definition.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj != null
+                && obj.getClass() == getClass()
+                && ((ExtendedTableCraftingPattern) obj).definition.equals(this.definition);
+    }
+
     @Override public AEItemKey getDefinition() { return definition; }
     @Override public IInput[] getInputs() { return inputs; }
     @Override public GenericStack[] getOutputs() { return outputsArray; }

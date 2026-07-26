@@ -36,8 +36,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -49,7 +48,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
 
     private final AppEngInternalInventory patternInventory;
     private final List<IPatternDetails> patterns = new ArrayList<>();
-    private final Set<IPatternDetails> patternSet = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<IPatternDetails> patternSet = new HashSet<>();
 
     public ExtendedAssemblerMatrixPatternCoreBlockEntity(BlockEntityType<?> type, BlockPos pos,
             BlockState blockState) {

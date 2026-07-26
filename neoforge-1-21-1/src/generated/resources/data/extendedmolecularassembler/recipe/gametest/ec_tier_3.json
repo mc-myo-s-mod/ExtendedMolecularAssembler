@@ -1,0 +1,40 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    }
+  ],
+  "type": "extendedcrafting:shaped_table",
+  "key": {
+    "C": {
+      "item": "minecraft:cobblestone"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "CCCCCCC",
+    "CDDDDDC",
+    "CDGGGDC",
+    "CDGRGDC",
+    "CDGGGDC",
+    "CDDDDDC",
+    "CCCCCCC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:netherite_scrap"
+  },
+  "tier": 3
+}

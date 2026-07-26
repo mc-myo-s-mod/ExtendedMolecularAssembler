@@ -1,0 +1,14 @@
+{
+  "values": [
+    "extendedmolecularassembler:extended_molecular_assembler",
+    "extendedmolecularassembler:ex_extended_molecular_assembler",
+    "extendedmolecularassembler:basic_me_crafting_provider",
+    "extendedmolecularassembler:advanced_me_crafting_provider",
+    "extendedmolecularassembler:elite_me_crafting_provider",
+    "extendedmolecularassembler:ultimate_me_crafting_provider",
+    "extendedmolecularassembler:re_avaritia_sculk_me_crafting_provider",
+    "extendedmolecularassembler:re_avaritia_nether_me_crafting_provider",
+    "extendedmolecularassembler:re_avaritia_end_me_crafting_provider",
+    "extendedmolecularassembler:xtreme_me_crafting_provider"
+  ]
+}

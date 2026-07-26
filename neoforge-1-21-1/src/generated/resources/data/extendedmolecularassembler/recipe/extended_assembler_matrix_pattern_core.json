@@ -1,0 +1,34 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "extendedae"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "item": "ae2:calculation_processor"
+    },
+    "E": {
+      "item": "extendedmolecularassembler:extended_crafting_pattern"
+    },
+    "M": {
+      "item": "extendedae:assembler_matrix_pattern"
+    },
+    "P": {
+      "item": "ae2:engineering_processor"
+    }
+  },
+  "pattern": [
+    "EPE",
+    "CMC",
+    "EPE"
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:extended_assembler_matrix_pattern_core"
+  },
+  "show_notification": true
+}

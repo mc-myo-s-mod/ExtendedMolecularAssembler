@@ -882,7 +882,9 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
                     this.forcePlan = true;
                     this.myPattern = pattern;
                     var direction = data.getInt(directionKey);
-                    this.pushDirection = direction < 0 ? null : Direction.values()[direction];
+                    this.pushDirection = direction >= 0 && direction < DIRECTIONS.length
+                            ? DIRECTIONS[direction]
+                            : null;
                 }
             }
         }

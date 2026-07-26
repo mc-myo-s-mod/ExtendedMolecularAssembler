@@ -37,6 +37,7 @@
   "gui.extendedmolecularassembler.matrix.showInPatternAccess": "패턴 액세스 터미널에 표시",
   "gui.extendedmolecularassembler.matrix.hideFromPatternAccess": "패턴 액세스 터미널에서 숨기기",
   "tooltip.extendedmolecularassembler.table": "작업대",
+  "tooltip.extendedmolecularassembler.extended_quantum_crafter.wip": "[WIP]",
   "table.extendedmolecularassembler.unknown": "알 수 없는 작업대 (티어 %s, %sx%s)",
   "table.extendedmolecularassembler.minecraft.crafting_table": "조합대",
   "table.extendedmolecularassembler.extendedcrafting.basic_table": "Extended Crafting Basic Table",

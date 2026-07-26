@@ -1,0 +1,45 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    }
+  ],
+  "type": "extendedcrafting:shaped_table",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "L": {
+      "item": "minecraft:lapis_lazuli"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "CCCCCCCCC",
+    "CLLLLLLLC",
+    "CLRRRRRLC",
+    "CLRIIIRLC",
+    "CLRIGIRLC",
+    "CLRIIIRLC",
+    "CLRRRRRLC",
+    "CLLLLLLLC",
+    "CCCCCCCCC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:emerald_block"
+  },
+  "tier": 4
+}

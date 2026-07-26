@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "item": "extendedmolecularassembler:basic_me_crafting_provider"
+    },
+    "L": {
+      "item": "ae2:calculation_processor"
+    },
+    "P": {
+      "item": "ae2:fluix_glass_cable"
+    },
+    "T": {
+      "item": "minecraft:gold_block"
+    }
+  },
+  "pattern": [
+    " L ",
+    "PCP",
+    " T "
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:advanced_me_crafting_provider"
+  },
+  "show_notification": true
+}

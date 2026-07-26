@@ -136,6 +136,7 @@ public enum EMATranslationKey implements MyoTranslateKey {
 
     public enum TOOLTIP implements MyoTranslateKey {
         TABLE("tooltip.extendedmolecularassembler.table"),
+        EXTENDED_QUANTUM_CRAFTER_WIP("tooltip.extendedmolecularassembler.extended_quantum_crafter.wip"),
         ME_CRAFTING_PROVIDER_EXPERT_MODE("tooltip.extendedmolecularassembler.me_crafting_provider.expert_mode"),
         TIERED_MODE_ENABLED("tooltip.extendedmolecularassembler.tiered_mode.enabled"),
         TIERED_MODE_LAST_REJECT("tooltip.extendedmolecularassembler.tiered_mode.last_reject"),

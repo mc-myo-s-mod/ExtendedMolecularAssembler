@@ -24,4 +24,4 @@ readme/summary/*
 ./workflow.md
 ./skills.md
 
-**/src/generated/
+src/generated/resources/.cache/

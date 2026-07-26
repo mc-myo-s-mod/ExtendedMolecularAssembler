@@ -1,0 +1,33 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    }
+  ],
+  "type": "extendedcrafting:shaped_table",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "CIC",
+    "IRI",
+    "CIC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:diamond"
+  },
+  "tier": 1
+}

@@ -43,6 +43,11 @@ The Matrix does not share:
 
 Use EMA Pattern Core blocks for extended pattern storage and EMA Crafting Core blocks for extended job execution.
 
+## AdvancedAE Quantum Crafter
+
+The Extended Quantum Crafter is currently a work in progress. It remains available for development and
+creative-mode testing, but has no survival recipe and is marked `[WIP]` in its tooltip.
+
 ## Capacity Reference
 
 | Block | Capacity |

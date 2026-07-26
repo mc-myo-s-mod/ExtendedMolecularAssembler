@@ -99,7 +99,7 @@ public final class EMAConfig {
     }
 
     public static double extendedAssemblerMatrixPatternCoreCraftingPowerMultiplier(boolean ignored) {
-        return extendedAssemblerMatrixPatternCoreCraftingPowerMultiplier();
+        return EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE.craftingPowerMultiplier().get();
     }
 
     public static double extendedAssemblerMatrixPatternCorePassivePowerUsage() {
@@ -107,7 +107,7 @@ public final class EMAConfig {
     }
 
     public static double extendedAssemblerMatrixPatternCorePassivePowerUsage(boolean ignored) {
-        return extendedAssemblerMatrixPatternCorePassivePowerUsage();
+        return EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE.passivePowerUsage().get();
     }
 
     public static double extendedAssemblerMatrixPatternUploaderCraftingPowerMultiplier() {

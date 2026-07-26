@@ -37,6 +37,7 @@
   "gui.extendedmolecularassembler.matrix.showInPatternAccess": "Show in Pattern Access Terminal",
   "gui.extendedmolecularassembler.matrix.hideFromPatternAccess": "Hide from Pattern Access Terminal",
   "tooltip.extendedmolecularassembler.table": "Table",
+  "tooltip.extendedmolecularassembler.extended_quantum_crafter.wip": "[WIP]",
   "table.extendedmolecularassembler.unknown": "Unknown Table (Tier %s, %sx%s)",
   "table.extendedmolecularassembler.minecraft.crafting_table": "Crafting Table",
   "table.extendedmolecularassembler.extendedcrafting.basic_table": "Extended Crafting Basic Table",

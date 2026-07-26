@@ -38,6 +38,27 @@ allprojects {
             }
         }
         maven { url = 'https://maven.blakesmods.com' }
+        maven {
+            name = 'Architectury'
+            url = 'https://maven.architectury.dev/'
+            content {
+                includeGroup 'dev.architectury'
+            }
+        }
+        maven {
+            name = 'Shedaniel'
+            url = 'https://maven.shedaniel.me/'
+            content {
+                includeGroup 'me.shedaniel.cloth'
+            }
+        }
+        maven {
+            name = 'Curios'
+            url = 'https://maven.theillusivec4.top/'
+            content {
+                includeGroup 'top.theillusivec4.curios'
+            }
+        }
         maven { url = 'https://cursemaven.com' }
         maven { url = 'https://api.modrinth.com/maven' }
         maven {
