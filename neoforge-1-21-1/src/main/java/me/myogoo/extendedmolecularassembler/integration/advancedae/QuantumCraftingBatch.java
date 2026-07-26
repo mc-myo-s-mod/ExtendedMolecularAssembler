@@ -1,9 +1,9 @@
-package me.myogoo.extendedmolecularassembler.mixin.advancedae;
+package me.myogoo.extendedmolecularassembler.integration.advancedae;
 
 import java.util.List;
 import java.util.function.IntPredicate;
 
-// Mixin methods execute on AdvancedAE's target class, so this helper must be public.
+// Mixin methods execute on AdvancedAE's target class, so this helper must remain public.
 public final class QuantumCraftingBatch {
     private QuantumCraftingBatch() {
     }

@@ -18,6 +18,7 @@ import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
 import me.myogoo.extendedmolecularassembler.integration.advancedae.EMAAdvancedAEIntegration;
 import me.myogoo.extendedmolecularassembler.integration.advancedae.ExtendedQuantumCraftingJob;
+import me.myogoo.extendedmolecularassembler.integration.advancedae.QuantumCraftingBatch;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;

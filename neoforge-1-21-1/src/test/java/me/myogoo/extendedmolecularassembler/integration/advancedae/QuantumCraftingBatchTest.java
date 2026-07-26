@@ -1,4 +1,4 @@
-package me.myogoo.extendedmolecularassembler.mixin.advancedae;
+package me.myogoo.extendedmolecularassembler.integration.advancedae;
 
 import org.junit.jupiter.api.Test;
 
