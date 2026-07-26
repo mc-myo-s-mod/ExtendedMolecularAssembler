@@ -11,15 +11,15 @@
     },
     "EXTENDED_PATTERN_CRAFTING_RESULT": {
       "left": 179,
-      "bottom": 124
+      "bottom": 125
     },
     "BLANK_PATTERN": {
-      "left": 174,
+      "left": 179,
       "bottom": 260
     },
     "ENCODED_PATTERN": {
-      "left": 173,
-      "bottom": 150
+      "left": 179,
+      "bottom": 154
     },
     "PLAYER_INVENTORY": {
       "left": 8,
@@ -60,7 +60,7 @@
       "srcRect": [
         0,
         0,
-        195,
+        204,
         17
       ]
     },
@@ -71,7 +71,7 @@
       "srcRect": [
         0,
         17,
-        195,
+        204,
         18
       ]
     },
@@ -82,7 +82,7 @@
       "srcRect": [
         0,
         35,
-        195,
+        204,
         18
       ]
     },
@@ -93,7 +93,7 @@
       "srcRect": [
         0,
         53,
-        195,
+        204,
         18
       ]
     },
@@ -119,23 +119,23 @@
       "top": 6
     },
     "encodePattern": {
-      "left": 174,
-      "bottom": 177
+      "left": 179,
+      "bottom": 181
     },
     "clearPattern": {
       "left": 160,
       "bottom": 95
     },
     "recipeCycle": {
-      "left": 172,
+      "left": 178,
       "bottom": 224
     },
     "substitutions": {
-      "left": 181,
+      "left": 187,
       "bottom": 237
     },
     "canSubstituteFluids": {
-      "left": 171,
+      "left": 177,
       "bottom": 237
     }
   }
