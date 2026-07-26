@@ -1,0 +1,32 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "extendedae"
+    },
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "extendedae_plus"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "item": "extendedmolecularassembler:extended_assembler_matrix_pattern_core"
+    },
+    "P": {
+      "item": "extendedae_plus:assembler_matrix_pattern_plus"
+    }
+  },
+  "pattern": [
+    " P ",
+    "PBP",
+    " P "
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus"
+  },
+  "show_notification": true
+}

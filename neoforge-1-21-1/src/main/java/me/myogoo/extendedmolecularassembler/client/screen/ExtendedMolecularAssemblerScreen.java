@@ -8,6 +8,7 @@ import appeng.client.gui.style.Blitter;
 import appeng.client.gui.widgets.ProgressBar;
 import me.myogoo.extendedmolecularassembler.client.widget.EMAIconButton;
 import me.myogoo.extendedmolecularassembler.menu.ExtendedMolecularAssemblerMenu;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -29,13 +30,13 @@ public class ExtendedMolecularAssemblerScreen extends UpgradeableScreen<Extended
         widgets.add("progressBar", this.progressBar);
 
         this.clearCurrentJobButton = new EMAIconButton(Icon.CLEAR,
-                Component.translatable("gui.extendedmolecularassembler.extendedMolecularAssembler.clearCurrentJob"),
+                Component.translatable(EMATranslationKey.GUI.EXTENDED_MOLECULAR_ASSEMBLER_CLEAR_CURRENT_JOB.key()),
                 btn -> this.menu.cancelCurrentJobFromClient());
         this.nextJobButton = new EMAIconButton(Icon.ARROW_RIGHT,
-                Component.translatable("gui.extendedmolecularassembler.extendedMolecularAssembler.nextJob"),
+                Component.translatable(EMATranslationKey.GUI.EXTENDED_MOLECULAR_ASSEMBLER_NEXT_JOB.key()),
                 btn -> this.menu.selectPage(this.menu.getPage() + 1));
         this.previousJobButton = new EMAIconButton(Icon.ARROW_LEFT,
-                Component.translatable("gui.extendedmolecularassembler.extendedMolecularAssembler.previousJob"),
+                Component.translatable(EMATranslationKey.GUI.EXTENDED_MOLECULAR_ASSEMBLER_PREVIOUS_JOB.key()),
                 btn -> this.menu.selectPage(this.menu.getPage() - 1));
         addToLeftToolbar(this.clearCurrentJobButton);
         addToLeftToolbar(this.nextJobButton);
@@ -68,7 +69,7 @@ public class ExtendedMolecularAssemblerScreen extends UpgradeableScreen<Extended
         if (this.menu.getPageCount() > 1) {
             guiGraphics.drawString(
                     this.font,
-                    Component.translatable("gui.extendedmolecularassembler.extendedMolecularAssembler.job",
+                    Component.translatable(EMATranslationKey.GUI.EXTENDED_MOLECULAR_ASSEMBLER_JOB.key(),
                             this.menu.getPage() + 1, this.menu.getPageCount()),
                     8,
                     18,

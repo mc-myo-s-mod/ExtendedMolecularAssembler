@@ -2,6 +2,7 @@ package me.myogoo.extendedmolecularassembler;
 
 import com.mojang.logging.LogUtils;
 import me.myogoo.extendedmolecularassembler.client.EMAClient;
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.data.EMADataGenerators;
 import me.myogoo.extendedmolecularassembler.init.EMABlockEntities;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
@@ -13,7 +14,10 @@ import me.myogoo.extendedmolecularassembler.init.EMAParts;
 import me.myogoo.extendedmolecularassembler.integration.ae2wtlib.EMAAE2WTLibIntegration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
@@ -24,6 +28,7 @@ public final class ExtendedMolecularAssembler {
 
     public ExtendedMolecularAssembler() {
         LOGGER.info("Initializing Extended Molecular Assembler Forge 1.20.1");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, EMAConfig.SPEC);
         var modBus = FMLJavaModLoadingContext.get().getModEventBus();
         EMAModIntegration.initialize();
         EMAOptionalIntegrations.registerDeferred();
@@ -33,6 +38,7 @@ public final class ExtendedMolecularAssembler {
         EMABlockEntities.BLOCK_ENTITIES.register(modBus);
         EMAMenus.MENUS.register(modBus);
         EMAAE2WTLibIntegration.registerTerminal();
+        modBus.addListener(ExtendedMolecularAssembler::onCommonSetup);
         modBus.addListener(EMAAE2WTLibIntegration::onCommonSetup);
         modBus.addListener(EMADataGenerators::onGatherData);
         DistExecutor.unsafeRunWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT,
@@ -41,5 +47,12 @@ public final class ExtendedMolecularAssembler {
 
     public static ResourceLocation makeId(String path) {
         return new ResourceLocation(MODID, path);
+    }
+
+    private static void onCommonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            EMABlockEntities.registerRepresentativeItems();
+            EMAOptionalIntegrations.registerRepresentativeItems();
+        });
     }
 }

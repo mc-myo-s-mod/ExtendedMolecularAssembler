@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "extendedmolecularassembler:block/provider/xtreme_me_crafting_provider"
+    }
+  }
+}

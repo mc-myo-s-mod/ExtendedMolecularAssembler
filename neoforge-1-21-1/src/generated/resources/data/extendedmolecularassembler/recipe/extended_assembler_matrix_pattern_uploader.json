@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "extendedae"
+    },
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "extendedae_plus"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "item": "ae2:calculation_processor"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "M": {
+      "item": "extendedae:assembler_matrix_pattern"
+    },
+    "P": {
+      "item": "extendedmolecularassembler:extended_crafting_pattern"
+    }
+  },
+  "pattern": [
+    " P ",
+    "HCH",
+    " M "
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader"
+  },
+  "show_notification": true
+}

@@ -4,7 +4,10 @@ import com.blakebr0.extendedcrafting.compat.jei.category.table.AdvancedTableCate
 import com.blakebr0.extendedcrafting.compat.jei.category.table.BasicTableCategory;
 import com.blakebr0.extendedcrafting.compat.jei.category.table.EliteTableCategory;
 import com.blakebr0.extendedcrafting.compat.jei.category.table.UltimateTableCategory;
+import com.blakebr0.extendedcrafting.api.crafting.ITableRecipe;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
+import me.myogoo.extendedmolecularassembler.integration.jei.handler.ExtendedPatternDirectRecipeTransferHandler;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.world.item.ItemStack;
@@ -22,8 +25,22 @@ public final class ExtendedCraftingJeiIntegration {
     }
 
     public static void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
-        // The 1.21 handlers fill ExtendedPatternEncodingTermMenu, which is not present in the
-        // Forge 1.20.1 port. Keep this as an explicit no-op until that menu is available.
+        registration.addRecipeTransferHandler(
+                new ExtendedPatternDirectRecipeTransferHandler<ITableRecipe>(BasicTableCategory.RECIPE_TYPE,
+                        RecipeProvider.EXTENDED_CRAFTING, 1, 3),
+                BasicTableCategory.RECIPE_TYPE);
+        registration.addRecipeTransferHandler(
+                new ExtendedPatternDirectRecipeTransferHandler<ITableRecipe>(AdvancedTableCategory.RECIPE_TYPE,
+                        RecipeProvider.EXTENDED_CRAFTING, 2, 5),
+                AdvancedTableCategory.RECIPE_TYPE);
+        registration.addRecipeTransferHandler(
+                new ExtendedPatternDirectRecipeTransferHandler<ITableRecipe>(EliteTableCategory.RECIPE_TYPE,
+                        RecipeProvider.EXTENDED_CRAFTING, 3, 7),
+                EliteTableCategory.RECIPE_TYPE);
+        registration.addRecipeTransferHandler(
+                new ExtendedPatternDirectRecipeTransferHandler<ITableRecipe>(UltimateTableCategory.RECIPE_TYPE,
+                        RecipeProvider.EXTENDED_CRAFTING, 4, 9),
+                UltimateTableCategory.RECIPE_TYPE);
     }
 
     private static void addTableCatalysts(IRecipeCatalystRegistration registration, ItemStack catalyst) {

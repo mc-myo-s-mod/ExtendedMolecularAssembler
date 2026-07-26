@@ -56,7 +56,7 @@ public final class EMAAdvancedAEIntegration {
         var typeHolder = new AtomicReference<BlockEntityType<QuantumCrafterEntity>>();
         var block = EXTENDED_QUANTUM_CRAFTER.get();
         BlockEntityType.BlockEntitySupplier<QuantumCrafterEntity> supplier =
-                (pos, state) -> new QuantumCrafterEntity(typeHolder.get(), pos, state);
+                (pos, state) -> new ExtendedQuantumCrafterBlockEntity(typeHolder.get(), pos, state);
         var type = BlockEntityType.Builder.of(supplier, block).build(null);
         typeHolder.setPlain(type);
         block.setBlockEntity(QuantumCrafterEntity.class, type, null, null);

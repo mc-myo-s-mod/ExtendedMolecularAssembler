@@ -32,13 +32,13 @@ Implemented so far:
 - Forge resources are present for the two assembler blockstates, block models, item models, assembler AE2 screen style, and English/Korean block names.
 - Client-side assembler screen and block entity renderer are ported and registered through Forge client setup/render events.
 - JEI integration classes have been brought into the 1.20.1 source set and currently compile.
-- AvaritiaNeo's available 1.20.1 artifact was inspected, but its class files are Java 21
-  (`class file version 65.0`) while Forge 1.20.1 compiles with Java 17 (`61.0`), so only an
-  isolated safe stub is present for `adapter.recipe.avaritianeo` until a Java-17-compatible
-  artifact/API is chosen.
-- Re:Avaritia's configured artifact (`ReAvaritia_file=7695278`) exposes 1.21+ recipe classes
-  (`CraftingInput`/`RecipeInput`, `HolderLookup.Provider` signatures), so only an isolated safe
-  stub is present for `adapter.recipe.reavaritia` until a 1.20.1-compatible artifact/API is chosen.
+- AvaritiaNeo and Re:Avaritia now use exact Modrinth version IDs for Java 17 / Forge 1.20.1
+  artifacts instead of ambiguous coordinates:
+  - `AvaritiaNeo_version=VMvF8WpV` (`AvaritiaNeo-1.20.1-1.1.5.jar`)
+  - `ReAvaritia_version=5muSI5qX` (`Re-Avaritia-forge-1.20.1-1.4.0-release.jar`)
+- AvaritiaNeo and Re:Avaritia recipe adapters are compile-linked against those verified 1.20.1
+  APIs. Both mods still share the `avaritia` mod id, so Forge presence detection checks the
+  display name (`Avaritia` vs `Re-Avaritia`) before enabling either path.
 - Minimal Forge/AE2-15 pattern encoding terminal part registration is present:
   - `EMAParts` registers `extended_pattern_encoding_terminal` as an AE2 `PartItem`.
   - `ExtendedPatternEncodingTerminalPart` uses EMA's part models but intentionally reuses AE2 15's stock `PatternEncodingTerminalPart` behavior.
@@ -72,8 +72,7 @@ The following 1.21.1 features are still pending for 1.20.1:
 - Network packets for assembler animation are not ported yet.
 - Full Pattern Encoding Terminal extended-table menu/encoding is not ported yet. The AE2 part item now registers, but it opens/behaves like AE2 15's stock pattern encoding terminal. A direct 1.21 copy still does not compile on AE2 15 because `RecipeHolder`, `CraftingInput`, pattern terminal slots, and transfer APIs changed.
 - JEI recipe transfer integration compiles, but still needs in-game validation with JEI installed and the terminal/menu path completed.
-- Re:Avaritia concrete adapters are blocked by the configured artifact/API mismatch noted above.
-- Avaritia Neo concrete adapter package is disabled as a compile-time stub because the available 1.20.1 artifact on the classpath is compiled for Java 21 (`class file has wrong version 65.0`) while Forge 1.20.1 compiles with Java 17 (`61.0`).
+- Re:Avaritia and AvaritiaNeo concrete adapters compile against exact Forge 1.20.1 artifacts, but still need runtime recipe validation.
 - Extended Crafting concrete adapter package is ported at compile level and needs runtime recipe validation.
 - ExtendedAE Assembler Matrix integration.
 - AdvancedAE Extended Quantum Crafter integration.

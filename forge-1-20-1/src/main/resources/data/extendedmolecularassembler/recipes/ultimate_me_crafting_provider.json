@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " L ",
+    "PCP",
+    " T "
+  ],
+  "key": {
+    "C": { "item": "extendedmolecularassembler:elite_me_crafting_provider" },
+    "L": { "item": "ae2:engineering_processor" },
+    "P": { "item": "ae2:quartz_fiber" },
+    "T": { "item": "minecraft:netherite_block" }
+  },
+  "result": {
+    "item": "extendedmolecularassembler:ultimate_me_crafting_provider"
+  },
+  "show_notification": true
+}

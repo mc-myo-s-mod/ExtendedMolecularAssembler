@@ -2,9 +2,8 @@ package me.myogoo.extendedmolecularassembler.integration.ae2wtlib;
 
 import appeng.api.features.GridLinkables;
 import appeng.items.tools.powered.WirelessTerminalItem;
-import de.mari_023.ae2wtlib.wet.WETMenu;
-import de.mari_023.ae2wtlib.wet.WETMenuHost;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
 import me.myogoo.myotus.api.wt.AddTerminalEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
@@ -20,11 +19,11 @@ public final class EMAAE2WTLibIntegration {
 
     public static void registerTerminal() {
         AddTerminalEvent.register(event -> {
-            var item = EMAItems.WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL.get();
+            var item = EMAItems.WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL_ITEM;
             event.addTerminal(
                     TERMINAL_NAME,
-                    WETMenuHost::new,
-                    WETMenu.TYPE,
+                    WirelessExtendedPatternEncodingTerminalMenuHost::new,
+                    ExtendedPatternEncodingTermMenu.TYPE,
                     item,
                     HOTKEY_NAME,
                     TRANSLATION_KEY);
@@ -33,7 +32,7 @@ public final class EMAAE2WTLibIntegration {
 
     public static void onCommonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> GridLinkables.register(
-                EMAItems.WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL.get(),
+                EMAItems.WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL_ITEM,
                 WirelessTerminalItem.LINKABLE_HANDLER));
     }
 }

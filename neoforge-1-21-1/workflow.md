@@ -14,6 +14,7 @@ Last updated: 2026-05-29
 - ExtendedAE가 있을 때만 `Extended Assembler Matrix Pattern Core`를 등록하고, Assembler Matrix 안에서 36개 확장 패턴을 제공한다.
 - Matrix에서 들어온 확장 조합은 실제 실행은 인접한 EMA/Ex EMA가 하되, Matrix의 craft core thread capacity와 speed core를 공유한다.
 - AdvancedAE가 있을 때만 `Extended Quantum Crafter`를 등록하고, Quantum Crafter 계열에서 9x9 이하 확장 encoded pattern을 stock/craft loop에 포함한다.
+- `Extended Quantum Crafter`는 현재 WIP 상태이므로 생존 조합법을 제공하지 않으며, 아이템 툴팁에 `[WIP]`를 표시한다.
 
 ## Main Components
 

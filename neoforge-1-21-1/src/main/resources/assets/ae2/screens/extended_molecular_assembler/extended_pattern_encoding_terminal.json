@@ -110,6 +110,14 @@
     }
   },
   "widgets": {
+    "scrollingUpgrades": {
+      "right": -6,
+      "top": 0
+    },
+    "upgradeScrollbar": {
+      "right": -25,
+      "top": 6
+    },
     "encodePattern": {
       "left": 174,
       "bottom": 177

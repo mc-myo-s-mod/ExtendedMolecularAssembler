@@ -1,0 +1,7 @@
+{
+  "parent": "ae2:block/molecular_assembler",
+  "textures": {
+    "particle": "extendedmolecularassembler:block/xtreme_me_crafting_provider",
+    "base": "extendedmolecularassembler:block/xtreme_me_crafting_provider"
+  }
+}

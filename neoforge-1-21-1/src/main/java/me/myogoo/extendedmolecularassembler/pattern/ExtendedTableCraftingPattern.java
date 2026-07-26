@@ -13,6 +13,7 @@ import appeng.core.localization.GuiText;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
 import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
 import me.myogoo.extendedmolecularassembler.init.EMADataComponents;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -129,6 +130,18 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
                 }
             }
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.definition.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj != null
+                && obj.getClass() == getClass()
+                && ((ExtendedTableCraftingPattern) obj).definition.equals(this.definition);
     }
 
     @Override
@@ -253,7 +266,7 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
             tooltip.addProperty(GuiText.PatternTooltipFluidSubstitutions.text());
         }
         tooltip.addProperty(
-                Component.translatable("tooltip.extendedmolecularassembler.table"),
+                Component.translatable(EMATranslationKey.TOOLTIP.TABLE.key()),
                 ExtendedPatternTableTypes.displayName(tableType, tableTier, tableSideLength));
         if (flags.isAdvanced()) {
             tooltip.addProperty(Component.literal("Recipe"), Component.literal(recipeHolder.id().toString()));
@@ -331,7 +344,7 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
             }
             if (encodedPattern.hasTableMetadata()) {
                 tooltip.addProperty(
-                        Component.translatable("tooltip.extendedmolecularassembler.table"),
+                        Component.translatable(EMATranslationKey.TOOLTIP.TABLE.key()),
                         ExtendedPatternTableTypes.displayName(encodedPattern.tableType(), encodedPattern.tableTier(),
                                 encodedPattern.tableSideLength()));
             }

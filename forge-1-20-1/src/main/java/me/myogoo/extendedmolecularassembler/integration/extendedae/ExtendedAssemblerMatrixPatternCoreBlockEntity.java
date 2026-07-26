@@ -8,6 +8,7 @@ import appeng.util.inv.InternalInventoryHost;
 import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixFunction;
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,6 +24,7 @@ import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssemblerMatrixFunction
@@ -65,7 +67,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     }
 
     @Override
-    public void addAdditionalDrops(Level level, BlockPos pos, java.util.List<ItemStack> drops) {
+    public void addAdditionalDrops(Level level, BlockPos pos, List<ItemStack> drops) {
         super.addAdditionalDrops(level, pos, drops);
         for (var pattern : this.patternInventory) {
             if (!pattern.isEmpty()) {

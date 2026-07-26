@@ -18,7 +18,11 @@ import appeng.util.inv.InternalInventoryHost;
 import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixFunction;
+import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.blockentity.TieredMECraftingProviderBlockEntity;
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -32,8 +36,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -45,7 +48,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
 
     private final AppEngInternalInventory patternInventory;
     private final List<IPatternDetails> patterns = new ArrayList<>();
-    private final Set<IPatternDetails> patternSet = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<IPatternDetails> patternSet = new HashSet<>();
 
     public ExtendedAssemblerMatrixPatternCoreBlockEntity(BlockEntityType<?> type, BlockPos pos,
             BlockState blockState) {
@@ -57,7 +60,10 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         super(type, pos, blockState);
         this.patternInventory = new AppEngInternalInventory(this, patternSlotCount, 1);
         this.patternInventory.setFilter(new ExtendedPatternFilter(this::getLevel));
-        this.getMainNode().addService(ICraftingProvider.class, this);
+        this.getMainNode()
+                .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixPatternCoreIdlePowerUsage(
+                        patternSlotCount > DEFAULT_INV_SIZE))
+                .addService(ICraftingProvider.class, this);
     }
 
     public AppEngInternalInventory getPatternInventory() {
@@ -170,7 +176,31 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         if (!formed || !active || !knownPattern) {
             return false;
         }
+        if (EMAConfig.tieredMode() && patternDetails instanceof ExtendedTableCraftingPattern pattern
+                && !hasMatchingProvider(pattern)) {
+            return false;
+        }
         return this.cluster != null && this.cluster.pushCraftingJob(patternDetails, inputHolder);
+    }
+
+    private boolean hasMatchingProvider(ExtendedTableCraftingPattern pattern) {
+        try {
+            TieredMECraftingProviderTier.requiredFor(pattern.tableType(), pattern.tableTier());
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+
+        var grid = this.getMainNode().getGrid();
+        if (grid == null) {
+            return false;
+        }
+
+        for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
+            if (provider.getTier().provides(pattern.tableType(), pattern.tableTier()) && provider.isOnline()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -208,7 +238,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
                 ? this.getCustomName()
                 : EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_ITEM.get().getDescription();
         return new PatternContainerGroup(icon, name,
-                List.of(Component.translatable("gui.extendedmolecularassembler.matrix.patternCore")));
+                List.of(Component.translatable(EMATranslationKey.GUI.MATRIX_PATTERN_CORE.key())));
     }
 
     public record ExtendedPatternFilter(Supplier<Level> world) implements IAEItemFilter {

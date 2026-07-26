@@ -38,6 +38,27 @@ allprojects {
             }
         }
         maven { url = 'https://maven.blakesmods.com' }
+        maven {
+            name = 'Architectury'
+            url = 'https://maven.architectury.dev/'
+            content {
+                includeGroup 'dev.architectury'
+            }
+        }
+        maven {
+            name = 'Shedaniel'
+            url = 'https://maven.shedaniel.me/'
+            content {
+                includeGroup 'me.shedaniel.cloth'
+            }
+        }
+        maven {
+            name = 'Curios'
+            url = 'https://maven.theillusivec4.top/'
+            content {
+                includeGroup 'top.theillusivec4.curios'
+            }
+        }
         maven { url = 'https://cursemaven.com' }
         maven { url = 'https://api.modrinth.com/maven' }
         maven {
@@ -92,7 +113,51 @@ configure(modProjects) {
 
     def syncEMACommonResources = tasks.register('syncEMACommonResources', Sync) {
         from commonResourcesSourceDir
+        exclude 'assets/extendedmolecularassembler/lang/*.json'
         into generatedCommonResourcesDir
+    }
+
+    def mergeEMACommonLang = tasks.register('mergeEMACommonLang') {
+        dependsOn syncEMACommonResources
+        inputs.files(fileTree(commonResourcesSourceDir) {
+            include 'assets/extendedmolecularassembler/lang/*.json'
+        })
+        inputs.files(fileTree(project.layout.projectDirectory.dir('src/main/resources').asFile) {
+            include 'assets/extendedmolecularassembler/lang/*.json'
+        })
+        outputs.dir generatedCommonResourcesDir
+
+        doLast {
+            def commonLangDir = new File(commonResourcesSourceDir, 'assets/extendedmolecularassembler/lang')
+            def projectLangDir = project.layout.projectDirectory.dir('src/main/resources/assets/extendedmolecularassembler/lang').asFile
+            def outputLangDir = new File(generatedCommonResourcesDir.get().asFile,
+                    'assets/extendedmolecularassembler/lang')
+            outputLangDir.mkdirs()
+
+            def parser = new groovy.json.JsonSlurper()
+            def langFiles = [] as Set
+            if (commonLangDir.isDirectory()) {
+                commonLangDir.eachFileMatch(~/.*\.json/) { langFiles.add(it.name) }
+            }
+            if (projectLangDir.isDirectory()) {
+                projectLangDir.eachFileMatch(~/.*\.json/) { langFiles.add(it.name) }
+            }
+
+            langFiles.sort().each { fileName ->
+                def merged = new LinkedHashMap<String, Object>()
+                def commonFile = new File(commonLangDir, fileName)
+                def projectFile = new File(projectLangDir, fileName)
+                if (commonFile.isFile()) {
+                    merged.putAll(parser.parse(commonFile) as Map<String, Object>)
+                }
+                if (projectFile.isFile()) {
+                    merged.putAll(parser.parse(projectFile) as Map<String, Object>)
+                }
+
+                new File(outputLangDir, fileName).text = groovy.json.JsonOutput.prettyPrint(
+                        groovy.json.JsonOutput.toJson(merged)) + '\n'
+            }
+        }
     }
 
     def generatedCommonJavaSources = files(generatedCommonJavaDir).builtBy(syncEMACommonJava)
@@ -105,8 +170,7 @@ configure(modProjects) {
     sourceSets {
         main {
             java.srcDir generatedCommonJavaSources
-            resources.srcDir generatedCommonResources
-            resources.srcDir 'src/generated/resources'
+            resources.setSrcDirs([generatedCommonResources, 'src/main/resources', 'src/generated/resources'])
         }
     }
 
@@ -116,12 +180,14 @@ configure(modProjects) {
 
     tasks.named('processResources').configure {
         dependsOn syncEMACommonResources
+        dependsOn mergeEMACommonLang
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
     tasks.matching { it.name in ['genIntellijRuns', 'neoForgeIdeSync', 'idea', 'ideaModule'] }.configureEach {
         dependsOn syncEMACommonJava
         dependsOn syncEMACommonResources
+        dependsOn mergeEMACommonLang
     }
 
     idea {

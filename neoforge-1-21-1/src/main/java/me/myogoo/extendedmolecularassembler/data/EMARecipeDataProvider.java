@@ -44,14 +44,45 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 new String[]{"QPQ", "RCR", "QPQ"},
                 key('C', "minecraft:crafting_table", 'P', "ae2:blank_pattern", 'Q', "ae2:certus_quartz_crystal", 'R', "minecraft:redstone"),
                 "extendedmolecularassembler:extended_crafting_pattern", true);
+        saveShaped(output, "basic_me_crafting_provider", null, "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:extended_crafting_pattern", 'L', "ae2:logic_processor", 'P', "ae2:fluix_glass_cable", 'T', "minecraft:crafting_table"),
+                "extendedmolecularassembler:basic_me_crafting_provider", true);
+        saveShaped(output, "advanced_me_crafting_provider", null, "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:basic_me_crafting_provider", 'L', "ae2:calculation_processor", 'P', "ae2:fluix_glass_cable", 'T', "minecraft:gold_block"),
+                "extendedmolecularassembler:advanced_me_crafting_provider", true);
+        saveShaped(output, "elite_me_crafting_provider", null, "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:advanced_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:fluix_glass_cable", 'T', "minecraft:diamond_block"),
+                "extendedmolecularassembler:elite_me_crafting_provider", true);
+        saveShaped(output, "ultimate_me_crafting_provider", null, "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:elite_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "minecraft:netherite_block"),
+                "extendedmolecularassembler:ultimate_me_crafting_provider", true);
+        saveShaped(output, "re_avaritia_sculk_me_crafting_provider", myoConditions("Re-Avaritia"), "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:basic_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:sculk_crafting_table"),
+                "extendedmolecularassembler:re_avaritia_sculk_me_crafting_provider", true);
+        saveShaped(output, "re_avaritia_nether_me_crafting_provider", myoConditions("Re-Avaritia"), "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:advanced_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:nether_crafting_table"),
+                "extendedmolecularassembler:re_avaritia_nether_me_crafting_provider", true);
+        saveShaped(output, "re_avaritia_end_me_crafting_provider", myoConditions("Re-Avaritia"), "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:elite_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:end_crafting_table"),
+                "extendedmolecularassembler:re_avaritia_end_me_crafting_provider", true);
+        saveShaped(output, "xtreme_me_crafting_provider_from_re_avaritia", myoConditions("Re-Avaritia"), "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:ultimate_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:extreme_crafting_table"),
+                "extendedmolecularassembler:xtreme_me_crafting_provider", true);
+        saveShaped(output, "xtreme_me_crafting_provider_from_avaritia_neo", myoConditions("Avaritia"), "redstone",
+                new String[]{" L ", "PCP", " T "},
+                key('C', "extendedmolecularassembler:ultimate_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:extreme_crafting_table"),
+                "extendedmolecularassembler:xtreme_me_crafting_provider", true);
     }
 
     private static void buildIntegrationRecipes(JsonRecipeOutput output) {
-        saveShaped(output, "extended_quantum_crafter", conditions("advanced_ae"), "redstone",
-                new String[]{"EPE", "QMQ", "EPE"},
-                key('E', "extendedmolecularassembler:extended_crafting_pattern", 'M', "advanced_ae:quantum_crafter", 'P', "ae2:engineering_processor", 'Q', "ae2:quantum_link"),
-                "extendedmolecularassembler:extended_quantum_crafter", true);
-
         JsonArray extendedAE = conditions("extendedae");
         JsonArray extendedAEPlus = modLoadedConditions("extendedae", "extendedae_plus");
         saveShaped(output, "extended_assembler_matrix_crafting_core", extendedAE, "redstone",
@@ -153,6 +184,12 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
         conditions.add(devCondition());
         conditions.add(myoCondition(activeMod));
         return conditions;
+    }
+
+    private static JsonArray myoConditions(String activeMod) {
+        JsonArray values = new JsonArray();
+        values.add(myoCondition(activeMod));
+        return values;
     }
 
     private static JsonArray modLoadedConditions(String... modIds) {

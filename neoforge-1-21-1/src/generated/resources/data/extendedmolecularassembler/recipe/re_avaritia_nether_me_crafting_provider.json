@@ -1,0 +1,34 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "item": "extendedmolecularassembler:advanced_me_crafting_provider"
+    },
+    "L": {
+      "item": "ae2:engineering_processor"
+    },
+    "P": {
+      "item": "ae2:quartz_fiber"
+    },
+    "T": {
+      "item": "avaritia:nether_crafting_table"
+    }
+  },
+  "pattern": [
+    " L ",
+    "PCP",
+    " T "
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:re_avaritia_nether_me_crafting_provider"
+  },
+  "show_notification": true
+}

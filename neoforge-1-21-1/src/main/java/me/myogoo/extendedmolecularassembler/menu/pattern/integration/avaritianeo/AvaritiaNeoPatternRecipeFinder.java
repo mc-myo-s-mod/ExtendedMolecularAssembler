@@ -6,6 +6,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +29,7 @@ public final class AvaritiaNeoPatternRecipeFinder {
             return List.of();
         }
 
-        return new java.util.ArrayList<RecipeHolder<?>>(level.getRecipeManager()
+        return new ArrayList<RecipeHolder<?>>(level.getRecipeManager()
                 .getRecipesFor(AvaritiaRecipes.EXTREME_CRAFTING.get(), CraftingInput.of(side, side, input), level));
     }
 }

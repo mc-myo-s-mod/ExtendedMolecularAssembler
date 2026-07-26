@@ -33,6 +33,8 @@ import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.filter.IAEItemFilter;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
 import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContext;
@@ -58,6 +60,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import appeng.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEntity
@@ -96,6 +99,8 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
     private final IUpgradeInventory upgrades;
     private boolean isPowered = false;
     private boolean isAwake = false;
+    @Nullable
+    private Component lastTierRejectReason;
     @OnlyIn(Dist.CLIENT)
     private AssemblerAnimationStatus animationStatus;
 
@@ -105,7 +110,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
         this.machineBlock = getMachineBlock(blockState);
         this.laneCount = blockState.is(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get()) ? PARALLEL_LANE_COUNT : 1;
         getMainNode()
-                .setIdlePowerUsage(0.0)
+                .setIdlePowerUsage(EMAConfig.extendedMolecularAssemblerPassivePowerUsage(blockState.is(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get())))
                 .addService(IGridTickable.class, this);
         this.upgrades = UpgradeInventories.forMachine(this.machineBlock, 5,
                 this::saveChanges);
@@ -136,6 +141,10 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
         return EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get();
     }
 
+    private boolean isExAssembler() {
+        return this.machineBlock == EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get();
+    }
+
     @Override
     public PatternContainerGroup getCraftingMachineInfo() {
         var name = hasCustomName()
@@ -143,14 +152,19 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
                 : this.machineBlock.asItem().getDescription();
         var icon = AEItemKey.of(this.machineBlock);
 
-        List<Component> tooltip;
+        List<Component> tooltip = new ArrayList<>();
         var accelerationCards = getInstalledUpgrades(AEItems.SPEED_CARD);
-        if (accelerationCards == 0) {
-            tooltip = List.of();
-        } else {
-            tooltip = List.of(GuiText.CompatibleUpgrade.text(
+        if (accelerationCards != 0) {
+            tooltip.add(GuiText.CompatibleUpgrade.text(
                     Tooltips.of(AEItems.SPEED_CARD.asItem().getDescription()),
                     Tooltips.ofUnformattedNumber(accelerationCards)));
+        }
+        if (EMAConfig.tieredMode()) {
+            tooltip.add(Component.translatable("tooltip.extendedmolecularassembler.tiered_mode.enabled"));
+            if (this.lastTierRejectReason != null) {
+                tooltip.add(Component.translatable("tooltip.extendedmolecularassembler.tiered_mode.last_reject",
+                        this.lastTierRejectReason));
+            }
         }
 
         return new PatternContainerGroup(icon, name, tooltip);
@@ -162,13 +176,68 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
             return false;
         }
 
+        if (!this.isTierAllowed(pattern)) {
+            return false;
+        }
+
         for (int i = 0; i < this.laneCount; i++) {
             var lane = this.lanes[i];
             if (lane.acceptJob(pattern, table, where)) {
+                this.clearTierRejectReason();
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean isTierAllowed(ExtendedTableCraftingPattern pattern) {
+        if (!EMAConfig.tieredMode()) {
+            this.clearTierRejectReason();
+            return true;
+        }
+
+        final int tableTier = pattern.tableTier();
+        final TieredMECraftingProviderTier providerTier;
+        try {
+            providerTier = TieredMECraftingProviderTier.requiredFor(pattern.tableType(), tableTier);
+        } catch (IllegalArgumentException ignored) {
+            this.setTierRejectReason(Component.translatable(
+                    "tooltip.extendedmolecularassembler.tiered_mode.unsupported_tier",
+                    TieredMECraftingProviderTier.tierName(tableTier), tableTier));
+            return false;
+        }
+
+        var grid = this.getMainNode().getGrid();
+        if (grid == null) {
+            this.setTierRejectReason(Component.translatable(
+                    "tooltip.extendedmolecularassembler.tiered_mode.offline_grid",
+                    providerTier.displayName(), tableTier));
+            return false;
+        }
+
+        for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
+            if (provider.getTier().provides(pattern.tableType(), tableTier) && provider.isOnline()) {
+                this.clearTierRejectReason();
+                return true;
+            }
+        }
+
+        this.setTierRejectReason(Component.translatable(
+                "tooltip.extendedmolecularassembler.tiered_mode.missing_provider",
+                providerTier.displayName(), tableTier));
+        return false;
+    }
+
+    private void setTierRejectReason(Component reason) {
+        this.lastTierRejectReason = reason;
+        this.markForUpdate();
+    }
+
+    private void clearTierRejectReason() {
+        if (this.lastTierRejectReason != null) {
+            this.lastTierRejectReason = null;
+            this.markForUpdate();
+        }
     }
 
     private void updateSleepiness() {
@@ -397,11 +466,19 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
 
     private int userPower(int ticksPassed, int bonusValue, double acceleratorTax) {
         var grid = getMainNode().getGrid();
-        if (grid != null) {
-            return (int) (grid.getEnergyService().extractAEPower(ticksPassed * bonusValue * acceleratorTax,
-                    Actionable.MODULATE, PowerMultiplier.CONFIG) / acceleratorTax);
+        if (grid == null) {
+            return 0;
         }
-        return 0;
+
+        var powerMultiplier = EMAConfig.extendedMolecularAssemblerCraftingPowerMultiplier(this.isExAssembler());
+        var progress = ticksPassed * bonusValue;
+        if (powerMultiplier <= 0) {
+            return progress;
+        }
+
+        var requestedPower = progress * acceleratorTax * powerMultiplier;
+        return (int) (grid.getEnergyService().extractAEPower(requestedPower,
+                Actionable.MODULATE, PowerMultiplier.CONFIG) / acceleratorTax / powerMultiplier);
     }
 
     private SpeedProfile getSpeedProfile() {
@@ -805,7 +882,9 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
                     this.forcePlan = true;
                     this.myPattern = pattern;
                     var direction = data.getInt(directionKey);
-                    this.pushDirection = direction < 0 ? null : Direction.values()[direction];
+                    this.pushDirection = direction >= 0 && direction < DIRECTIONS.length
+                            ? DIRECTIONS[direction]
+                            : null;
                 }
             }
         }
@@ -889,14 +968,22 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
             boolean reset = true;
 
             if (!patternStack.isEmpty()) {
-                if (ItemStack.isSameItemSameTags(patternStack, this.myPattern)) {
+                if (ItemStack.isSameItemSameTags(patternStack, this.myPattern) && this.myPlan != null) {
                     reset = false;
                 } else if (PatternDetailsHelper.decodePattern(patternStack,
                         getLevel(), false) instanceof ExtendedTableCraftingPattern pattern) {
-                    reset = false;
-                    this.progress = 0;
-                    this.myPattern = patternStack;
-                    this.myPlan = pattern;
+                    if (ExtendedMolecularAssemblerBlockEntity.this.isTierAllowed(pattern)) {
+                        reset = false;
+                        this.progress = 0;
+                        this.myPattern = patternStack;
+                        this.myPlan = pattern;
+                    } else {
+                        reset = false;
+                        this.progress = 0;
+                        this.myPattern = patternStack;
+                        this.myPlan = null;
+                        this.pushDirection = null;
+                    }
                 }
             }
 

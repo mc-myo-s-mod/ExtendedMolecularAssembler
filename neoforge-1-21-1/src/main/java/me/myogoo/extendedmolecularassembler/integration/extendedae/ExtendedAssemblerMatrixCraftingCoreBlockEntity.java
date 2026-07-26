@@ -41,7 +41,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             this.extendedThreads[i] = new ExtendedMatrixThread(i);
         }
         this.getMainNode()
-                .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixCraftingCorePassivePowerUsage())
+                .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixCraftingCoreIdlePowerUsage(this.isPlusCore()))
                 .addService(IGridTickable.class, this);
     }
 
@@ -159,12 +159,16 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         this.getMainNode().ifPresent((grid, node) -> grid.getTickManager().wakeDevice(node));
     }
 
+    private boolean isPlusCore() {
+        return this.extendedThreads.length > DEFAULT_THREAD_COUNT;
+    }
+
     private int usePower(int ticksPassed, int bonusValue, double acceleratorTax) {
         var grid = this.getMainNode().getGrid();
         if (grid == null) {
             return 0;
         }
-        var powerMultiplier = EMAConfig.extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier();
+        var powerMultiplier = EMAConfig.extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier(this.isPlusCore());
         var progress = ticksPassed * bonusValue;
         if (powerMultiplier <= 0) {
             return progress;

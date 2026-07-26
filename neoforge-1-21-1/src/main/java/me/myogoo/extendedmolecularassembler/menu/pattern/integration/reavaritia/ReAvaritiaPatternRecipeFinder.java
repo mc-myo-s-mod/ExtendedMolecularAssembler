@@ -6,6 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +33,7 @@ public final class ReAvaritiaPatternRecipeFinder {
         }
 
         var tierInput = TierInput.of(side, side, input, tier);
-        return new java.util.ArrayList<RecipeHolder<?>>(level.getRecipeManager()
+        return new ArrayList<RecipeHolder<?>>(level.getRecipeManager()
                 .getRecipesFor(ModRecipeTypes.CRAFTING_TABLE_RECIPE.get(), tierInput, level));
     }
 }

@@ -20,13 +20,41 @@ public final class EMAItems {
             ITEMS.register("ex_extended_molecular_assembler",
                     () -> new BlockItem(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get(), new Item.Properties()));
 
+    public static final RegistryObject<BlockItem> BASIC_ME_CRAFTING_PROVIDER =
+            ITEMS.register("basic_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.BASIC_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> ADVANCED_ME_CRAFTING_PROVIDER =
+            ITEMS.register("advanced_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.ADVANCED_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> ELITE_ME_CRAFTING_PROVIDER =
+            ITEMS.register("elite_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.ELITE_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> ULTIMATE_ME_CRAFTING_PROVIDER =
+            ITEMS.register("ultimate_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.ULTIMATE_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER =
+            ITEMS.register("re_avaritia_sculk_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER =
+            ITEMS.register("re_avaritia_nether_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> RE_AVARITIA_END_ME_CRAFTING_PROVIDER =
+            ITEMS.register("re_avaritia_end_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> XTREME_ME_CRAFTING_PROVIDER =
+            ITEMS.register("xtreme_me_crafting_provider",
+                    () -> new BlockItem(EMABlocks.XTREME_ME_CRAFTING_PROVIDER.get(), new Item.Properties()));
+
     public static final RegistryObject<Item> EXTENDED_CRAFTING_PATTERN =
             ITEMS.register("extended_crafting_pattern", () -> new Item(new Item.Properties().stacksTo(1)));
+
+    public static final WirelessExtendedPatternEncodingTerminalItem WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL_ITEM =
+            new WirelessExtendedPatternEncodingTerminalItem();
 
     public static final RegistryObject<WirelessExtendedPatternEncodingTerminalItem>
             WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL = ITEMS.register(
                     "wireless_extended_pattern_encoding_terminal",
-                    WirelessExtendedPatternEncodingTerminalItem::new);
+                    () -> WIRELESS_EXTENDED_PATTERN_ENCODING_TERMINAL_ITEM);
 
     private EMAItems() {
     }

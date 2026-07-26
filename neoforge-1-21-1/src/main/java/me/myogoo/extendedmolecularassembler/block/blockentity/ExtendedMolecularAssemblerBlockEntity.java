@@ -33,12 +33,14 @@ import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.filter.IAEItemFilter;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
 import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContext;
 import me.myogoo.extendedmolecularassembler.network.clientbound.EMAAssemblerAnimationPacket;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -58,6 +60,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEntity
@@ -96,6 +99,8 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     private final IUpgradeInventory upgrades;
     private boolean isPowered = false;
     private boolean isAwake = false;
+    @Nullable
+    private Component lastTierRejectReason;
     @OnlyIn(Dist.CLIENT)
     private AssemblerAnimationStatus animationStatus;
 
@@ -105,7 +110,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
         this.machineBlock = getMachineBlock(blockState);
         this.laneCount = isExAssemblerBlock(blockState) ? PARALLEL_LANE_COUNT : 1;
         getMainNode()
-                .setIdlePowerUsage(EMAConfig.extendedMolecularAssemblerPassivePowerUsage())
+                .setIdlePowerUsage(EMAConfig.extendedMolecularAssemblerIdlePowerUsage(isExAssemblerBlock(blockState)))
                 .addService(IGridTickable.class, this);
         this.upgrades = UpgradeInventories.forMachine(this.machineBlock, 5,
                 this::saveChanges);
@@ -141,6 +146,10 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                 && blockState.is(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
     }
 
+    private boolean isExAssembler() {
+        return this.machineBlock == EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get();
+    }
+
     @Override
     public PatternContainerGroup getCraftingMachineInfo() {
         var name = hasCustomName()
@@ -148,14 +157,19 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                 : this.machineBlock.asItem().getDescription();
         var icon = AEItemKey.of(this.machineBlock);
 
-        List<Component> tooltip;
+        List<Component> tooltip = new ArrayList<>();
         var accelerationCards = getInstalledUpgrades(AEItems.SPEED_CARD);
-        if (accelerationCards == 0) {
-            tooltip = List.of();
-        } else {
-            tooltip = List.of(GuiText.CompatibleUpgrade.text(
+        if (accelerationCards != 0) {
+            tooltip.add(GuiText.CompatibleUpgrade.text(
                     Tooltips.of(AEItems.SPEED_CARD.asItem().getDescription()),
                     Tooltips.ofUnformattedNumber(accelerationCards)));
+        }
+        if (EMAConfig.tieredMode()) {
+            tooltip.add(Component.translatable(EMATranslationKey.TOOLTIP.TIERED_MODE_ENABLED.key()));
+            if (this.lastTierRejectReason != null) {
+                tooltip.add(Component.translatable(EMATranslationKey.TOOLTIP.TIERED_MODE_LAST_REJECT.key(),
+                        this.lastTierRejectReason));
+            }
         }
 
         return new PatternContainerGroup(icon, name, tooltip);
@@ -167,13 +181,68 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
             return false;
         }
 
+        if (!this.isTierAllowed(pattern)) {
+            return false;
+        }
+
         for (int i = 0; i < this.laneCount; i++) {
             var lane = this.lanes[i];
             if (lane.acceptJob(pattern, table, where)) {
+                this.clearTierRejectReason();
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean isTierAllowed(ExtendedTableCraftingPattern pattern) {
+        if (!EMAConfig.tieredMode()) {
+            this.clearTierRejectReason();
+            return true;
+        }
+
+        final int tableTier = pattern.tableTier();
+        final TieredMECraftingProviderTier providerTier;
+        try {
+            providerTier = TieredMECraftingProviderTier.requiredFor(pattern.tableType(), tableTier);
+        } catch (IllegalArgumentException ignored) {
+            this.setTierRejectReason(Component.translatable(
+                    EMATranslationKey.TOOLTIP.TIERED_MODE_UNSUPPORTED_TIER.key(),
+                    TieredMECraftingProviderTier.tierName(tableTier), tableTier));
+            return false;
+        }
+
+        var grid = this.getMainNode().getGrid();
+        if (grid == null) {
+            this.setTierRejectReason(Component.translatable(
+                    EMATranslationKey.TOOLTIP.TIERED_MODE_OFFLINE_GRID.key(),
+                    providerTier.displayName(), tableTier));
+            return false;
+        }
+
+        for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
+            if (provider.getTier().provides(pattern.tableType(), tableTier) && provider.isOnline()) {
+                this.clearTierRejectReason();
+                return true;
+            }
+        }
+
+        this.setTierRejectReason(Component.translatable(
+                EMATranslationKey.TOOLTIP.TIERED_MODE_MISSING_PROVIDER.key(),
+                providerTier.displayName(), tableTier));
+        return false;
+    }
+
+    private void setTierRejectReason(Component reason) {
+        this.lastTierRejectReason = reason;
+        this.markForUpdate();
+    }
+
+    private void clearTierRejectReason() {
+        if (this.lastTierRejectReason != null) {
+            this.lastTierRejectReason = null;
+            this.markForUpdate();
+        }
     }
 
     private void updateSleepiness() {
@@ -416,7 +485,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
             return 0;
         }
 
-        var powerMultiplier = EMAConfig.extendedMolecularAssemblerCraftingPowerMultiplier();
+        var powerMultiplier = EMAConfig.extendedMolecularAssemblerCraftingPowerMultiplier(this.isExAssembler());
         var progress = ticksPassed * bonusValue;
         if (powerMultiplier <= 0) {
             return progress;
@@ -822,7 +891,9 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                     this.forcePlan = true;
                     this.myPattern = pattern;
                     var direction = data.getInt(directionKey);
-                    this.pushDirection = direction < 0 ? null : Direction.values()[direction];
+                    this.pushDirection = direction >= 0 && direction < DIRECTIONS.length
+                            ? DIRECTIONS[direction]
+                            : null;
                 }
             }
         }

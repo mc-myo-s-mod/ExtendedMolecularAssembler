@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema.json",
+  "includes": [
+    "config.json"
+  ],
+  "text": {
+    "title": {
+      "position": {
+        "left": 8,
+        "top": 7
+      },
+      "text": {
+        "translate": "gui.extendedmolecularassembler.config.extendedPatternEncodingTerminal.title"
+      }
+    }
+  },
+  "widgets": {
+    "rememberRecipeType": {
+      "left": 10,
+      "top": 25,
+      "width": 180
+    }
+  }
+}

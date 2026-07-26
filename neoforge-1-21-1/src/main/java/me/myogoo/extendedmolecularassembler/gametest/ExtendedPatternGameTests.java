@@ -7,6 +7,7 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.util.AECableType;
 import appeng.menu.AEBaseMenu;
+import appeng.menu.SlotSemantics;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
@@ -44,6 +45,7 @@ import net.pedroksl.advanced_ae.gui.QuantumCrafterMenu;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @GameTestHolder(ExtendedMolecularAssembler.MODID)
 @PrefixGameTestTemplate(false)
@@ -502,8 +504,9 @@ public final class ExtendedPatternGameTests {
     }
 
     private static Slot getAdvancedAEQuantumCrafterPatternSlot(GameTestHelper helper, AEBaseMenu menu) {
-        helper.assertTrue(!menu.slots.isEmpty(), "AdvancedAE Quantum Crafter menu has no slots");
-        return menu.slots.getFirst();
+        var patternSlots = menu.getSlots(SlotSemantics.MACHINE_INPUT);
+        assertEqual(helper, 9, patternSlots.size(), "AdvancedAE Quantum Crafter pattern slot count");
+        return patternSlots.getFirst();
     }
 
     private static KeyCounter[] countersForPattern(ExtendedTableCraftingPattern pattern) {
@@ -531,7 +534,7 @@ public final class ExtendedPatternGameTests {
     }
 
     private static ExtendedPatternRecipeMatch requireMatch(GameTestHelper helper,
-            java.util.Optional<ExtendedPatternRecipeMatch> match, PatternCase testCase) {
+            Optional<ExtendedPatternRecipeMatch> match, PatternCase testCase) {
         if (match.isEmpty()) {
             helper.fail(testCase.label() + " was not found from a centered 9x9 machine grid");
         }

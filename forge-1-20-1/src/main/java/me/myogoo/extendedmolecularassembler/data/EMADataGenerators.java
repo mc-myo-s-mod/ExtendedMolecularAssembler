@@ -13,6 +13,11 @@ public final class EMADataGenerators {
     public static void onGatherData(GatherDataEvent event) {
         var generator = event.getGenerator();
         var output = generator.getPackOutput();
+        var registries = event.getLookupProvider();
+        var existingFileHelper = event.getExistingFileHelper();
         generator.addProvider(event.includeServer(), new EMARecipeDataProvider(output));
+        generator.addProvider(event.includeServer(),
+                new EMABlockTagDataProvider(output, registries, existingFileHelper));
+        generator.addProvider(event.includeServer(), EMALootTableProvider.create(output));
     }
 }

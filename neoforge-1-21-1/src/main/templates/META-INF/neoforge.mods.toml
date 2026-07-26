@@ -69,6 +69,13 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies."${mod_id}"]]
+modId = "advanced_ae"
+type = "optional"
+versionRange = "[1.6.11-1.21.1,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
 modId = "avaritia"
 type = "optional"
 ordering = "AFTER"
