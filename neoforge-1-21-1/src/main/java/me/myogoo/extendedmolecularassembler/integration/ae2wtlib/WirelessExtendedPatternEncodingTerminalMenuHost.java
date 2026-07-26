@@ -1,5 +1,6 @@
 package me.myogoo.extendedmolecularassembler.integration.ae2wtlib;
 
+import appeng.api.implementations.blockentities.IViewCellStorage;
 import appeng.menu.ISubMenu;
 import appeng.menu.locator.ItemMenuHostLocator;
 import de.mari_023.ae2wtlib.api.terminal.ItemWT;
@@ -17,7 +18,7 @@ import net.minecraft.world.level.Level;
 import java.util.function.BiConsumer;
 
 public class WirelessExtendedPatternEncodingTerminalMenuHost extends WTMenuHost
-        implements IExtendedPatternEncodingTerminalHost {
+        implements IExtendedPatternEncodingTerminalHost, IViewCellStorage {
     private static final String LOGIC_TAG = "extendedmolecularassembler:extendedPatternEncoding";
     private static final String REMEMBER_RECIPE_TYPE = "rememberExtendedPatternRecipeType";
     private static final String SELECTED_RECIPE_PROVIDER = "selectedExtendedPatternRecipeProvider";
