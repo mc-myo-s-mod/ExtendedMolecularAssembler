@@ -147,7 +147,8 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     }
 
     private boolean isExAssembler() {
-        return this.machineBlock == EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get();
+        return EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER != null
+                && this.machineBlock == EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get();
     }
 
     @Override

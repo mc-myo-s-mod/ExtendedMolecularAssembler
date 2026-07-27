@@ -8,7 +8,6 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.conditions;
 import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.devCondition;
 import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.item;
 import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.myoCondition;
@@ -33,77 +32,80 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
 
     private static void buildCoreRecipes(JsonRecipeOutput output) {
         saveShaped(output, "extended_molecular_assembler", null, "redstone",
-                new String[]{"CFC", "AMA", "CFC"},
-                key('A', "ae2:engineering_processor", 'C', "ae2:calculation_processor", 'F', "ae2:fluix_glass_cable", 'M', "ae2:molecular_assembler"),
+                new String[]{"QFQ", "EME", "QAQ"},
+                key('A', "ae2:annihilation_core", 'E', "ae2:engineering_processor", 'F', "ae2:formation_core", 'M', "ae2:molecular_assembler", 'Q', "ae2:quartz_glass"),
                 "extendedmolecularassembler:extended_molecular_assembler", true);
-        saveShaped(output, "ex_extended_molecular_assembler", conditions("extendedae"), "redstone",
-                new String[]{"EDE", "AMA", "EDE"},
-                key('A', "ae2:engineering_processor", 'D', "minecraft:diamond", 'E', "minecraft:ender_eye", 'M', "extendedmolecularassembler:extended_molecular_assembler"),
+        saveShaped(output, "ex_extended_molecular_assembler", myoConditions("extendedae"), "redstone",
+                new String[]{"CXC", "SMS", "CXC"},
+                key('C', "extendedae:concurrent_processor", 'M', "extendedmolecularassembler:extended_molecular_assembler", 'S', "ae2:speed_card", 'X', "extendedae:ex_molecular_assembler"),
                 "extendedmolecularassembler:ex_extended_molecular_assembler", true);
         saveShaped(output, "extended_crafting_pattern", null, "misc",
-                new String[]{"QPQ", "RCR", "QPQ"},
-                key('C', "minecraft:crafting_table", 'P', "ae2:blank_pattern", 'Q', "ae2:certus_quartz_crystal", 'R', "minecraft:redstone"),
+                new String[]{"FQF", "RPR", "FTF"},
+                key('F', "ae2:fluix_crystal", 'P', "ae2:blank_pattern", 'Q', "ae2:calculation_processor", 'R', "minecraft:redstone", 'T', "minecraft:crafting_table"),
                 "extendedmolecularassembler:extended_crafting_pattern", true);
-        saveShaped(output, "basic_me_crafting_provider", null, "redstone",
+
+        JsonArray extendedCrafting = myoConditions("extendedcrafting");
+        saveShaped(output, "basic_me_crafting_provider", extendedCrafting, "redstone",
                 new String[]{" L ", "PCP", " T "},
-                key('C', "extendedmolecularassembler:extended_crafting_pattern", 'L', "ae2:logic_processor", 'P', "ae2:fluix_glass_cable", 'T', "minecraft:crafting_table"),
+                key('C', "ae2:pattern_provider", 'L', "ae2:logic_processor", 'P', "ae2:fluix_glass_cable", 'T', "extendedcrafting:basic_table"),
                 "extendedmolecularassembler:basic_me_crafting_provider", true);
-        saveShaped(output, "advanced_me_crafting_provider", null, "redstone",
+        saveShaped(output, "advanced_me_crafting_provider", extendedCrafting, "redstone",
                 new String[]{" L ", "PCP", " T "},
-                key('C', "extendedmolecularassembler:basic_me_crafting_provider", 'L', "ae2:calculation_processor", 'P', "ae2:fluix_glass_cable", 'T', "minecraft:gold_block"),
+                key('C', "extendedmolecularassembler:basic_me_crafting_provider", 'L', "ae2:calculation_processor", 'P', "ae2:fluix_covered_cable", 'T', "extendedcrafting:advanced_table"),
                 "extendedmolecularassembler:advanced_me_crafting_provider", true);
-        saveShaped(output, "elite_me_crafting_provider", null, "redstone",
+        saveShaped(output, "elite_me_crafting_provider", extendedCrafting, "redstone",
                 new String[]{" L ", "PCP", " T "},
-                key('C', "extendedmolecularassembler:advanced_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:fluix_glass_cable", 'T', "minecraft:diamond_block"),
+                key('C', "extendedmolecularassembler:advanced_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:fluix_smart_cable", 'T', "extendedcrafting:elite_table"),
                 "extendedmolecularassembler:elite_me_crafting_provider", true);
-        saveShaped(output, "ultimate_me_crafting_provider", null, "redstone",
+        saveShaped(output, "ultimate_me_crafting_provider", extendedCrafting, "redstone",
                 new String[]{" L ", "PCP", " T "},
-                key('C', "extendedmolecularassembler:elite_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "minecraft:netherite_block"),
+                key('C', "extendedmolecularassembler:elite_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:fluix_smart_dense_cable", 'T', "extendedcrafting:ultimate_table"),
                 "extendedmolecularassembler:ultimate_me_crafting_provider", true);
+
         saveShaped(output, "re_avaritia_sculk_me_crafting_provider", myoConditions("Re-Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
-                key('C', "extendedmolecularassembler:basic_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:sculk_crafting_table"),
+                key('C', "ae2:pattern_provider", 'L', "ae2:logic_processor", 'P', "ae2:fluix_glass_cable", 'T', "avaritia:sculk_crafting_table"),
                 "extendedmolecularassembler:re_avaritia_sculk_me_crafting_provider", true);
         saveShaped(output, "re_avaritia_nether_me_crafting_provider", myoConditions("Re-Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
-                key('C', "extendedmolecularassembler:advanced_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:nether_crafting_table"),
+                key('C', "extendedmolecularassembler:re_avaritia_sculk_me_crafting_provider", 'L', "ae2:calculation_processor", 'P', "ae2:fluix_covered_cable", 'T', "avaritia:nether_crafting_table"),
                 "extendedmolecularassembler:re_avaritia_nether_me_crafting_provider", true);
         saveShaped(output, "re_avaritia_end_me_crafting_provider", myoConditions("Re-Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
-                key('C', "extendedmolecularassembler:elite_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:end_crafting_table"),
+                key('C', "extendedmolecularassembler:re_avaritia_nether_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:fluix_smart_cable", 'T', "avaritia:end_crafting_table"),
                 "extendedmolecularassembler:re_avaritia_end_me_crafting_provider", true);
         saveShaped(output, "xtreme_me_crafting_provider_from_re_avaritia", myoConditions("Re-Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
-                key('C', "extendedmolecularassembler:ultimate_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:extreme_crafting_table"),
+                key('C', "extendedmolecularassembler:re_avaritia_end_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:fluix_smart_dense_cable", 'T', "avaritia:extreme_crafting_table"),
                 "extendedmolecularassembler:xtreme_me_crafting_provider", true);
         saveShaped(output, "xtreme_me_crafting_provider_from_avaritia_neo", myoConditions("Avaritia"), "redstone",
                 new String[]{" L ", "PCP", " T "},
-                key('C', "extendedmolecularassembler:ultimate_me_crafting_provider", 'L', "ae2:engineering_processor", 'P', "ae2:quartz_fiber", 'T', "avaritia:extreme_crafting_table"),
+                key('C', "ae2:pattern_provider", 'L', "ae2:engineering_processor", 'P', "ae2:fluix_smart_dense_cable", 'T', "avaritia:extreme_crafting_table"),
                 "extendedmolecularassembler:xtreme_me_crafting_provider", true);
     }
 
     private static void buildIntegrationRecipes(JsonRecipeOutput output) {
-        JsonArray extendedAE = conditions("extendedae");
-        JsonArray extendedAEPlus = modLoadedConditions("extendedae", "extendedae_plus");
+        JsonArray extendedAE = myoConditions("extendedae");
+        JsonArray extendedAEPlus = myoConditions("extendedae", "extendedae_plus");
         saveShaped(output, "extended_assembler_matrix_crafting_core", extendedAE, "redstone",
-                new String[]{"EPE", "CMC", "EPE"},
-                key('C', "ae2:logic_processor", 'E', "extendedmolecularassembler:ex_extended_molecular_assembler", 'M', "extendedae:assembler_matrix_crafter", 'P', "ae2:engineering_processor"),
+                new String[]{"CPC", "XMX", "CPC"},
+                key('C', "extendedae:concurrent_processor", 'M', "extendedae:assembler_matrix_crafter", 'P', "ae2:engineering_processor", 'X', "extendedmolecularassembler:ex_extended_molecular_assembler"),
                 "extendedmolecularassembler:extended_assembler_matrix_crafting_core", true);
         saveShaped(output, "extended_assembler_matrix_pattern_core", extendedAE, "redstone",
-                new String[]{"EPE", "CMC", "EPE"},
-                key('C', "ae2:calculation_processor", 'E', "extendedmolecularassembler:extended_crafting_pattern", 'M', "extendedae:assembler_matrix_pattern", 'P', "ae2:engineering_processor"),
+                new String[]{"BEB", "PMP", "BEB"},
+                key('B', "ae2:blank_pattern", 'E', "ae2:engineering_processor", 'M', "extendedae:assembler_matrix_pattern", 'P', "extendedae:ex_pattern_provider"),
                 "extendedmolecularassembler:extended_assembler_matrix_pattern_core", true);
         saveShaped(output, "extended_assembler_matrix_pattern_uploader", extendedAEPlus, "redstone",
-                new String[]{" P ", "HCH", " M "},
-                key('C', "ae2:calculation_processor", 'H', "minecraft:hopper", 'M', "extendedae:assembler_matrix_pattern", 'P', "extendedmolecularassembler:extended_crafting_pattern"),
+                new String[]{"HTH", "CUC", "HSH"},
+                key('C', "ae2:calculation_processor", 'H', "minecraft:hopper", 'S', "ae2:formation_core", 'T', "ae2:pattern_encoding_terminal", 'U', "extendedae_plus:assembler_matrix_upload_core"),
                 "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader", true);
         saveShaped(output, "extended_assembler_matrix_crafting_core_plus", extendedAEPlus, "redstone",
-                new String[]{" P ", "PBP", " P "},
-                key('B', "extendedmolecularassembler:extended_assembler_matrix_crafting_core", 'P', "extendedae_plus:assembler_matrix_crafter_plus"),
+                new String[]{"SPS", "PBP", "SPS"},
+                key('B', "extendedmolecularassembler:extended_assembler_matrix_crafting_core", 'P', "extendedae_plus:assembler_matrix_crafter_plus", 'S', "ae2:speed_card"),
                 "extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus", true);
         saveShaped(output, "extended_assembler_matrix_pattern_core_plus", extendedAEPlus, "redstone",
-                new String[]{" P ", "PBP", " P "},
-                key('B', "extendedmolecularassembler:extended_assembler_matrix_pattern_core", 'P', "extendedae_plus:assembler_matrix_pattern_plus"),
+                new String[]{"CPC", "PBP", "CPC"},
+                key('B', "extendedmolecularassembler:extended_assembler_matrix_pattern_core", 'C', "ae2:capacity_card", 'P', "extendedae_plus:assembler_matrix_pattern_plus"),
                 "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus", true);
     }
 
@@ -186,16 +188,10 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
         return conditions;
     }
 
-    private static JsonArray myoConditions(String activeMod) {
+    private static JsonArray myoConditions(String... activeMods) {
         JsonArray values = new JsonArray();
-        values.add(myoCondition(activeMod));
-        return values;
-    }
-
-    private static JsonArray modLoadedConditions(String... modIds) {
-        JsonArray values = new JsonArray();
-        for (String modId : modIds) {
-            conditions(modId).forEach(values::add);
+        for (String activeMod : activeMods) {
+            values.add(myoCondition(activeMod));
         }
         return values;
     }

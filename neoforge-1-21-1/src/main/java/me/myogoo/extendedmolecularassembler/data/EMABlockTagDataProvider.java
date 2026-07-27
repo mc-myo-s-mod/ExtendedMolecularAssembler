@@ -24,7 +24,11 @@ public class EMABlockTagDataProvider extends BlockTagsProvider {
         var pickaxe = tag(BlockTags.MINEABLE_WITH_PICKAXE);
         BuiltInRegistries.BLOCK.holders()
                 .filter(holder -> ExtendedMolecularAssembler.MODID.equals(holder.key().location().getNamespace()))
+                .filter(holder -> !EMAOptionalContentData.isOptionalBlock(holder.key().location()))
                 .map(holder -> (Block) holder.value())
                 .forEach(pickaxe::add);
+        EMAOptionalContentData.BLOCKS.stream()
+                .map(EMAOptionalContentData.OptionalBlock::id)
+                .forEach(pickaxe::addOptional);
     }
 }

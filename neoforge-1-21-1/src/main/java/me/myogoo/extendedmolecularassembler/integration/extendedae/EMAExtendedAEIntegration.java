@@ -2,16 +2,18 @@ package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
 import appeng.api.AECapabilities;
 import appeng.blockentity.AEBaseBlockEntity;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAEPlus;
 import me.myogoo.extendedmolecularassembler.init.EMABlockEntities;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
 import me.myogoo.extendedmolecularassembler.init.EMAMenus;
-import me.myogoo.extendedmolecularassembler.init.EMAModPresence;
 import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContext;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAMatrixPatternCoreUpdatePacket;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAOpenExtendedAEAssemblerMatrixScreenPacket;
+import me.myogoo.myotus.api.MyotusAPI;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -83,7 +85,7 @@ public final class EMAExtendedAEIntegration {
                 "extended_assembler_matrix_pattern_core",
                 () -> ExtendedAssemblerMatrixPatternCoreMenu.TYPE);
 
-        if (EMAModPresence.isExtendedAEPlusLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)) {
             registerExtendedAEPlusDeferred();
         }
     }
@@ -195,6 +197,25 @@ public final class EMAExtendedAEIntegration {
 
     public static ItemStack tryInsertIntoAssemblerMatrix(Level level, BlockPos pos, ItemStack stack) {
         return ExtendedAEAssemblerMatrixBridge.insertIntoMatrixNetwork(level, pos, stack);
+    }
+
+    public static boolean hasEligibleMatrixUploader(Object menu) {
+        return ExtendedAssemblerMatrixPatternUploadUtil.hasEligibleMatrixUploader(menu);
+    }
+
+    public static boolean canUploadToAssemblerMatrix(ServerPlayer player, Object menu, ItemStack stack) {
+        return ExtendedAssemblerMatrixPatternUploadUtil.canUploadFromEncodingMenuToMatrix(player, menu, stack);
+    }
+
+    public static boolean assemblerMatrixContainsPattern(ServerPlayer player, Object menu, ItemStack stack) {
+        return ExtendedAssemblerMatrixPatternUploadUtil.matrixAlreadyContainsPatternFromEncodingMenu(
+                player,
+                menu,
+                stack);
+    }
+
+    public static ItemStack uploadToAssemblerMatrix(ServerPlayer player, Object menu, ItemStack stack) {
+        return ExtendedAssemblerMatrixPatternUploadUtil.uploadFromEncodingMenuToMatrix(player, menu, stack);
     }
 
     @Nullable

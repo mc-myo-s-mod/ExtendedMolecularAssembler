@@ -10,6 +10,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.Nullable;
 
 public final class EMAItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ExtendedMolecularAssembler.MODID);
@@ -18,9 +19,8 @@ public final class EMAItems {
     public static final DeferredItem<BlockItem> EXTENDED_MOLECULAR_ASSEMBLER =
             ITEMS.register("extended_molecular_assembler",
                     () -> new BlockItem(EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get(), new Item.Properties()));
-    public static final DeferredItem<BlockItem> EX_EXTENDED_MOLECULAR_ASSEMBLER =
-            ITEMS.register("ex_extended_molecular_assembler",
-                    () -> new BlockItem(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get(), new Item.Properties()));
+    @Nullable
+    public static DeferredItem<BlockItem> EX_EXTENDED_MOLECULAR_ASSEMBLER;
 
     public static final DeferredItem<BlockItem> BASIC_ME_CRAFTING_PROVIDER =
             ITEMS.register("basic_me_crafting_provider",
@@ -55,6 +55,14 @@ public final class EMAItems {
                     .build());
 
     private EMAItems() {
+    }
+
+    public static void registerExtendedAEDeferred() {
+        if (EX_EXTENDED_MOLECULAR_ASSEMBLER == null) {
+            EX_EXTENDED_MOLECULAR_ASSEMBLER = ITEMS.register(
+                    "ex_extended_molecular_assembler",
+                    () -> new BlockItem(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get(), new Item.Properties()));
+        }
     }
 
     public static WirelessExtendedPatternEncodingTerminalItem registerWirelessExtendedPatternEncodingTerminal() {

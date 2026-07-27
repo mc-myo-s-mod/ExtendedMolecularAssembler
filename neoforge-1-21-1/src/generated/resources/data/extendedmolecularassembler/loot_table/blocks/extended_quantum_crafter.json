@@ -2,6 +2,12 @@
   "type": "minecraft:block",
   "pools": [
     {
+      "neoforge:conditions": [
+        {
+          "type": "myotus:mod_condition",
+          "active_mod": "advanced_ae"
+        }
+      ],
       "bonus_rolls": 0.0,
       "conditions": [
         {

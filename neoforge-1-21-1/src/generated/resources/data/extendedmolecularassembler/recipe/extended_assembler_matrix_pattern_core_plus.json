@@ -1,12 +1,12 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:mod_loaded",
-      "modid": "extendedae"
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae"
     },
     {
-      "type": "neoforge:mod_loaded",
-      "modid": "extendedae_plus"
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae_plus"
     }
   ],
   "type": "minecraft:crafting_shaped",
@@ -15,14 +15,17 @@
     "B": {
       "item": "extendedmolecularassembler:extended_assembler_matrix_pattern_core"
     },
+    "C": {
+      "item": "ae2:capacity_card"
+    },
     "P": {
       "item": "extendedae_plus:assembler_matrix_pattern_plus"
     }
   },
   "pattern": [
-    " P ",
+    "CPC",
     "PBP",
-    " P "
+    "CPC"
   ],
   "result": {
     "count": 1,

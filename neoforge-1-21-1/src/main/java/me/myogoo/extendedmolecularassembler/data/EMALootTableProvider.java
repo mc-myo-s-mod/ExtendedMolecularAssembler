@@ -52,6 +52,7 @@ public class EMALootTableProvider extends LootTableProvider {
         protected Iterable<Block> getKnownBlocks() {
             return BuiltInRegistries.BLOCK.holders()
                     .filter(holder -> ExtendedMolecularAssembler.MODID.equals(holder.key().location().getNamespace()))
+                    .filter(holder -> !EMAOptionalContentData.isOptionalBlock(holder.key().location()))
                     .map(Holder::value)
                     .toList();
         }

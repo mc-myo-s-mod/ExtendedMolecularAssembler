@@ -11,11 +11,16 @@ import appeng.menu.slot.PatternTermSlot;
 import appeng.menu.slot.RestrictedInputSlot;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
-import me.myogoo.extendedmolecularassembler.init.EMAModPresence;
-import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAssemblerMatrixPatternUploadUtil;
+import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAE;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAEPlus;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
+import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
+import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
 import me.myogoo.extendedmolecularassembler.menu.EMASlotSemantics;
-import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
+import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.myotus.api.MyotusAPI;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -150,9 +155,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
             return;
         }
         this.matrixUploaderSyncDelay = MATRIX_UPLOADER_SYNC_INTERVAL;
-        this.matrixUploaderAvailable = EMAModPresence.isExtendedAELoaded()
-                && EMAModPresence.isExtendedAEPlusLoaded()
-                && ExtendedAssemblerMatrixPatternUploadUtil.hasEligibleMatrixUploader(this);
+        this.matrixUploaderAvailable = EMAOptionalIntegrations.hasEligibleExtendedAEPatternUploader(this);
     }
 
     @Override
@@ -217,7 +220,8 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
     }
 
     private void autoUploadToMatrixIfAvailable() {
-        if (!EMAModPresence.isExtendedAELoaded() || !EMAModPresence.isExtendedAEPlusLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)) {
             return;
         }
         var player = getPlayerInventory().player;
@@ -225,10 +229,12 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
             return;
         }
         var encodedPattern = encodedPatternSlot.getItem();
-        if (ExtendedAssemblerMatrixPatternUploadUtil.canUploadFromEncodingMenuToMatrix(serverPlayer, this, encodedPattern)) {
+        if (EMAOptionalIntegrations.canUploadToExtendedAEAssemblerMatrix(serverPlayer, this, encodedPattern)) {
             uploadToMatrix();
-        } else if (ExtendedAssemblerMatrixPatternUploadUtil.matrixAlreadyContainsPatternFromEncodingMenu(serverPlayer,
-                this, encodedPattern)) {
+        } else if (EMAOptionalIntegrations.extendedAEAssemblerMatrixContainsPattern(
+                serverPlayer,
+                this,
+                encodedPattern)) {
             serverPlayer.sendSystemMessage(Component.translatable(EMATranslationKey.MESSAGE.MATRIX_UPLOAD_DUPLICATE.key()));
         }
     }
@@ -261,17 +267,17 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
-        if (!EMAModPresence.isExtendedAELoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)) {
             serverPlayer.sendSystemMessage(Component.translatable(EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_EXTENDEDAE.key()));
             return;
         }
-        if (!EMAModPresence.isExtendedAEPlusLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)) {
             serverPlayer.sendSystemMessage(Component.translatable(EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_EXTENDEDAE_PLUS.key()));
             return;
         }
 
         var stack = encodedPatternSlot.getItem();
-        var remainder = ExtendedAssemblerMatrixPatternUploadUtil.uploadFromEncodingMenuToMatrix(serverPlayer, this, stack);
+        var remainder = EMAOptionalIntegrations.uploadToExtendedAEAssemblerMatrix(serverPlayer, this, stack);
         if (remainder != stack) {
             encodedPatternSlot.set(remainder);
             broadcastChanges();
@@ -723,9 +729,9 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
 
         public boolean isActive() {
             return switch (this) {
-                case EXTENDED_CRAFTING -> EMAModPresence.isExtendedCraftingLoaded();
-                case AVARITIA_NEO -> EMAModPresence.isAvaritiaNeoLoaded();
-                case RE_AVARITIA -> EMAModPresence.isReAvaritiaLoaded();
+                case EXTENDED_CRAFTING -> MyotusAPI.integrations().isLoaded(ExtendedCrafting.class);
+                case AVARITIA_NEO -> MyotusAPI.integrations().isLoaded(AvaritiaNeo.class);
+                case RE_AVARITIA -> MyotusAPI.integrations().isLoaded(ReAvaritia.class);
             };
         }
 

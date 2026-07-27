@@ -18,7 +18,9 @@ public final class EMACreativeModeTabs {
                     .icon(() -> EMAItems.EXTENDED_MOLECULAR_ASSEMBLER.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(EMAItems.EXTENDED_MOLECULAR_ASSEMBLER.get());
-                        output.accept(EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
+                        if (EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER != null) {
+                            output.accept(EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
+                        }
                         output.accept(EMAItems.BASIC_ME_CRAFTING_PROVIDER.get());
                         output.accept(EMAItems.ADVANCED_ME_CRAFTING_PROVIDER.get());
                         output.accept(EMAItems.ELITE_ME_CRAFTING_PROVIDER.get());

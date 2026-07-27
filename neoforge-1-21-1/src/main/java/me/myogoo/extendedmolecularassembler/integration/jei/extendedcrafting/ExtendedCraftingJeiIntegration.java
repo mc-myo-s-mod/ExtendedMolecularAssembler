@@ -5,21 +5,12 @@ import com.blakebr0.extendedcrafting.compat.jei.category.table.AdvancedTableCate
 import com.blakebr0.extendedcrafting.compat.jei.category.table.BasicTableCategory;
 import com.blakebr0.extendedcrafting.compat.jei.category.table.EliteTableCategory;
 import com.blakebr0.extendedcrafting.compat.jei.category.table.UltimateTableCategory;
-import me.myogoo.extendedmolecularassembler.init.EMAParts;
 import me.myogoo.extendedmolecularassembler.integration.jei.handler.ExtendedPatternHolderRecipeTransferHandler;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
-import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 
 public final class ExtendedCraftingJeiIntegration {
     private ExtendedCraftingJeiIntegration() {
-    }
-
-    public static void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalyst(EMAParts.EXTENDED_PATTERN_ENCODING_TERMINAL, BasicTableCategory.RECIPE_TYPE);
-        registration.addRecipeCatalyst(EMAParts.EXTENDED_PATTERN_ENCODING_TERMINAL, AdvancedTableCategory.RECIPE_TYPE);
-        registration.addRecipeCatalyst(EMAParts.EXTENDED_PATTERN_ENCODING_TERMINAL, EliteTableCategory.RECIPE_TYPE);
-        registration.addRecipeCatalyst(EMAParts.EXTENDED_PATTERN_ENCODING_TERMINAL, UltimateTableCategory.RECIPE_TYPE);
     }
 
     public static void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {

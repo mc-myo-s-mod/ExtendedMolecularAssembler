@@ -11,6 +11,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,9 +23,9 @@ public final class EMABlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExtendedMolecularAssemblerBlockEntity>>
             EXTENDED_MOLECULAR_ASSEMBLER = BLOCK_ENTITIES.register("extended_molecular_assembler",
                     () -> createAssemblerType(EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get()));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExtendedMolecularAssemblerBlockEntity>>
-            EX_EXTENDED_MOLECULAR_ASSEMBLER = BLOCK_ENTITIES.register("ex_extended_molecular_assembler",
-                    () -> createAssemblerType(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get()));
+    @Nullable
+    public static DeferredHolder<BlockEntityType<?>, BlockEntityType<ExtendedMolecularAssemblerBlockEntity>>
+            EX_EXTENDED_MOLECULAR_ASSEMBLER;
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
             BASIC_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("basic_me_crafting_provider",
@@ -70,6 +71,14 @@ public final class EMABlockEntities {
         return type;
     }
 
+    public static void registerExtendedAEDeferred() {
+        if (EX_EXTENDED_MOLECULAR_ASSEMBLER == null) {
+            EX_EXTENDED_MOLECULAR_ASSEMBLER = BLOCK_ENTITIES.register(
+                    "ex_extended_molecular_assembler",
+                    () -> createAssemblerType(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get()));
+        }
+    }
+
     private static BlockEntityType<TieredMECraftingProviderBlockEntity> createProviderType(
             TieredMECraftingProviderBlock block, TieredMECraftingProviderTier tier) {
         var typeHolder = new AtomicReference<BlockEntityType<TieredMECraftingProviderBlockEntity>>();
@@ -85,9 +94,11 @@ public final class EMABlockEntities {
         AEBaseBlockEntity.registerBlockEntityItem(
                 EXTENDED_MOLECULAR_ASSEMBLER.get(),
                 EMAItems.EXTENDED_MOLECULAR_ASSEMBLER.get());
-        AEBaseBlockEntity.registerBlockEntityItem(
-                EX_EXTENDED_MOLECULAR_ASSEMBLER.get(),
-                EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
+        if (EX_EXTENDED_MOLECULAR_ASSEMBLER != null && EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER != null) {
+            AEBaseBlockEntity.registerBlockEntityItem(
+                    EX_EXTENDED_MOLECULAR_ASSEMBLER.get(),
+                    EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
+        }
         AEBaseBlockEntity.registerBlockEntityItem(
                 BASIC_ME_CRAFTING_PROVIDER.get(),
                 EMAItems.BASIC_ME_CRAFTING_PROVIDER.get());

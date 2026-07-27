@@ -1,30 +1,30 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:mod_loaded",
-      "modid": "extendedae"
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "C": {
-      "item": "ae2:calculation_processor"
+    "B": {
+      "item": "ae2:blank_pattern"
     },
     "E": {
-      "item": "extendedmolecularassembler:extended_crafting_pattern"
+      "item": "ae2:engineering_processor"
     },
     "M": {
       "item": "extendedae:assembler_matrix_pattern"
     },
     "P": {
-      "item": "ae2:engineering_processor"
+      "item": "extendedae:ex_pattern_provider"
     }
   },
   "pattern": [
-    "EPE",
-    "CMC",
-    "EPE"
+    "BEB",
+    "PMP",
+    "BEB"
   ],
   "result": {
     "count": 1,

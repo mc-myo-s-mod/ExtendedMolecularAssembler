@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    }
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
@@ -9,10 +15,10 @@
       "item": "ae2:engineering_processor"
     },
     "P": {
-      "item": "ae2:fluix_glass_cable"
+      "item": "ae2:fluix_smart_cable"
     },
     "T": {
-      "item": "minecraft:diamond_block"
+      "item": "extendedcrafting:elite_table"
     }
   },
   "pattern": [

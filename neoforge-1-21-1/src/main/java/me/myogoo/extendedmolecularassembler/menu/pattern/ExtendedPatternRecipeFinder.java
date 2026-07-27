@@ -1,11 +1,14 @@
 package me.myogoo.extendedmolecularassembler.menu.pattern;
 
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
-import me.myogoo.extendedmolecularassembler.init.EMAModPresence;
+import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
+import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
 import me.myogoo.extendedmolecularassembler.menu.pattern.integration.avaritianeo.AvaritiaNeoPatternRecipeFinder;
 import me.myogoo.extendedmolecularassembler.menu.pattern.integration.extendedcrafting.ExtendedCraftingPatternRecipeFinder;
 import me.myogoo.extendedmolecularassembler.menu.pattern.integration.reavaritia.ReAvaritiaPatternRecipeFinder;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.myotus.api.MyotusAPI;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -28,15 +31,15 @@ public final class ExtendedPatternRecipeFinder {
     public static List<ExtendedPatternRecipeMatch> findAll(List<ItemStack> machineGrid, Level level) {
         var matches = new ArrayList<ExtendedPatternRecipeMatch>();
 
-        if (EMAModPresence.isExtendedCraftingLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             matches.addAll(findAllWithLookup(machineGrid, level, TABLE_SIDES, ExtendedCraftingPatternRecipeFinder::findAll));
         }
 
-        if (EMAModPresence.isReAvaritiaLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ReAvaritia.class)) {
             matches.addAll(findAllWithLookup(machineGrid, level, TABLE_SIDES, ReAvaritiaPatternRecipeFinder::findAll));
         }
 
-        if (EMAModPresence.isAvaritiaNeoLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)) {
             matches.addAll(findAllWithLookup(machineGrid, level, new int[] { 9 }, AvaritiaNeoPatternRecipeFinder::findAll));
         }
 

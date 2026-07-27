@@ -1,12 +1,12 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:mod_loaded",
-      "modid": "extendedae"
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae"
     },
     {
-      "type": "neoforge:mod_loaded",
-      "modid": "extendedae_plus"
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae_plus"
     }
   ],
   "type": "minecraft:crafting_shaped",
@@ -17,12 +17,15 @@
     },
     "P": {
       "item": "extendedae_plus:assembler_matrix_crafter_plus"
+    },
+    "S": {
+      "item": "ae2:speed_card"
     }
   },
   "pattern": [
-    " P ",
+    "SPS",
     "PBP",
-    " P "
+    "SPS"
   ],
   "result": {
     "count": 1,

@@ -3,22 +3,25 @@
   "category": "redstone",
   "key": {
     "A": {
+      "item": "ae2:annihilation_core"
+    },
+    "E": {
       "item": "ae2:engineering_processor"
     },
-    "C": {
-      "item": "ae2:calculation_processor"
-    },
     "F": {
-      "item": "ae2:fluix_glass_cable"
+      "item": "ae2:formation_core"
     },
     "M": {
       "item": "ae2:molecular_assembler"
+    },
+    "Q": {
+      "item": "ae2:quartz_glass"
     }
   },
   "pattern": [
-    "CFC",
-    "AMA",
-    "CFC"
+    "QFQ",
+    "EME",
+    "QAQ"
   ],
   "result": {
     "count": 1,

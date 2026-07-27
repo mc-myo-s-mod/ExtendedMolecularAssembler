@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    }
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
@@ -9,10 +15,10 @@
       "item": "ae2:calculation_processor"
     },
     "P": {
-      "item": "ae2:fluix_glass_cable"
+      "item": "ae2:fluix_covered_cable"
     },
     "T": {
-      "item": "minecraft:gold_block"
+      "item": "extendedcrafting:advanced_table"
     }
   },
   "pattern": [

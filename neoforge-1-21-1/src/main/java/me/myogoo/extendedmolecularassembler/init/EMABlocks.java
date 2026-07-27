@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.Nullable;
 
 public final class EMABlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(ExtendedMolecularAssembler.MODID);
@@ -16,9 +17,8 @@ public final class EMABlocks {
     public static final DeferredBlock<ExtendedMolecularAssemblerBlock> EXTENDED_MOLECULAR_ASSEMBLER =
             BLOCKS.register("extended_molecular_assembler", () -> new ExtendedMolecularAssemblerBlock(
                     assemblerProperties()));
-    public static final DeferredBlock<ExtendedMolecularAssemblerBlock> EX_EXTENDED_MOLECULAR_ASSEMBLER =
-            BLOCKS.register("ex_extended_molecular_assembler", () -> new ExtendedMolecularAssemblerBlock(
-                    assemblerProperties()));
+    @Nullable
+    public static DeferredBlock<ExtendedMolecularAssemblerBlock> EX_EXTENDED_MOLECULAR_ASSEMBLER;
 
     public static final DeferredBlock<TieredMECraftingProviderBlock> BASIC_ME_CRAFTING_PROVIDER =
             registerProvider(TieredMECraftingProviderTier.BASIC);
@@ -39,6 +39,14 @@ public final class EMABlocks {
 
     private static DeferredBlock<TieredMECraftingProviderBlock> registerProvider(TieredMECraftingProviderTier tier) {
         return BLOCKS.register(tier.blockId(), () -> new TieredMECraftingProviderBlock(tier, providerProperties()));
+    }
+
+    public static void registerExtendedAEDeferred() {
+        if (EX_EXTENDED_MOLECULAR_ASSEMBLER == null) {
+            EX_EXTENDED_MOLECULAR_ASSEMBLER = BLOCKS.register(
+                    "ex_extended_molecular_assembler",
+                    () -> new ExtendedMolecularAssemblerBlock(assemblerProperties()));
+        }
     }
 
     private static BlockBehaviour.Properties assemblerProperties() {

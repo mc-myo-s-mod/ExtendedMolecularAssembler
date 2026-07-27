@@ -9,13 +9,13 @@
   "category": "redstone",
   "key": {
     "C": {
-      "item": "extendedmolecularassembler:elite_me_crafting_provider"
+      "item": "extendedmolecularassembler:re_avaritia_nether_me_crafting_provider"
     },
     "L": {
       "item": "ae2:engineering_processor"
     },
     "P": {
-      "item": "ae2:quartz_fiber"
+      "item": "ae2:fluix_smart_cable"
     },
     "T": {
       "item": "avaritia:end_crafting_table"

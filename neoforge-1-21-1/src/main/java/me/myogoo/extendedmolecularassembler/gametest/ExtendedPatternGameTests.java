@@ -6,22 +6,25 @@ import appeng.api.implementations.blockentities.ICraftingMachine;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.util.AECableType;
-import appeng.menu.AEBaseMenu;
-import appeng.menu.SlotSemantics;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
+import me.myogoo.extendedmolecularassembler.api.annotation.AdvancedAE;
+import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAE;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAEPlus;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
+import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMADataComponents;
-import me.myogoo.extendedmolecularassembler.init.EMAModPresence;
-import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAEAssemblerMatrixCrafterAccess;
-import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAssemblerMatrixPatternCoreBlockEntity;
-import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAssemblerMatrixPatternUploaderBlockEntity;
+import me.myogoo.extendedmolecularassembler.integration.advancedae.AdvancedAEGameTestHelper;
+import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAEGameTestHelper;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinder;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeMatch;
 import me.myogoo.extendedmolecularassembler.pattern.EncodedExtendedCraftingPattern;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedPatternTableTypes;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.myotus.api.MyotusAPI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -29,18 +32,12 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.pedroksl.advanced_ae.common.entities.QuantumCrafterEntity;
-import net.pedroksl.advanced_ae.gui.QuantumCrafterMenu;
 
 import java.util.List;
 import java.util.Map;
@@ -166,10 +163,30 @@ public final class ExtendedPatternGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)
+    public static void optionalRegistrationsFollowMyotusIntegrations(GameTestHelper helper) {
+        boolean extendedAE = MyotusAPI.integrations().isLoaded(ExtendedAE.class);
+        boolean extendedAEPlus = extendedAE && MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class);
+        boolean advancedAE = MyotusAPI.integrations().isLoaded(AdvancedAE.class);
+
+        assertOptionalBlockRegistration(helper, "ex_extended_molecular_assembler", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_core", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_crafting_core", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_uploader", extendedAEPlus);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_core_plus", extendedAEPlus);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_crafting_core_plus", extendedAEPlus);
+        assertOptionalBlockRegistration(helper, "extended_quantum_crafter", advancedAE);
+
+        var matrixMenuId = ExtendedMolecularAssembler.makeId("extended_assembler_matrix_pattern_core");
+        assertEqual(helper, extendedAE, BuiltInRegistries.MENU.containsKey(matrixMenuId),
+                "ExtendedAE matrix pattern core menu registration");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
     public static void assemblerConnectionCapabilitiesFollowAe2(GameTestHelper helper) {
         assertAssemblerConnection(helper, EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get(), new BlockPos(1, 1, 1),
                 "Extended Molecular Assembler");
-        if (EMAModPresence.isExtendedAELoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ExtendedAE.class)) {
             assertAssemblerConnection(helper, EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get(), new BlockPos(2, 1, 1),
                     "Ex Extended Molecular Assembler");
         }
@@ -178,7 +195,7 @@ public final class ExtendedPatternGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 20)
     public static void extendedAssemblerAcceptsOnePushedJob(GameTestHelper helper) {
-        if (!EMAModPresence.isExtendedCraftingLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             helper.succeed();
             return;
         }
@@ -200,7 +217,8 @@ public final class ExtendedPatternGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 20)
     public static void exAssemblerAcceptsOneJobPerLane(GameTestHelper helper) {
-        if (!EMAModPresence.isExtendedAELoaded() || !EMAModPresence.isExtendedCraftingLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             helper.succeed();
             return;
         }
@@ -227,138 +245,73 @@ public final class ExtendedPatternGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 40)
     public static void advancedAEQuantumCrafterMenuRejectsExtendedPattern(GameTestHelper helper) {
-        if (!EMAModPresence.isAdvancedAELoaded() || !EMAModPresence.isExtendedCraftingLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(AdvancedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             helper.succeed();
             return;
         }
 
         var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
-        var menu = createAdvancedAEQuantumCrafterMenu(helper);
-        var patternSlot = getAdvancedAEQuantumCrafterPatternSlot(helper, menu);
-
-        helper.assertFalse(menu.isValidForSlot(patternSlot, patternStack),
-                "AdvancedAE Quantum Crafter menu accepted an EMA extended encoded pattern");
-        helper.assertFalse(patternSlot.mayPlace(patternStack),
-                "AdvancedAE Quantum Crafter pattern slot accepted an EMA extended encoded pattern");
+        AdvancedAEGameTestHelper.assertAdvancedQuantumCrafterRejectsExtendedPattern(helper, patternStack);
         helper.succeed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 40)
     public static void extendedQuantumCrafterMenuAcceptsExtendedPattern(GameTestHelper helper) {
-        if (!EMAModPresence.isAdvancedAELoaded() || !EMAModPresence.isExtendedCraftingLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(AdvancedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             helper.succeed();
             return;
         }
 
         var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
-        var menu = createQuantumCrafterMenu(helper,
-                ExtendedMolecularAssembler.makeId("extended_quantum_crafter"),
-                "EMA Extended Quantum Crafter");
-        var patternSlot = getAdvancedAEQuantumCrafterPatternSlot(helper, menu);
-
-        helper.assertTrue(menu.isValidForSlot(patternSlot, patternStack),
-                "EMA Extended Quantum Crafter menu rejected an EMA extended encoded pattern");
-        helper.assertTrue(patternSlot.mayPlace(patternStack),
-                "EMA Extended Quantum Crafter pattern slot rejected an EMA extended encoded pattern");
+        AdvancedAEGameTestHelper.assertExtendedQuantumCrafterAcceptsExtendedPattern(helper, patternStack);
         helper.succeed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 40)
     public static void extendedAEPatternCoreAcceptsOnlyExtendedEncodedPatterns(GameTestHelper helper) {
-        if (!EMAModPresence.isExtendedAELoaded() || !EMAModPresence.isExtendedCraftingLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             helper.succeed();
             return;
         }
 
         var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
-        var core = placeOptionalBlockEntity(helper, "extended_assembler_matrix_pattern_core", new BlockPos(1, 1, 1),
-                ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
-        var patternInventory = core.getPatternInv(Direction.NORTH);
-        helper.assertTrue(patternInventory instanceof net.neoforged.neoforge.items.IItemHandler,
-                "ExtendedAE pattern core did not expose an item handler");
-        var itemHandler = (net.neoforged.neoforge.items.IItemHandler) patternInventory;
-
-        var diamondRemainder = itemHandler.insertItem(0, new ItemStack(Items.DIAMOND), true);
-        helper.assertTrue(!diamondRemainder.isEmpty(),
-                "ExtendedAE pattern core accepted a non-pattern item into its pattern inventory");
-        var patternRemainder = itemHandler.insertItem(0, patternStack.copy(), false);
-        helper.assertTrue(patternRemainder.isEmpty(),
-                "ExtendedAE pattern core rejected an EMA extended encoded pattern");
-
-        core.updatePatterns();
-        assertEqual(helper, 1, core.getAvailablePatterns().size(),
-                "ExtendedAE pattern core available extended pattern count");
+        ExtendedAEGameTestHelper.assertPatternCoreAcceptsOnlyExtendedEncodedPatterns(helper, patternStack);
         helper.succeed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 40)
     public static void extendedAEPatternUploaderUploadsIntoExtendedPatternCore(GameTestHelper helper) {
-        if (!EMAModPresence.isExtendedAELoaded() || !EMAModPresence.isExtendedAEPlusLoaded()
-                || !EMAModPresence.isExtendedCraftingLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             helper.succeed();
             return;
         }
 
         var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
-        var core = placeOptionalBlockEntity(helper, "extended_assembler_matrix_pattern_core", new BlockPos(1, 1, 1),
-                ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
-        var uploader = placeOptionalBlockEntity(helper, "extended_assembler_matrix_pattern_uploader",
-                new BlockPos(2, 1, 1), ExtendedAssemblerMatrixPatternUploaderBlockEntity.class);
-
-        var uploaderInventory = uploader.getPatternInv(Direction.WEST);
-        helper.assertTrue(uploaderInventory instanceof net.neoforged.neoforge.items.IItemHandler,
-                "ExtendedAE pattern uploader did not expose an item handler");
-        var uploaderHandler = (net.neoforged.neoforge.items.IItemHandler) uploaderInventory;
-
-        var diamondRemainder = uploaderHandler.insertItem(0, new ItemStack(Items.DIAMOND), true);
-        helper.assertTrue(!diamondRemainder.isEmpty(),
-                "ExtendedAE pattern uploader accepted a non-pattern item");
-        var patternRemainder = uploaderHandler.insertItem(0, patternStack.copy(), false);
-        helper.assertTrue(patternRemainder.isEmpty(),
-                "ExtendedAE pattern uploader did not upload an EMA extended encoded pattern");
-
-        var coreInventory = core.getPatternInv(Direction.EAST);
-        helper.assertTrue(coreInventory instanceof net.neoforged.neoforge.items.IItemHandler,
-                "ExtendedAE pattern core did not expose an item handler after uploader insert");
-        var coreHandler = (net.neoforged.neoforge.items.IItemHandler) coreInventory;
-        assertStackMatches(helper, patternStack, coreHandler.getStackInSlot(0),
-                "ExtendedAE pattern uploader target pattern core slot 0");
-        var duplicateRemainder = uploaderHandler.insertItem(0, patternStack.copy(), false);
-        assertStackMatches(helper, patternStack, duplicateRemainder,
-                "ExtendedAE pattern uploader duplicate remainder");
-        helper.assertTrue(coreHandler.getStackInSlot(1).isEmpty(),
-                "ExtendedAE pattern uploader inserted duplicate pattern into another core slot");
+        ExtendedAEGameTestHelper.assertPatternUploaderUploadsIntoExtendedPatternCore(helper, patternStack);
         helper.succeed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 40)
     public static void extendedAEMatrixCraftingCoreTracksAndCancelsExtendedJobs(GameTestHelper helper) {
-        if (!EMAModPresence.isExtendedAELoaded() || !EMAModPresence.isExtendedCraftingLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             helper.succeed();
             return;
         }
 
         var pattern = decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
-        var core = placeOptionalBlockEntity(helper, "extended_assembler_matrix_crafting_core", new BlockPos(1, 1, 1),
-                ExtendedAEAssemblerMatrixCrafterAccess.class);
-        for (int thread = 0; thread < 8; thread++) {
-            helper.assertTrue(pushExtendedMatrixJob(helper, core, pattern),
-                    "ExtendedAE matrix crafting core did not accept job for extended thread " + thread);
-            assertEqual(helper, thread + 1, getExtendedMatrixUsedThreads(helper, core),
-                    "ExtendedAE matrix crafting core used thread count after push " + thread);
-        }
-
-        helper.assertFalse(pushExtendedMatrixJob(helper, core, pattern),
-                "ExtendedAE matrix crafting core accepted a ninth extended job");
-        core.extendedmolecularassembler$cancelExtendedJobs();
-        assertEqual(helper, 0, getExtendedMatrixUsedThreads(helper, core),
-                "ExtendedAE matrix crafting core used thread count after cancel");
+        ExtendedAEGameTestHelper.assertMatrixCraftingCoreTracksAndCancelsExtendedJobs(helper, pattern);
         helper.succeed();
     }
 
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void extendedCraftingTiersEncodeAndCraft(GameTestHelper helper) {
-        if (!EMAModPresence.isExtendedCraftingLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             helper.succeed();
             return;
         }
@@ -369,7 +322,7 @@ public final class ExtendedPatternGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void reAvaritiaTiersEncodeAndCraft(GameTestHelper helper) {
-        if (!EMAModPresence.isReAvaritiaLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(ReAvaritia.class)) {
             helper.succeed();
             return;
         }
@@ -380,7 +333,7 @@ public final class ExtendedPatternGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void avaritiaNeoExtremeEncodeAndCraft(GameTestHelper helper) {
-        if (!EMAModPresence.isAvaritiaNeoLoaded()) {
+        if (!MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)) {
             helper.succeed();
             return;
         }
@@ -410,25 +363,12 @@ public final class ExtendedPatternGameTests {
         return (ExtendedMolecularAssemblerBlockEntity) blockEntity;
     }
 
-    private static <T> T placeOptionalBlockEntity(GameTestHelper helper, String blockPath, BlockPos pos,
-            Class<T> type) {
-        var blockId = ExtendedMolecularAssembler.makeId(blockPath);
-        var block = BuiltInRegistries.BLOCK.get(blockId);
-        helper.assertTrue(block != Blocks.AIR, "Missing optional EMA block " + blockId);
-        helper.setBlock(pos, block);
-        var blockEntity = helper.getBlockEntity(pos);
-        helper.assertTrue(type.isInstance(blockEntity),
-                "Optional EMA block " + blockId + " did not create a " + type.getSimpleName());
-        return type.cast(blockEntity);
-    }
-
-    private static boolean pushExtendedMatrixJob(GameTestHelper helper, ExtendedAEAssemblerMatrixCrafterAccess core,
-            ExtendedTableCraftingPattern pattern) {
-        return core.extendedmolecularassembler$pushExtendedJob(pattern, countersForPattern(pattern));
-    }
-
-    private static int getExtendedMatrixUsedThreads(GameTestHelper helper, ExtendedAEAssemblerMatrixCrafterAccess core) {
-        return core.extendedmolecularassembler$getExtendedUsedThreadCount();
+    private static void assertOptionalBlockRegistration(GameTestHelper helper, String path, boolean expected) {
+        var id = ExtendedMolecularAssembler.makeId(path);
+        assertEqual(helper, expected, BuiltInRegistries.BLOCK.containsKey(id), path + " block registration");
+        assertEqual(helper, expected, BuiltInRegistries.ITEM.containsKey(id), path + " item registration");
+        assertEqual(helper, expected, BuiltInRegistries.BLOCK_ENTITY_TYPE.containsKey(id),
+                path + " block entity registration");
     }
 
     private static void validateCases(GameTestHelper helper, List<PatternCase> cases) {
@@ -482,31 +422,6 @@ public final class ExtendedPatternGameTests {
         var match = requireMatch(helper, ExtendedPatternRecipeFinder.find(testCase.machineGrid(), level), testCase);
         return ExtendedPatternDetailsHelper.encodeExtendedCraftingPattern(match.recipe(), match.inputs(),
                 match.result(), false, true);
-    }
-
-    private static AEBaseMenu createAdvancedAEQuantumCrafterMenu(GameTestHelper helper) {
-        return createQuantumCrafterMenu(helper, ResourceLocation.fromNamespaceAndPath("advanced_ae", "quantum_crafter"),
-                "AdvancedAE Quantum Crafter");
-    }
-
-    private static AEBaseMenu createQuantumCrafterMenu(GameTestHelper helper, ResourceLocation blockId, String name) {
-        var block = BuiltInRegistries.BLOCK.get(blockId);
-        helper.assertTrue(block != Blocks.AIR, "Missing " + name + " block " + blockId);
-
-        var pos = new BlockPos(1, 1, 1);
-        helper.setBlock(pos, block);
-        var blockEntity = helper.getBlockEntity(pos);
-        helper.assertTrue(blockEntity instanceof QuantumCrafterEntity,
-                name + " block " + blockId + " did not create a QuantumCrafterEntity");
-
-        var player = FakePlayerFactory.getMinecraft((ServerLevel) helper.getLevel());
-        return new QuantumCrafterMenu(1, player.getInventory(), (QuantumCrafterEntity) blockEntity);
-    }
-
-    private static Slot getAdvancedAEQuantumCrafterPatternSlot(GameTestHelper helper, AEBaseMenu menu) {
-        var patternSlots = menu.getSlots(SlotSemantics.MACHINE_INPUT);
-        assertEqual(helper, 9, patternSlots.size(), "AdvancedAE Quantum Crafter pattern slot count");
-        return patternSlots.getFirst();
     }
 
     private static KeyCounter[] countersForPattern(ExtendedTableCraftingPattern pattern) {

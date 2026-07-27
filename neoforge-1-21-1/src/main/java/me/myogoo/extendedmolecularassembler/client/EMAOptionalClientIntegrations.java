@@ -1,7 +1,8 @@
 package me.myogoo.extendedmolecularassembler.client;
 
-import me.myogoo.extendedmolecularassembler.init.EMAModPresence;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAE;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.client.EMAExtendedAEClientIntegration;
+import me.myogoo.myotus.api.MyotusAPI;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 public final class EMAOptionalClientIntegrations {
@@ -9,7 +10,7 @@ public final class EMAOptionalClientIntegrations {
     }
 
     public static void initScreens(RegisterMenuScreensEvent event) {
-        if (EMAModPresence.isExtendedAELoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ExtendedAE.class)) {
             EMAExtendedAEClientIntegration.initScreens(event);
         }
     }

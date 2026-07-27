@@ -2,6 +2,16 @@
   "type": "minecraft:block",
   "pools": [
     {
+      "neoforge:conditions": [
+        {
+          "type": "myotus:mod_condition",
+          "active_mod": "extendedae"
+        },
+        {
+          "type": "myotus:mod_condition",
+          "active_mod": "extendedae_plus"
+        }
+      ],
       "bonus_rolls": 0.0,
       "conditions": [
         {

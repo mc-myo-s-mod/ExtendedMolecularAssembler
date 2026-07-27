@@ -20,5 +20,6 @@ public final class EMADataGenerators {
         pack.addProvider(EMARecipeDataProvider::new);
         pack.addProvider(output -> new EMABlockTagDataProvider(output, registries, existingFileHelper));
         pack.addProvider(output -> EMALootTableProvider.create(output, registries));
+        pack.addProvider(EMAOptionalBlockLootDataProvider::new);
     }
 }
