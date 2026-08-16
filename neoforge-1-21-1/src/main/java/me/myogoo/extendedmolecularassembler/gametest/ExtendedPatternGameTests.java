@@ -193,9 +193,29 @@ public final class ExtendedPatternGameTests {
         var matrixMenuId = ExtendedMolecularAssembler.makeId("extended_assembler_matrix_pattern_core");
         assertEqual(helper, extendedAE, BuiltInRegistries.MENU.containsKey(matrixMenuId),
                 "ExtendedAE matrix pattern core menu registration");
+        var patternViewMenuId = ExtendedMolecularAssembler.makeId("extended_crafting_pattern_view");
+        assertEqual(helper, extendedAE, BuiltInRegistries.MENU.containsKey(patternViewMenuId),
+                "ExtendedAE extended crafting pattern view menu registration");
         assertEqual(helper, extendedAEPlusStyleContent,
                 EMAOptionalIntegrations.isExtendedAEPlusStyleContentEnabled(),
                 "ExtendedAE Plus-style content availability");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void extendedPatternViewCentersSevenBySevenGrid(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var sevenBySeven = EXTENDED_CRAFTING_CASES.get(2);
+        ExtendedAEGameTestHelper.assertExtendedPatternViewLayout(
+                helper,
+                encodePatternStackForCase(helper, sevenBySeven),
+                sevenBySeven.side(),
+                sevenBySeven.tableType());
         helper.succeed();
     }
 

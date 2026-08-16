@@ -16,7 +16,7 @@
       290
     ]
   },
-  "helpTopic": "extendedmolecularassembler:extended-molecular-assemblers",
+  "helpTopic": "extendedmolecularassembler:extended-molecular-assemblers.md",
   "slots": {
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_1": {
       "left": 10,

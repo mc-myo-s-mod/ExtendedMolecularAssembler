@@ -15,6 +15,7 @@
   "item.extendedmolecularassembler.extended_pattern_encoding_terminal": "Extended Pattern Encoding Terminal",
   "item.extendedmolecularassembler.wireless_extended_pattern_encoding_terminal": "Wireless Extended Pattern Encoding Terminal",
   "item.extendedmolecularassembler.extended_crafting_pattern": "Extended Crafting Pattern",
+  "epp.pattern.extendedmolecularassembler:extended_crafting_pattern_view": "Extended Crafting Pattern",
   "gui.extendedmolecularassembler.extendedMolecularAssembler": "Extended Molecular Assembler",
   "gui.extendedmolecularassembler.extendedMolecularAssembler.job": "Crafting Job %s/%s",
   "gui.extendedmolecularassembler.extendedMolecularAssembler.nextJob": "Next Crafting Job",

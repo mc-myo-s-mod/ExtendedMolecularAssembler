@@ -21,6 +21,7 @@
   "gui.extendedmolecularassembler.extendedMolecularAssembler.previousJob": "이전 조합 작업",
   "gui.extendedmolecularassembler.extendedMolecularAssembler.clearCurrentJob": "현재 조합 작업 지우기",
   "gui.extendedmolecularassembler.extendedPatternEncodingTerminal": "확장 패턴 인코딩 터미널",
+  "epp.pattern.extendedmolecularassembler:extended_crafting_pattern_view": "확장 조합 패턴",
   "gui.extendedmolecularassembler.matrix.assemblerMatrix": "조합 매트릭스",
   "gui.extendedmolecularassembler.matrix.openExtendedPatterns": "확장 패턴 페이지 열기",
   "gui.extendedmolecularassembler.matrix.extendedPatternPage": "확장 패턴 페이지",

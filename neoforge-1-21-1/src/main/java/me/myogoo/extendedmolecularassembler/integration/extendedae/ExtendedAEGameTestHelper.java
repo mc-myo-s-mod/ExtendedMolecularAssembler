@@ -2,13 +2,16 @@ package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
+import appeng.menu.slot.IOptionalSlot;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedCraftingPatternViewMenu;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -45,6 +48,62 @@ public final class ExtendedAEGameTestHelper {
         core.updatePatterns();
         assertEqual(helper, 1, core.getAvailablePatterns().size(),
                 "ExtendedAE pattern core available extended pattern count");
+    }
+
+    public static void assertExtendedPatternViewLayout(
+            GameTestHelper helper,
+            ItemStack patternStack,
+            int expectedSideLength,
+            ResourceLocation expectedTableItem) {
+        var menu = new ExtendedCraftingPatternViewMenu(
+                ExtendedCraftingPatternViewMenu.TYPE,
+                0,
+                helper.getLevel(),
+                patternStack);
+
+        assertEqual(helper, expectedSideLength, menu.tableSideLength(),
+                "extended pattern view table side length");
+        assertEqual(helper, ExtendedCraftingPatternViewMenu.OUTPUT_SLOT_INDEX + 1, menu.slots.size(),
+                "extended pattern view display slot count");
+        helper.assertFalse(menu.canSubstitute(),
+                "extended pattern view unexpectedly enabled item substitution");
+        helper.assertTrue(menu.canSubstituteFluids(),
+                "extended pattern view did not expose fluid substitution");
+        assertEqual(helper, expectedTableItem, BuiltInRegistries.ITEM.getKey(menu.tableStack().getItem()),
+                "extended pattern view table preview item");
+
+        var offset = Math.floorDiv(ExtendedTableCraftingPattern.MACHINE_GRID_SIDE - expectedSideLength, 2);
+        var enabledCount = 0;
+        for (int row = 0; row < ExtendedTableCraftingPattern.MACHINE_GRID_SIDE; row++) {
+            for (int column = 0; column < ExtendedTableCraftingPattern.MACHINE_GRID_SIDE; column++) {
+                var expectedEnabled = row >= offset
+                        && row < offset + expectedSideLength
+                        && column >= offset
+                        && column < offset + expectedSideLength;
+                var machineSlot = row * ExtendedTableCraftingPattern.MACHINE_GRID_SIDE + column;
+                assertEqual(helper, expectedEnabled, menu.isSlotEnabled(machineSlot),
+                        "extended pattern view machine slot " + machineSlot);
+                var displaySlot = menu.slots.get(machineSlot);
+                helper.assertTrue(displaySlot instanceof IOptionalSlot,
+                        "extended pattern view slot " + machineSlot + " is not an AE2 optional slot");
+                var optionalSlot = (IOptionalSlot) displaySlot;
+                assertEqual(helper, expectedEnabled, optionalSlot.isSlotEnabled(),
+                        "extended pattern view rendered slot enabled state " + machineSlot);
+                assertEqual(helper, expectedEnabled, displaySlot.isActive(),
+                        "extended pattern view active slot state " + machineSlot);
+                if (expectedEnabled) {
+                    enabledCount++;
+                }
+            }
+        }
+        assertEqual(helper, expectedSideLength * expectedSideLength, enabledCount,
+                "extended pattern view enabled cell count");
+
+        var outputSlot = menu.slots.get(ExtendedCraftingPatternViewMenu.OUTPUT_SLOT_INDEX);
+        helper.assertTrue(outputSlot instanceof IOptionalSlot,
+                "extended pattern view output is not an AE2 optional slot");
+        helper.assertTrue(outputSlot.isActive(),
+                "extended pattern view output slot is disabled");
     }
 
     public static void assertPatternUploaderUploadsIntoExtendedPatternCore(

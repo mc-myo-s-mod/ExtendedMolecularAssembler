@@ -306,6 +306,26 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         return outputsArray;
     }
 
+    public boolean isMachineSlotInTable(int machineSlot) {
+        return machineSlot >= 0
+                && machineSlot < this.machineToPatternSlot.length
+                && this.machineToPatternSlot[machineSlot] >= 0;
+    }
+
+    public GenericStack[] getDisplayInputsForMachineSlot(int machineSlot) {
+        if (machineSlot < 0 || machineSlot >= this.sparseToCompressed.length) {
+            return new GenericStack[0];
+        }
+
+        var compressed = this.sparseToCompressed[machineSlot];
+        if (compressed == -1) {
+            return new GenericStack[0];
+        }
+
+        var possibleInputs = this.inputs[compressed].getPossibleInputs();
+        return Arrays.copyOf(possibleInputs, possibleInputs.length);
+    }
+
     public static void encode(ItemStack result, RecipeHolder<?> recipe, ItemStack[] sparseInputs, ItemStack output,
             boolean allowSubstitutes, boolean allowFluidSubstitutes) {
         Objects.requireNonNull(recipe, "recipe");
