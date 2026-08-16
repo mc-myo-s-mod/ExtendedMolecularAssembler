@@ -18,7 +18,6 @@ public class ExtendedMolecularAssemblerScreen extends UpgradeableScreen<Extended
             .src(0, 0, 221, 290);
 
     private final ProgressBar progressBar;
-    private final EMAIconButton clearCurrentJobButton;
     private final EMAIconButton nextJobButton;
     private final EMAIconButton previousJobButton;
 
@@ -29,16 +28,12 @@ public class ExtendedMolecularAssemblerScreen extends UpgradeableScreen<Extended
         this.progressBar = new ProgressBar(this.menu, style.getImage("progressBar"), ProgressBar.Direction.VERTICAL);
         widgets.add("progressBar", this.progressBar);
 
-        this.clearCurrentJobButton = new EMAIconButton(Icon.CLEAR,
-                Component.translatable(EMATranslationKey.GUI.EXTENDED_MOLECULAR_ASSEMBLER_CLEAR_CURRENT_JOB.key()),
-                btn -> this.menu.cancelCurrentJobFromClient());
         this.nextJobButton = new EMAIconButton(Icon.ARROW_RIGHT,
                 Component.translatable(EMATranslationKey.GUI.EXTENDED_MOLECULAR_ASSEMBLER_NEXT_JOB.key()),
                 btn -> this.menu.selectPage(this.menu.getPage() + 1));
         this.previousJobButton = new EMAIconButton(Icon.ARROW_LEFT,
                 Component.translatable(EMATranslationKey.GUI.EXTENDED_MOLECULAR_ASSEMBLER_PREVIOUS_JOB.key()),
                 btn -> this.menu.selectPage(this.menu.getPage() - 1));
-        addToLeftToolbar(this.clearCurrentJobButton);
         addToLeftToolbar(this.nextJobButton);
         addToLeftToolbar(this.previousJobButton);
     }
@@ -47,7 +42,6 @@ public class ExtendedMolecularAssemblerScreen extends UpgradeableScreen<Extended
     protected void updateBeforeRender() {
         super.updateBeforeRender();
         var hasPages = this.menu.getPageCount() > 1;
-        this.clearCurrentJobButton.setVisibility(this.menu.hasCurrentJob());
         this.previousJobButton.setVisibility(hasPages && this.menu.getPage() > 0);
         this.nextJobButton.setVisibility(hasPages && this.menu.getPage() < this.menu.getPageCount() - 1);
         this.progressBar.setFullMsg(Component.literal(this.menu.getCurrentProgress() + "%"));
