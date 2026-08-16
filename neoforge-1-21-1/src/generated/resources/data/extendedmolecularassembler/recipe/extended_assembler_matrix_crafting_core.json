@@ -5,30 +5,53 @@
       "active_mod": "extendedae"
     }
   ],
-  "type": "minecraft:crafting_shaped",
-  "category": "redstone",
-  "key": {
-    "C": {
-      "item": "extendedae:concurrent_processor"
+  "type": "extendedae:crystal_assembler",
+  "input_items": [
+    {
+      "amount": 1,
+      "ingredient": {
+        "item": "extendedae:assembler_matrix_wall"
+      }
     },
-    "M": {
-      "item": "extendedae:assembler_matrix_crafter"
+    {
+      "amount": 1,
+      "ingredient": {
+        "item": "extendedmolecularassembler:ex_extended_molecular_assembler"
+      }
     },
-    "P": {
-      "item": "ae2:engineering_processor"
+    {
+      "amount": 1,
+      "ingredient": {
+        "item": "myotus:compat_processor"
+      }
     },
-    "X": {
-      "item": "extendedmolecularassembler:ex_extended_molecular_assembler"
+    {
+      "amount": 1,
+      "ingredient": {
+        "item": "extendedae:concurrent_processor"
+      }
+    },
+    {
+      "amount": 2,
+      "ingredient": {
+        "item": "ae2:blue_lumen_paint_ball"
+      }
+    },
+    {
+      "amount": 2,
+      "ingredient": {
+        "item": "ae2:light_blue_lumen_paint_ball"
+      }
+    },
+    {
+      "amount": 2,
+      "ingredient": {
+        "item": "ae2:cyan_lumen_paint_ball"
+      }
     }
-  },
-  "pattern": [
-    "CPC",
-    "XMX",
-    "CPC"
   ],
-  "result": {
+  "output": {
     "count": 1,
-    "id": "extendedmolecularassembler:extended_assembler_matrix_crafting_core"
-  },
-  "show_notification": true
+    "id": "extendedmolecularassembler:extended_assembler_matrix_pattern_core"
+  }
 }

@@ -17,6 +17,9 @@ import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.stack;
 
 public final class EMARecipeDataProvider extends JsonRecipeProvider {
     private static final String COMPAT_PROCESSOR = "myotus:compat_processor";
+    private static final String CONCURRENT_PROCESSOR = "extendedae:concurrent_processor";
+    private static final String ASSEMBLER_MATRIX_FRAME = "extendedae:assembler_matrix_wall";
+    private static final String EX_EXTENDED_MOLECULAR_ASSEMBLER = "extendedmolecularassembler:ex_extended_molecular_assembler";
 
     public EMARecipeDataProvider(PackOutput output) {
         super(output);
@@ -43,11 +46,11 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 .create(recipeId("ex_extended_molecular_assembler"))
                 .conditions(myoConditions("extendedae"))
                 .inputItem("extendedmolecularassembler:extended_molecular_assembler", 4)
-                .inputItem("extendedae:concurrent_processor", 4)
+                .inputItem(CONCURRENT_PROCESSOR, 4)
                 .inputItem(COMPAT_PROCESSOR, 4)
                 .inputTag("c:dusts/ender_pearl", 4)
                 .inputItem("ae2:speed_card", 4)
-                .output("extendedmolecularassembler:ex_extended_molecular_assembler", 1)
+                .output(EX_EXTENDED_MOLECULAR_ASSEMBLER, 1)
                 .save(output);
         shapeless("minecraft:crafting_shapeless",
                 "extendedmolecularassembler:extended_pattern_encoding_terminal", 1)
@@ -103,44 +106,62 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
     }
 
     private static void buildIntegrationRecipes(JsonRecipeOutput output) {
-        JsonArray extendedAE = myoConditions("extendedae");
         JsonArray extendedAEPlus = myoConditions("extendedae", "extendedae_plus");
-        JsonArray standaloneExtendedAEPlus = standaloneExtendedAEPlusConditions();
+        JsonArray extendedAEPlusContent = extendedAEPlusContentConditions();
         saveAE2WTLibUpgrade(output, "wireless_universal_terminal/upgrade_extended_pattern_encoding",
                 "extendedmolecularassembler:wireless_extended_pattern_encoding_terminal",
                 "extended_pattern_encoding");
-        saveShaped(output, "extended_assembler_matrix_crafting_core", extendedAE, "redstone",
-                new String[]{"CPC", "XMX", "CPC"},
-                key('C', "extendedae:concurrent_processor", 'M', "extendedae:assembler_matrix_crafter", 'P', "ae2:engineering_processor", 'X', "extendedmolecularassembler:ex_extended_molecular_assembler"),
-                "extendedmolecularassembler:extended_assembler_matrix_crafting_core", true);
-        saveShaped(output, "extended_assembler_matrix_pattern_core", extendedAE, "redstone",
-                new String[]{"BEB", "PMP", "BEB"},
-                key('B', "ae2:blank_pattern", 'E', "ae2:engineering_processor", 'M', "extendedae:assembler_matrix_pattern", 'P', "extendedae:ex_pattern_provider"),
-                "extendedmolecularassembler:extended_assembler_matrix_pattern_core", true);
-        saveShaped(output, "extended_assembler_matrix_pattern_uploader", extendedAEPlus, "redstone",
-                new String[]{"HTH", "CUC", "HSH"},
-                key('C', "ae2:calculation_processor", 'H', "minecraft:hopper", 'S', "ae2:formation_core", 'T', "ae2:pattern_encoding_terminal", 'U', "extendedae_plus:assembler_matrix_upload_core"),
-                "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader", true);
-        saveShaped(output, "extended_assembler_matrix_pattern_uploader_standalone", standaloneExtendedAEPlus, "redstone",
-                new String[]{"HTH", "CUC", "HSH"},
-                key('C', "ae2:calculation_processor", 'H', "minecraft:hopper", 'S', "ae2:formation_core", 'T', "ae2:pattern_encoding_terminal", 'U', "extendedae:assembler_matrix_pattern"),
-                "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader", true);
-        saveShaped(output, "extended_assembler_matrix_crafting_core_plus", extendedAEPlus, "redstone",
-                new String[]{"SPS", "PBP", "SPS"},
-                key('B', "extendedmolecularassembler:extended_assembler_matrix_crafting_core", 'P', "extendedae_plus:assembler_matrix_crafter_plus", 'S', "ae2:speed_card"),
-                "extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus", true);
-        saveShaped(output, "extended_assembler_matrix_crafting_core_plus_standalone", standaloneExtendedAEPlus, "redstone",
-                new String[]{"SCS", "PBP", "SCS"},
-                key('B', "extendedmolecularassembler:extended_assembler_matrix_crafting_core", 'C', "extendedae:concurrent_processor", 'P', "ae2:engineering_processor", 'S', "ae2:speed_card"),
-                "extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus", true);
-        saveShaped(output, "extended_assembler_matrix_pattern_core_plus", extendedAEPlus, "redstone",
-                new String[]{"CPC", "PBP", "CPC"},
-                key('B', "extendedmolecularassembler:extended_assembler_matrix_pattern_core", 'C', "ae2:capacity_card", 'P', "extendedae_plus:assembler_matrix_pattern_plus"),
-                "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus", true);
-        saveShaped(output, "extended_assembler_matrix_pattern_core_plus_standalone", standaloneExtendedAEPlus, "redstone",
-                new String[]{"CPC", "PBP", "CPC"},
-                key('B', "extendedmolecularassembler:extended_assembler_matrix_pattern_core", 'C', "ae2:capacity_card", 'P', "extendedae:assembler_matrix_pattern"),
-                "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus", true);
+
+        saveMatrixCoreCrystalAssembler(output,
+                "extended_assembler_matrix_crafting_core",
+                "extendedmolecularassembler:extended_assembler_matrix_pattern_core",
+                "ae2:blue_lumen_paint_ball",
+                "ae2:light_blue_lumen_paint_ball",
+                "ae2:cyan_lumen_paint_ball");
+        saveMatrixCoreCrystalAssembler(output,
+                "extended_assembler_matrix_pattern_core",
+                "extendedmolecularassembler:extended_assembler_matrix_crafting_core",
+                "ae2:purple_lumen_paint_ball",
+                "ae2:magenta_lumen_paint_ball",
+                "ae2:pink_lumen_paint_ball");
+
+        shapeless("minecraft:crafting_shapeless",
+                "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader", 1)
+                .conditions(extendedAEPlus)
+                .requires(item("extendedae_plus:assembler_matrix_upload_core"))
+                .requires(item(COMPAT_PROCESSOR))
+                .save(output, recipeId("extended_assembler_matrix_pattern_uploader"));
+
+        saveMatrixCorePlus(output, "extended_assembler_matrix_crafting_core_plus",
+                "extendedmolecularassembler:extended_assembler_matrix_crafting_core",
+                "extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus", extendedAEPlusContent);
+        saveMatrixCorePlus(output, "extended_assembler_matrix_pattern_core_plus",
+                "extendedmolecularassembler:extended_assembler_matrix_pattern_core",
+                "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus", extendedAEPlusContent);
+    }
+
+    private static void saveMatrixCoreCrystalAssembler(JsonRecipeOutput output, String path, String result,
+            String paintA, String paintB, String paintC) {
+        MyoExtendedAECrystalAssemblerRecipeBuilder
+                .create(recipeId(path))
+                .conditions(myoConditions("extendedae"))
+                .inputItem(ASSEMBLER_MATRIX_FRAME, 1)
+                .inputItem(EX_EXTENDED_MOLECULAR_ASSEMBLER, 1)
+                .inputItem(COMPAT_PROCESSOR, 1)
+                .inputItem(CONCURRENT_PROCESSOR, 1)
+                .inputItem(paintA, 2)
+                .inputItem(paintB, 2)
+                .inputItem(paintC, 2)
+                .output(result, 1)
+                .save(output);
+    }
+
+    private static void saveMatrixCorePlus(JsonRecipeOutput output, String path, String core, String result,
+            JsonArray conditions) {
+        saveShaped(output, path, conditions, "redstone",
+                new String[]{"PCP", "CNC", "PCP"},
+                key('C', core, 'N', "minecraft:nether_star", 'P', COMPAT_PROCESSOR),
+                result, true);
     }
 
     private static void buildGameTestRecipes(JsonRecipeOutput output) {
@@ -239,20 +260,20 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
         return values;
     }
 
-    private static JsonArray standaloneExtendedAEPlusConditions() {
-        JsonArray values = myoConditions("extendedae");
-        values.add(notMyoCondition("extendedae_plus"));
-        JsonObject configCondition = new JsonObject();
-        configCondition.addProperty("type", "extendedmolecularassembler:extendedae_plus_standalone");
-        values.add(configCondition);
-        return values;
-    }
+    private static JsonArray extendedAEPlusContentConditions() {
+        JsonArray conditions = myoConditions("extendedae");
 
-    private static JsonObject notMyoCondition(String activeMod) {
-        JsonObject condition = new JsonObject();
-        condition.addProperty("type", "neoforge:not");
-        condition.add("value", myoCondition(activeMod));
-        return condition;
+        JsonArray alternatives = new JsonArray();
+        alternatives.add(myoCondition("extendedae_plus"));
+        JsonObject standalone = new JsonObject();
+        standalone.addProperty("type", "extendedmolecularassembler:extendedae_plus_standalone");
+        alternatives.add(standalone);
+
+        JsonObject anyAvailable = new JsonObject();
+        anyAvailable.addProperty("type", "neoforge:or");
+        anyAvailable.add("values", alternatives);
+        conditions.add(anyAvailable);
+        return conditions;
     }
 
     private static JsonObject recipe(String type) {

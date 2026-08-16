@@ -213,19 +213,18 @@ public final class ExtendedPatternGameTests {
     public static void extendedAEPlusRecipesFollowModAndConfig(GameTestHelper helper) {
         boolean extendedAE = MyotusAPI.integrations().isLoaded(ExtendedAE.class);
         boolean extendedAEPlus = MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class);
-        boolean standalone = extendedAE
-                && !extendedAEPlus
-                && EMAConfig.standaloneExtendedAEPlusContent();
+        boolean plusContent = extendedAE
+                && (extendedAEPlus || EMAConfig.standaloneExtendedAEPlusContent());
 
         assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_uploader",
                 extendedAE && extendedAEPlus);
         assertRecipeRegistration(helper, "extended_assembler_matrix_crafting_core_plus",
-                extendedAE && extendedAEPlus);
+                plusContent);
         assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core_plus",
-                extendedAE && extendedAEPlus);
-        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_uploader_standalone", standalone);
-        assertRecipeRegistration(helper, "extended_assembler_matrix_crafting_core_plus_standalone", standalone);
-        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core_plus_standalone", standalone);
+                plusContent);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_uploader_standalone", false);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_crafting_core_plus_standalone", false);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core_plus_standalone", false);
         helper.succeed();
     }
 

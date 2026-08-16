@@ -5,27 +5,35 @@
       "active_mod": "extendedae"
     },
     {
-      "type": "myotus:mod_condition",
-      "active_mod": "extendedae_plus"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "myotus:mod_condition",
+          "active_mod": "extendedae_plus"
+        },
+        {
+          "type": "extendedmolecularassembler:extendedae_plus_standalone"
+        }
+      ]
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "B": {
+    "C": {
       "item": "extendedmolecularassembler:extended_assembler_matrix_pattern_core"
     },
-    "C": {
-      "item": "ae2:capacity_card"
+    "N": {
+      "item": "minecraft:nether_star"
     },
     "P": {
-      "item": "extendedae_plus:assembler_matrix_pattern_plus"
+      "item": "myotus:compat_processor"
     }
   },
   "pattern": [
-    "CPC",
-    "PBP",
-    "CPC"
+    "PCP",
+    "CNC",
+    "PCP"
   ],
   "result": {
     "count": 1,
