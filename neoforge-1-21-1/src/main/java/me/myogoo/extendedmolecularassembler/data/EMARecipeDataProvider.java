@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.devCondition;
 import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.item;
 import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.myoCondition;
+import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.shapeless;
 import static me.myogoo.myotus.data.recipe.ExternalRecipeBuilder.stack;
 
 public final class EMARecipeDataProvider extends JsonRecipeProvider {
@@ -52,6 +53,13 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 new String[]{"FQF", "RPR", "FTF"},
                 key('F', "ae2:fluix_crystal", 'P', "ae2:blank_pattern", 'Q', "ae2:calculation_processor", 'R', "minecraft:redstone", 'T', "minecraft:crafting_table"),
                 "extendedmolecularassembler:extended_crafting_pattern", true);
+        shapeless("minecraft:crafting_shapeless",
+                "extendedmolecularassembler:extended_pattern_encoding_terminal", 1)
+                .requires(item(COMPAT_PROCESSOR))
+                .requires(item("ae2:pattern_encoding_terminal"))
+                .requires(item("ae2:annihilation_core"))
+                .requires(item("ae2:formation_core"))
+                .save(output, recipeId("extended_pattern_encoding_terminal"));
 
         JsonArray extendedCrafting = myoConditions("extendedcrafting");
         saveShaped(output, "basic_me_crafting_provider", extendedCrafting, "redstone",
