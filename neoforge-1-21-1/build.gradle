@@ -38,6 +38,10 @@ repositories {
             includeGroup("software.bernie.geckolib")
         }
     }
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/"
+    }
 }
 
 base {
@@ -122,12 +126,16 @@ dependencies {
     implementation "curse.maven:placebo-283644:${Placebo_file}"
 
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${JEI_version}"
+    compileOnly "dev.emi:emi-neoforge:${EMI_version}"
 
     testImplementation platform("org.junit:junit-bom:5.11.4")
     testImplementation "org.junit.jupiter:junit-jupiter"
 
-    if (project.itemListMod == "jei") {
+    if (project.itemListMod == "jei" || project.itemListMod == "jemi") {
         runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${JEI_version}"
+    }
+    if (project.itemListMod == "emi" || project.itemListMod == "jemi") {
+        runtimeOnly "dev.emi:emi-neoforge:${EMI_version}"
     }
 
     if (project.enable_excrafting == "true") {

@@ -1,14 +1,14 @@
-package me.myogoo.extendedmolecularassembler.integration.jei.handler;
+package me.myogoo.extendedmolecularassembler.integration.itemlist;
 
 import appeng.api.stacks.AEItemKey;
 import appeng.core.network.ServerboundPacket;
 import appeng.core.network.serverbound.InventoryActionPacket;
 import appeng.helpers.InventoryAction;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
-import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -19,20 +19,36 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 
-final class ExtendedPatternRecipeTransfer {
+public final class ExtendedPatternRecipeTransfer {
     private ExtendedPatternRecipeTransfer() {
     }
 
-    static boolean canTransfer(Recipe<?> recipe) {
+    public static boolean canTransfer(Recipe<?> recipe) {
+        if (!isExtendedTableRecipe(recipe)) {
+            return false;
+        }
+
         try {
-            TableRecipeAdapters.of(recipe);
-            return !recipe.getIngredients().isEmpty();
+            var adapter = TableRecipeAdapters.of(recipe);
+            var side = adapter.sideLength();
+            var ingredients = adapter.slotIngredients();
+            return side > 0
+                    && side <= ExtendedTableCraftingPattern.MACHINE_GRID_SIDE
+                    && !ingredients.isEmpty()
+                    && ingredients.size() <= side * side;
         } catch (IllegalArgumentException ignored) {
             return false;
         }
     }
 
-    static void transfer(ExtendedPatternEncodingTermMenu menu, Recipe<?> recipe) {
+    private static boolean isExtendedTableRecipe(Recipe<?> recipe) {
+        var className = recipe.getClass().getName();
+        return className.startsWith("com.blakebr0.extendedcrafting.")
+                || className.startsWith("committee.nova.mods.avaritia.")
+                || className.startsWith("net.byAqua3.avaritia.");
+    }
+
+    public static void transfer(ExtendedPatternEncodingTermMenu menu, Recipe<?> recipe) {
         var adapter = TableRecipeAdapters.of(recipe);
         var encodedInputs = buildMachineInputs(menu, adapter);
         var slots = menu.getCraftingGridSlots();
@@ -43,12 +59,12 @@ final class ExtendedPatternRecipeTransfer {
         }
     }
 
-    static void transfer(ExtendedPatternEncodingTermMenu menu, RecipeHolder<?> recipe) {
+    public static void transfer(ExtendedPatternEncodingTermMenu menu, RecipeHolder<?> recipe) {
         transfer(menu, recipe.value());
         menu.selectTransferredRecipe(recipe.id());
     }
 
-    static void transfer(ExtendedPatternEncodingTermMenu menu, RecipeHolder<?> recipe,
+    public static void transfer(ExtendedPatternEncodingTermMenu menu, RecipeHolder<?> recipe,
             @Nullable RecipeProvider recipeProvider, int tableTier, int tableSide) {
         transfer(menu, recipe.value());
         if (recipeProvider == null) {
