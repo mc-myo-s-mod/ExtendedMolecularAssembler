@@ -20,6 +20,8 @@ import java.util.Optional;
 
 public final class ExtendedPatternRecipeFinder {
     private static final int[] TABLE_SIDES = { 3, 5, 7, 9 };
+    private static final int[] EXTREME_TABLE_SIDES = { 9 };
+    private static final int[][] ORDERED_OFFSETS = createOrderedOffsets();
 
     private ExtendedPatternRecipeFinder() {
     }
@@ -40,7 +42,8 @@ public final class ExtendedPatternRecipeFinder {
         }
 
         if (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)) {
-            matches.addAll(findAllWithLookup(machineGrid, level, new int[] { 9 }, AvaritiaNeoPatternRecipeFinder::findAll));
+            matches.addAll(findAllWithLookup(machineGrid, level, EXTREME_TABLE_SIDES,
+                    AvaritiaNeoPatternRecipeFinder::findAll));
         }
 
         return matches;
@@ -70,7 +73,7 @@ public final class ExtendedPatternRecipeFinder {
                     }
 
                     var adapter = TableRecipeAdapters.of(holder);
-                    if (adapter.sideLength() != side || !adapter.matches(input, level)) {
+                    if (adapter.sideLength() != side) {
                         continue;
                     }
 
@@ -106,7 +109,7 @@ public final class ExtendedPatternRecipeFinder {
 
                     for (var holder : lookup.findAll(side, input, level)) {
                         var adapter = TableRecipeAdapters.of(holder);
-                        if (adapter.sideLength() != side || !adapter.matches(input, level)) {
+                        if (adapter.sideLength() != side) {
                             continue;
                         }
 
@@ -154,14 +157,30 @@ public final class ExtendedPatternRecipeFinder {
         return true;
     }
 
-    private static List<Integer> orderedOffsets(int side) {
+    private static int[] orderedOffsets(int side) {
+        if (side < 0 || side >= ORDERED_OFFSETS.length || ORDERED_OFFSETS[side] == null) {
+            return new int[0];
+        }
+        return ORDERED_OFFSETS[side];
+    }
+
+    private static int[][] createOrderedOffsets() {
+        var result = new int[ExtendedTableCraftingPattern.MACHINE_GRID_SIDE + 1][];
+        for (var side : TABLE_SIDES) {
+            result[side] = createOrderedOffsets(side);
+        }
+        return result;
+    }
+
+    private static int[] createOrderedOffsets(int side) {
         var maxOffset = ExtendedTableCraftingPattern.MACHINE_GRID_SIDE - side;
         var center = Math.floorDiv(maxOffset, 2);
-        var result = new ArrayList<Integer>(maxOffset + 1);
-        result.add(center);
+        var result = new int[maxOffset + 1];
+        result[0] = center;
+        var index = 1;
         for (int offset = 0; offset <= maxOffset; offset++) {
             if (offset != center) {
-                result.add(offset);
+                result[index++] = offset;
             }
         }
         return result;

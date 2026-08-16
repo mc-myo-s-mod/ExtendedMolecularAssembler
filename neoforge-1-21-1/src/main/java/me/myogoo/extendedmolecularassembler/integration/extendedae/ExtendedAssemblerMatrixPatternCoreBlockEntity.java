@@ -49,6 +49,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     private final AppEngInternalInventory patternInventory;
     private final List<IPatternDetails> patterns = new ArrayList<>();
     private final Set<IPatternDetails> patternSet = new HashSet<>();
+    private long patternRevision;
 
     public ExtendedAssemblerMatrixPatternCoreBlockEntity(BlockEntityType<?> type, BlockPos pos,
             BlockState blockState) {
@@ -83,6 +84,13 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         return this.worldPosition.asLong();
     }
 
+    /**
+     * Returns a process-local revision for the pattern inventory and its decoded pattern view.
+     */
+    public long getPatternRevision() {
+        return this.patternRevision;
+    }
+
     @Override
     public void add(ClusterAssemblerMatrix cluster) {
         // This block participates in the matrix as a function block. Its extended patterns are exposed via its own
@@ -111,6 +119,8 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     public void loadTag(CompoundTag data, HolderLookup.Provider registries) {
         super.loadTag(data, registries);
         this.patternInventory.readFromNBT(data, "pattern", registries);
+        // AppEngInternalInventory deliberately loads NBT without firing inventory callbacks.
+        this.patternRevision++;
     }
 
     @Override
@@ -130,6 +140,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     }
 
     private void updatePatterns(String reason) {
+        this.patternRevision++;
         this.patterns.clear();
         this.patternSet.clear();
         var level = getLevel();

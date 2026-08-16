@@ -6,7 +6,7 @@
       "item": "ae2:annihilation_core"
     },
     "E": {
-      "item": "ae2:engineering_processor"
+      "item": "myotus:compat_processor"
     },
     "F": {
       "item": "ae2:formation_core"
@@ -15,7 +15,7 @@
       "item": "ae2:molecular_assembler"
     },
     "Q": {
-      "item": "ae2:quartz_glass"
+      "item": "ae2:quartz_vibrant_glass"
     }
   },
   "pattern": [

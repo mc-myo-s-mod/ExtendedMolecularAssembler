@@ -46,7 +46,10 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
     private final CycleEPPButton patternAccessButton;
     private final Scrollbar patternScrollbar;
     private final AETextField searchField;
-    private final List<PatternEntry> filteredPatternEntries = new ArrayList<>();
+    private final List<CachedPatternEntry> cachedPatternEntries = new ArrayList<>();
+    private final List<CachedPatternEntry> filteredPatternEntries = new ArrayList<>();
+    private long cachedPatternRevision = Long.MIN_VALUE;
+    private String cachedSearchText;
     private int lastRunningThreads = Integer.MIN_VALUE;
     private Component runningThreadsText = Component.empty();
 
@@ -59,7 +62,7 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
         this.patternScrollbar.setCaptureMouseWheel(true);
 
         this.searchField = this.widgets.addTextField("search");
-        this.searchField.setResponder(ignored -> this.refreshFilteredPatternEntries());
+        this.searchField.setResponder(ignored -> this.refreshPatternCaches());
         this.searchField.setPlaceholder(GuiText.SearchPlaceholder.text());
         this.searchField.setTooltipMessage(List.of(
                 Component.translatable(EMATranslationKey.GUI.MATRIX_SEARCH_PATTERNS.key())));
@@ -86,14 +89,15 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
         addToLeftToolbar(this.patternAccessButton);
         addToLeftToolbar(this.backToMatrixButton);
 
-        this.refreshFilteredPatternEntries();
+        this.refreshPatternCaches();
     }
 
     @Override
     public void init() {
         super.init();
         this.setInitialFocus(this.searchField);
-        this.refreshFilteredPatternEntries();
+        this.refreshPatternCaches();
+        this.updatePatternScrollbar();
     }
 
     @Override
@@ -106,7 +110,7 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
     public boolean mouseClicked(double xCoord, double yCoord, int btn) {
         if (btn == 1 && this.searchField.isMouseOver(xCoord, yCoord)) {
             this.searchField.setValue("");
-            this.refreshFilteredPatternEntries();
+            this.refreshPatternCaches();
             return true;
         }
 
@@ -120,7 +124,8 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
                                 : InventoryAction.PICKUP_OR_SET_DOWN;
                 default -> hasShiftDown() ? InventoryAction.SHIFT_CLICK : InventoryAction.PICKUP_OR_SET_DOWN;
             };
-            PacketDistributor.sendToServer(new InventoryActionPacket(action, entry.slot(), entry.coreId()));
+            PacketDistributor.sendToServer(
+                    new InventoryActionPacket(action, entry.entry().slot(), entry.entry().coreId()));
             return true;
         }
 
@@ -139,7 +144,7 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
                     EMATranslationKey.GUI.MATRIX_ACTIVE_JOBS.key(), this.menu.runningThreads);
         }
 
-        updatePatternScrollbar();
+        this.refreshPatternCaches();
     }
 
     @Override
@@ -151,8 +156,9 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
         drawPatternEntries(guiGraphics, mouseX, mouseY);
 
         var hovered = getHoveredPatternEntry(mouseX, mouseY);
-        if (hovered != null && !hovered.stack().isEmpty()) {
-            guiGraphics.renderTooltip(this.font, displayStack(hovered.stack()), mouseX - this.leftPos, mouseY - this.topPos);
+        if (hovered != null && !hovered.displayStack().isEmpty()) {
+            guiGraphics.renderTooltip(this.font, hovered.displayStack(), mouseX - this.leftPos,
+                    mouseY - this.topPos);
         }
     }
 
@@ -179,11 +185,11 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
 
             var entryIndex = firstVisibleSlot + visibleIndex;
             if (entryIndex >= 0 && entryIndex < this.filteredPatternEntries.size()) {
-                var entry = this.filteredPatternEntries.get(entryIndex);
+                var cachedEntry = this.filteredPatternEntries.get(entryIndex);
                 if (filterActive) {
                     fillRect(guiGraphics, new Rect2i(x, y, 16, 16), 0x8A00FF00);
                 }
-                var display = displayStack(entry.stack());
+                var display = cachedEntry.displayStack();
                 if (!display.isEmpty()) {
                     guiGraphics.renderItem(display, x, y);
                     guiGraphics.renderItemDecorations(this.font, display, x, y);
@@ -207,7 +213,6 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
     }
 
     private void updatePatternScrollbar() {
-        this.refreshFilteredPatternEntries();
         var totalSlots = this.filteredPatternEntries.size();
         var totalRows = Math.max(1, (totalSlots + PATTERN_COLS - 1) / PATTERN_COLS);
         var maxScroll = Math.max(0, totalRows - VISIBLE_PATTERN_ROWS);
@@ -215,71 +220,91 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
         this.patternScrollbar.setVisible(maxScroll > 0);
     }
 
+    private void refreshPatternCaches() {
+        var revision = this.menu.getPatternRevision();
+        if (this.cachedPatternRevision != revision) {
+            this.cachedPatternEntries.clear();
+            for (var entry : this.menu.getPatternEntries()) {
+                this.cachedPatternEntries.add(cachePatternEntry(entry));
+            }
+            this.cachedPatternRevision = revision;
+            this.cachedSearchText = null;
+        }
+
+        this.refreshFilteredPatternEntries();
+    }
+
     private void refreshFilteredPatternEntries() {
-        this.filteredPatternEntries.clear();
         var filter = this.searchField == null ? "" : this.searchField.getValue();
-        if (filter == null || filter.isBlank()) {
-            this.filteredPatternEntries.addAll(this.menu.getPatternEntries());
+        if (filter == null) {
+            filter = "";
+        }
+        if (filter.equals(this.cachedSearchText)) {
             return;
         }
 
-        var tokens = FCUtil.tokenize(filter);
-        for (var entry : this.menu.getPatternEntries()) {
-            if (itemStackMatchesSearchTerm(entry.stack(), tokens)) {
-                this.filteredPatternEntries.add(entry);
+        this.cachedSearchText = filter;
+        this.filteredPatternEntries.clear();
+        if (filter.isBlank()) {
+            this.filteredPatternEntries.addAll(this.cachedPatternEntries);
+        } else {
+            var tokens = FCUtil.tokenize(filter);
+            for (var entry : this.cachedPatternEntries) {
+                if (matchesSearchTerm(entry, tokens)) {
+                    this.filteredPatternEntries.add(entry);
+                }
             }
         }
+        this.updatePatternScrollbar();
     }
 
-    private boolean itemStackMatchesSearchTerm(ItemStack stack, List<String> searchTokens) {
-        if (!(stack.getItem() instanceof EncodedPatternItem<?>)) {
-            return false;
+    private static boolean matchesSearchTerm(CachedPatternEntry entry, List<String> searchTokens) {
+        for (var displayTokens : entry.searchTokens()) {
+            if (FCUtil.compareTokens(searchTokens, displayTokens)) {
+                return true;
+            }
         }
-
-        try {
-            var pattern = PatternDetailsHelper.decodePattern(stack, this.menu.getPlayer().level());
-            if (pattern == null) {
-                return false;
-            }
-
-            for (var output : pattern.getOutputs()) {
-                if (output != null && FCUtil.compareTokens(searchTokens,
-                        FCUtil.tokenize(output.what().getDisplayName().getString()))) {
-                    return true;
-                }
-            }
-
-            for (var input : pattern.getInputs()) {
-                if (input != null && input.getPossibleInputs().length > 0 && FCUtil.compareTokens(searchTokens,
-                        FCUtil.tokenize(input.getPossibleInputs()[0].what().getDisplayName().getString()))) {
-                    return true;
-                }
-            }
-        } catch (RuntimeException ignored) {
-            return false;
-        }
-
         return false;
     }
 
-    private ItemStack displayStack(ItemStack encodedPattern) {
-        if (encodedPattern.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
+    private CachedPatternEntry cachePatternEntry(PatternEntry entry) {
+        var encodedPattern = entry.stack();
+        var display = displayWithAmount(encodedPattern);
+        var searchTokens = new ArrayList<List<String>>();
 
-        try {
-            if (PatternDetailsHelper.decodePattern(encodedPattern, this.menu.getPlayer().level())
-                    instanceof ExtendedTableCraftingPattern pattern) {
-                var output = pattern.getPrimaryOutput();
-                if (output != null) {
-                    return displayWithAmount(GenericStack.wrapInItemStack(output));
+        if (encodedPattern.getItem() instanceof EncodedPatternItem<?>) {
+            try {
+                var pattern = PatternDetailsHelper.decodePattern(encodedPattern, this.menu.getPlayer().level());
+                if (pattern != null) {
+                    for (var output : pattern.getOutputs()) {
+                        if (output != null) {
+                            searchTokens.add(FCUtil.tokenize(output.what().getDisplayName().getString()));
+                        }
+                    }
+
+                    for (var input : pattern.getInputs()) {
+                        if (input != null && input.getPossibleInputs().length > 0
+                                && input.getPossibleInputs()[0] != null) {
+                            searchTokens.add(FCUtil.tokenize(
+                                    input.getPossibleInputs()[0].what().getDisplayName().getString()));
+                        }
+                    }
+
+                    if (pattern instanceof ExtendedTableCraftingPattern extendedPattern) {
+                        var output = extendedPattern.getPrimaryOutput();
+                        if (output != null) {
+                            display = displayWithAmount(GenericStack.wrapInItemStack(output));
+                        }
+                    }
                 }
+            } catch (RuntimeException ignored) {
+                // Broken or foreign pattern data falls back to the encoded pattern stack and is not searchable.
+                display = displayWithAmount(encodedPattern);
+                searchTokens.clear();
             }
-        } catch (RuntimeException ignored) {
-            // Broken or foreign pattern data falls back to the encoded pattern stack.
         }
 
-        return displayWithAmount(encodedPattern);
+        return new CachedPatternEntry(entry, display, List.copyOf(searchTokens));
     }
 
     private static ItemStack displayWithAmount(ItemStack stack) {
@@ -303,7 +328,7 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
         return row * PATTERN_COLS + col;
     }
 
-    private PatternEntry getHoveredPatternEntry(double mouseX, double mouseY) {
+    private CachedPatternEntry getHoveredPatternEntry(double mouseX, double mouseY) {
         var visibleIndex = getHoveredVisiblePatternIndex(mouseX, mouseY);
         if (visibleIndex < 0) {
             return null;
@@ -322,5 +347,9 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
                 && relativeX < PATTERN_LEFT + PATTERN_COLS * SLOT_SIZE
                 && relativeY >= PATTERN_TOP
                 && relativeY < PATTERN_TOP + VISIBLE_PATTERN_ROWS * SLOT_SIZE;
+    }
+
+    private record CachedPatternEntry(PatternEntry entry, ItemStack displayStack,
+            List<List<String>> searchTokens) {
     }
 }

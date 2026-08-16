@@ -1,0 +1,31 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "ae2wtlib"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "item": "ae2:dense_energy_cell"
+    },
+    "T": {
+      "item": "extendedmolecularassembler:extended_pattern_encoding_terminal"
+    },
+    "W": {
+      "item": "ae2:wireless_receiver"
+    }
+  },
+  "pattern": [
+    "W",
+    "T",
+    "C"
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:wireless_extended_pattern_encoding_terminal"
+  },
+  "show_notification": true
+}

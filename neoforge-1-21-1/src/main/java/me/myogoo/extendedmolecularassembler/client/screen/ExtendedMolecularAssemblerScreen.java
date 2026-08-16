@@ -15,7 +15,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class ExtendedMolecularAssemblerScreen extends UpgradeableScreen<ExtendedMolecularAssemblerMenu> {
     private static final Blitter EX_BACKGROUND = Blitter.texture("guis/ex_extended_molecular_assembler.png", 512, 512)
-            .src(0, 0, 220, 290);
+            .src(0, 0, 221, 290);
 
     private final ProgressBar progressBar;
     private final EMAIconButton clearCurrentJobButton;
@@ -46,7 +46,6 @@ public class ExtendedMolecularAssemblerScreen extends UpgradeableScreen<Extended
     @Override
     protected void updateBeforeRender() {
         super.updateBeforeRender();
-        this.menu.showPage();
         var hasPages = this.menu.getPageCount() > 1;
         this.clearCurrentJobButton.setVisibility(this.menu.hasCurrentJob());
         this.previousJobButton.setVisibility(hasPages && this.menu.getPage() > 0);

@@ -8,7 +8,6 @@ categories:
 - machines
 item_ids:
 - extendedmolecularassembler:extended_molecular_assembler
-- extendedmolecularassembler:ex_extended_molecular_assembler
 ---
 
 # Extended Molecular Assemblers
@@ -23,11 +22,13 @@ It accepts <ItemLink id="extendedmolecularassembler:extended_crafting_pattern" /
 
 The normal Extended Molecular Assembler handles one extended crafting job at a time and is suitable for compact setups attached to AE2 pattern providers.
 
+<myotus:condition load="extendedae" silent="true">
 ## Ex Extended Molecular Assembler
 
 <BlockImage id="extendedmolecularassembler:ex_extended_molecular_assembler" scale="5" />
 
 The Ex Extended Molecular Assembler is the stronger ExtendedAE-gated variant. It provides 8 parallel lanes for high-throughput large recipe automation.
+</myotus:condition>
 
 ## Using with AE2 Autocrafting
 
@@ -41,4 +42,6 @@ For Matrix-based setups, prefer the dedicated EMA Matrix Pattern Core and Crafti
 
 <RecipeFor id="extendedmolecularassembler:extended_molecular_assembler" />
 
+<myotus:condition load="extendedae" silent="true">
 <RecipeFor id="extendedmolecularassembler:ex_extended_molecular_assembler" />
+</myotus:condition>

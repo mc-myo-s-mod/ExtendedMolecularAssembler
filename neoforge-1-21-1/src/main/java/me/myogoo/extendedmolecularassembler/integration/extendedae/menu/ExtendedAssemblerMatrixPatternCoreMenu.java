@@ -39,6 +39,9 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
     private final List<PatternSlotTracker> trackers = new ArrayList<>();
     private final Map<Long, PatternSlotTracker> trackerMap = new HashMap<>();
     private final Map<Long, List<ItemStack>> clientPatternStacks = new LinkedHashMap<>();
+    private List<PatternEntry> clientPatternEntries = List.of();
+    private long clientPatternRevision;
+    private long clientPatternEntriesRevision = Long.MIN_VALUE;
     private int runningThreadSyncDelay = 0;
 
     @GuiSync(8)
@@ -62,16 +65,24 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
     }
 
     public List<PatternEntry> getPatternEntries() {
-        var entries = new ArrayList<PatternEntry>();
-        this.clientPatternStacks.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(coreEntry -> {
-                    var stacks = coreEntry.getValue();
-                    for (int i = 0; i < stacks.size(); i++) {
-                        entries.add(new PatternEntry(coreEntry.getKey(), i, stacks.get(i)));
-                    }
-                });
-        return entries;
+        if (this.clientPatternEntriesRevision != this.clientPatternRevision) {
+            var entries = new ArrayList<PatternEntry>();
+            this.clientPatternStacks.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(coreEntry -> {
+                        var stacks = coreEntry.getValue();
+                        for (int i = 0; i < stacks.size(); i++) {
+                            entries.add(new PatternEntry(coreEntry.getKey(), i, stacks.get(i)));
+                        }
+                    });
+            this.clientPatternEntries = List.copyOf(entries);
+            this.clientPatternEntriesRevision = this.clientPatternRevision;
+        }
+        return this.clientPatternEntries;
+    }
+
+    public long getPatternRevision() {
+        return this.clientPatternRevision;
     }
 
     public void applyPatternCoreUpdate(long coreId, int slotCount, boolean full, Map<Integer, ItemStack> changes) {
@@ -86,6 +97,7 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
                 stacks.set(slot, entry.getValue().copy());
             }
         }
+        this.clientPatternRevision++;
     }
 
     private static List<ItemStack> emptyStackList(int size) {
@@ -323,6 +335,7 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
         private final InternalInventory server;
         private final InternalInventory client;
         private boolean initialized;
+        private long lastRevision = Long.MIN_VALUE;
 
         private PatternSlotTracker(ExtendedAssemblerMatrixPatternCoreBlockEntity host) {
             this.host = host;
@@ -331,6 +344,11 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
         }
 
         private EMAMatrixPatternCoreUpdatePacket createPacket() {
+            var revision = this.host.getPatternRevision();
+            if (this.initialized && this.lastRevision == revision) {
+                return null;
+            }
+
             var changes = new HashMap<Integer, ItemStack>();
             for (int i = 0; i < this.server.size(); i++) {
                 var serverStack = this.server.getStackInSlot(i);
@@ -341,11 +359,9 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
                     this.client.setItemDirect(i, serverStack.copy());
                 }
             }
-            if (this.initialized && changes.isEmpty()) {
-                return null;
-            }
             var full = !this.initialized;
             this.initialized = true;
+            this.lastRevision = revision;
             return new EMAMatrixPatternCoreUpdatePacket(this.host.getLocateID(), this.server.size(), full, changes);
         }
     }

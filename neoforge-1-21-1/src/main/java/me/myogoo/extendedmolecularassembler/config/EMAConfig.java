@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 public final class EMAConfig {
+    private static final double DEFAULT_CRAFTING_PROVIDER_IDLE_POWER_USAGE = 1.0;
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
     public static final ModConfigSpec COMMON;
 
@@ -20,6 +21,7 @@ public final class EMAConfig {
     private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS;
     private static final PowerSettings EXTENDED_QUANTUM_CRAFTER;
     private static final ModConfigSpec.BooleanValue TIERED_MODE;
+    private static final ModConfigSpec.BooleanValue STANDALONE_EXTENDEDAE_PLUS_CONTENT;
 
     static {
         BUILDER.comment("Per-block AE power settings").push("blocks");
@@ -32,7 +34,10 @@ public final class EMAConfig {
         var providerSettings = new EnumMap<TieredMECraftingProviderTier, PowerSettings>(
                 TieredMECraftingProviderTier.class);
         for (var tier : TieredMECraftingProviderTier.values()) {
-            providerSettings.put(tier, defineBlock(tier.blockId(), tier.displayName().getString()));
+            providerSettings.put(tier, defineBlock(
+                    tier.blockId(),
+                    tier.displayName().getString(),
+                    DEFAULT_CRAFTING_PROVIDER_IDLE_POWER_USAGE));
         }
         TIERED_ME_CRAFTING_PROVIDERS = Map.copyOf(providerSettings);
 
@@ -56,6 +61,13 @@ public final class EMAConfig {
                         "When enabled, extended table auto-crafting is accepted only if an online ME crafting provider for the exact encoded table exists in the same ME network.",
                         "Use the Extended Crafting providers for Extended Crafting tables, Re:Avaritia providers for Re:Avaritia Sculk/Nether/End tables, and the shared Xtreme provider for both Re:Avaritia Xtreme and AvaritiaNeo Xtreme recipes.")
                 .define("TieredMode", false);
+        STANDALONE_EXTENDEDAE_PLUS_CONTENT = BUILDER
+                .comment(
+                        "When enabled, EMA exposes standalone recipes, creative-tab entries, and Pattern Uploader support for its Plus-style Matrix blocks when ExtendedAE Plus is not installed.",
+                        "The registry entries always follow ExtendedAE so worlds remain stable when ExtendedAE Plus is added or removed.",
+                        "If ExtendedAE Plus is installed, these EMA features are always enabled. A full game restart is required after changing this setting.")
+                .gameRestart()
+                .define("StandaloneExtendedAEPlusContent", false);
         BUILDER.pop();
 
         COMMON = BUILDER.build();
@@ -65,13 +77,17 @@ public final class EMAConfig {
     }
 
     private static PowerSettings defineBlock(String blockId, String displayName) {
+        return defineBlock(blockId, displayName, 0.0);
+    }
+
+    private static PowerSettings defineBlock(String blockId, String displayName, double defaultIdlePowerUsage) {
         BUILDER.comment(displayName + " power settings").push(blockId);
         var craftingPowerMultiplier = BUILDER
                 .comment("Multiplier for AE power consumed while this block performs EMA-managed crafting. 1.0 keeps the default cost. Blocks without crafting work keep this setting for consistency.")
                 .defineInRange("craftingPowerMultiplier", 1.0, 0.0, Double.MAX_VALUE);
         var idlePowerUsage = BUILDER
-                .comment("Idle AE/t drain for this block's ME network node.")
-                .defineInRange("idlePowerUsage", 0.0, 0.0, Double.MAX_VALUE);
+                .comment("Passive AE/t drain for this block's ME network node. Set to 0.0 to disable it.")
+                .defineInRange("idlePowerUsage", defaultIdlePowerUsage, 0.0, Double.MAX_VALUE);
         BUILDER.pop();
         return new PowerSettings(craftingPowerMultiplier, idlePowerUsage);
     }
@@ -104,6 +120,10 @@ public final class EMAConfig {
 
     public static boolean tieredMode() {
         return TIERED_MODE.get();
+    }
+
+    public static boolean standaloneExtendedAEPlusContent() {
+        return STANDALONE_EXTENDEDAE_PLUS_CONTENT.get();
     }
 
     public static double extendedAssemblerMatrixPatternCoreCraftingPowerMultiplier() {

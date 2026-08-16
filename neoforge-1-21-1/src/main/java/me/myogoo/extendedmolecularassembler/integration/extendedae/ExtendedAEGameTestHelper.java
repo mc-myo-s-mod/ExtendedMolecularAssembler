@@ -2,6 +2,7 @@ package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
+import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.BlockPos;
@@ -13,6 +14,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.items.IItemHandler;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public final class ExtendedAEGameTestHelper {
@@ -105,6 +108,61 @@ public final class ExtendedAEGameTestHelper {
                 "ExtendedAE matrix crafting core used thread count after cancel");
     }
 
+    public static void assertClusterDispatchesExtendedJob(
+            GameTestHelper helper,
+            ExtendedTableCraftingPattern pattern) {
+        var patternCore = placeOptionalBlockEntity(
+                helper,
+                "extended_assembler_matrix_pattern_core",
+                new BlockPos(1, 1, 1),
+                ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
+        var craftingCore = placeOptionalBlockEntity(
+                helper,
+                "extended_assembler_matrix_crafting_core",
+                new BlockPos(2, 1, 1),
+                ExtendedAssemblerMatrixCraftingCoreBlockEntity.class);
+        var cluster = new ClusterAssemblerMatrix(patternCore.getBlockPos(), craftingCore.getBlockPos());
+        cluster.addTileEntity(patternCore);
+        cluster.addTileEntity(craftingCore);
+
+        helper.assertTrue(cluster.pushCraftingJob(pattern, countersForPattern(pattern)),
+                "ExtendedAE matrix cluster did not dispatch an EMA extended job");
+        assertEqual(helper, 1, craftingCore.extendedmolecularassembler$getExtendedUsedThreadCount(),
+                "ExtendedAE matrix cluster-dispatched used thread count");
+    }
+
+    public static void assertMatrixCraftingCoreDropsActiveExtendedJobInputs(
+            GameTestHelper helper,
+            ExtendedTableCraftingPattern pattern) {
+        var core = placeOptionalBlockEntity(
+                helper,
+                "extended_assembler_matrix_crafting_core",
+                new BlockPos(1, 1, 1),
+                ExtendedAssemblerMatrixCraftingCoreBlockEntity.class);
+        helper.assertTrue(core.extendedmolecularassembler$pushExtendedJob(pattern, countersForPattern(pattern)),
+                "ExtendedAE matrix crafting core did not accept an extended job for drop testing");
+
+        var expectedDrops = filledInputGrid(pattern).stream()
+                .filter(stack -> !stack.isEmpty())
+                .map(ItemStack::copy)
+                .toList();
+        var actualDrops = new ArrayList<ItemStack>();
+        core.addAdditionalDrops(helper.getLevel(), core.getBlockPos(), actualDrops);
+
+        assertEqual(helper, expectedDrops.size(), actualDrops.size(),
+                "ExtendedAE matrix crafting core active job drop count");
+        for (int i = 0; i < expectedDrops.size(); i++) {
+            assertStackMatches(helper, expectedDrops.get(i), actualDrops.get(i),
+                    "ExtendedAE matrix crafting core active job drop " + i);
+        }
+
+        var patternStack = pattern.getDefinition().toStack();
+        for (var drop : actualDrops) {
+            helper.assertFalse(ItemStack.matches(patternStack, drop),
+                    "ExtendedAE matrix crafting core dropped the encoded pattern snapshot");
+        }
+    }
+
     private static <T> T placeOptionalBlockEntity(
             GameTestHelper helper,
             String blockPath,
@@ -124,6 +182,16 @@ public final class ExtendedAEGameTestHelper {
             ExtendedAEAssemblerMatrixCrafterAccess core,
             ExtendedTableCraftingPattern pattern) {
         return core.extendedmolecularassembler$pushExtendedJob(pattern, countersForPattern(pattern));
+    }
+
+    private static List<ItemStack> filledInputGrid(ExtendedTableCraftingPattern pattern) {
+        var counters = countersForPattern(pattern);
+        var grid = new ArrayList<ItemStack>(ExtendedTableCraftingPattern.MACHINE_GRID_SIZE);
+        for (int i = 0; i < ExtendedTableCraftingPattern.MACHINE_GRID_SIZE; i++) {
+            grid.add(ItemStack.EMPTY);
+        }
+        pattern.fillCraftingGrid(counters, (slot, stack) -> grid.set(slot, stack.copy()));
+        return grid;
     }
 
     private static KeyCounter[] countersForPattern(ExtendedTableCraftingPattern pattern) {

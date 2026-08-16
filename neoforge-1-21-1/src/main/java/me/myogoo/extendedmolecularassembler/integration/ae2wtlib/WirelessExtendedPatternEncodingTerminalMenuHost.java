@@ -8,6 +8,7 @@ import de.mari_023.ae2wtlib.api.terminal.WTMenuHost;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingLogic;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeType;
 import me.myogoo.extendedmolecularassembler.menu.pattern.IExtendedPatternEncodingTerminalHost;
+import me.myogoo.myotus.api.annotation.mods.AE2WTLib;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.function.BiConsumer;
 
+@AE2WTLib
 public class WirelessExtendedPatternEncodingTerminalMenuHost extends WTMenuHost
         implements IExtendedPatternEncodingTerminalHost, IViewCellStorage {
     private static final String LOGIC_TAG = "extendedmolecularassembler:extendedPatternEncoding";

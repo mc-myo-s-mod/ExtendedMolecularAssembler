@@ -10,9 +10,9 @@ final class EMAOptionalContentData {
             block("ex_extended_molecular_assembler", "extendedae"),
             block("extended_assembler_matrix_pattern_core", "extendedae"),
             block("extended_assembler_matrix_crafting_core", "extendedae"),
-            block("extended_assembler_matrix_pattern_uploader", "extendedae", "extendedae_plus"),
-            block("extended_assembler_matrix_pattern_core_plus", "extendedae", "extendedae_plus"),
-            block("extended_assembler_matrix_crafting_core_plus", "extendedae", "extendedae_plus"),
+            block("extended_assembler_matrix_pattern_uploader", "extendedae"),
+            block("extended_assembler_matrix_pattern_core_plus", "extendedae"),
+            block("extended_assembler_matrix_crafting_core_plus", "extendedae"),
             block("extended_quantum_crafter", "advanced_ae"));
 
     private EMAOptionalContentData() {

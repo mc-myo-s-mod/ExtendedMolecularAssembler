@@ -5,30 +5,41 @@
       "active_mod": "extendedae"
     }
   ],
-  "type": "minecraft:crafting_shaped",
-  "category": "redstone",
-  "key": {
-    "C": {
-      "item": "extendedae:concurrent_processor"
+  "type": "extendedae:crystal_assembler",
+  "input_items": [
+    {
+      "amount": 4,
+      "ingredient": {
+        "item": "extendedmolecularassembler:extended_molecular_assembler"
+      }
     },
-    "M": {
-      "item": "extendedmolecularassembler:extended_molecular_assembler"
+    {
+      "amount": 4,
+      "ingredient": {
+        "item": "extendedae:concurrent_processor"
+      }
     },
-    "S": {
-      "item": "ae2:speed_card"
+    {
+      "amount": 4,
+      "ingredient": {
+        "item": "myotus:compat_processor"
+      }
     },
-    "X": {
-      "item": "extendedae:ex_molecular_assembler"
+    {
+      "amount": 4,
+      "ingredient": {
+        "tag": "c:dusts/ender_pearl"
+      }
+    },
+    {
+      "amount": 4,
+      "ingredient": {
+        "item": "ae2:speed_card"
+      }
     }
-  },
-  "pattern": [
-    "CXC",
-    "SMS",
-    "CXC"
   ],
-  "result": {
+  "output": {
     "count": 1,
     "id": "extendedmolecularassembler:ex_extended_molecular_assembler"
-  },
-  "show_notification": true
+  }
 }

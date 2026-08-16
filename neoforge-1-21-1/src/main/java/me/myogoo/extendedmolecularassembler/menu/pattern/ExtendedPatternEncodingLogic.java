@@ -27,6 +27,7 @@ public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
     private boolean substitute;
     private boolean substituteFluids = true;
     private boolean loading;
+    private long encodedInputRevision;
 
     public ExtendedPatternEncodingLogic(IExtendedPatternEncodingTerminalHost host) {
         this.host = host;
@@ -53,6 +54,10 @@ public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
 
     public ConfigInventory getEncodedInputInv() {
         return encodedInputInv;
+    }
+
+    public long getEncodedInputRevision() {
+        return encodedInputRevision;
     }
 
     public InternalInventory getBlankPatternInv() {
@@ -116,6 +121,7 @@ public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
 
     private void onEncodedInputChanged() {
         fixCraftingInputs();
+        encodedInputRevision++;
         saveChanges();
     }
 

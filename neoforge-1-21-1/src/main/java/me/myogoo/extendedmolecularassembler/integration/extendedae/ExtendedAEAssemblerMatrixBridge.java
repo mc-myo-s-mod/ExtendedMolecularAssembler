@@ -4,6 +4,7 @@ import appeng.api.config.Actionable;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.implementations.blockentities.ICraftingMachine;
 import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.KeyCounter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixBase;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
@@ -84,51 +85,16 @@ public final class ExtendedAEAssemblerMatrixBridge {
     }
 
     public static boolean hasExtendedPatternCore(ClusterAssemblerMatrix cluster) {
-        if (cluster == null || cluster.isDestroyed()) {
-            return false;
-        }
-        var iterator = cluster.getBlockEntities();
-        while (iterator.hasNext()) {
-            if (iterator.next() instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity) {
-                return true;
-            }
-        }
-        return false;
+        return scanExtendedCraftingState(cluster).hasPatternCore();
     }
 
     public static int getAvailableExtendedCraftingSlots(ClusterAssemblerMatrix cluster) {
-        if (cluster == null || cluster.isDestroyed()) {
-            return 0;
-        }
-        return Math.max(0, getExtendedCraftingSlotCapacity(cluster) - getUsedExtendedCraftingSlots(cluster));
+        var state = scanExtendedCraftingState(cluster);
+        return Math.max(0, state.freeThreads() - getReservedJobCount(cluster));
     }
 
     public static int getUsedExtendedCraftingSlots(ClusterAssemblerMatrix cluster) {
-        if (cluster == null || cluster.isDestroyed()) {
-            return 0;
-        }
-        var used = 0;
-        var iterator = cluster.getBlockEntities();
-        while (iterator.hasNext()) {
-            if (iterator.next() instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity core) {
-                used += core.extendedmolecularassembler$getExtendedUsedThreadCount();
-            }
-        }
-        return used;
-    }
-
-    private static int getExtendedCraftingSlotCapacity(ClusterAssemblerMatrix cluster) {
-        if (cluster == null || cluster.isDestroyed()) {
-            return 0;
-        }
-        var capacity = 0;
-        var iterator = cluster.getBlockEntities();
-        while (iterator.hasNext()) {
-            if (iterator.next() instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity core) {
-                capacity += core.extendedmolecularassembler$getExtendedThreadCapacity();
-            }
-        }
-        return capacity;
+        return scanExtendedCraftingState(cluster).usedThreads();
     }
 
     public static void cancelExtendedAssemblerJobs(ClusterAssemblerMatrix cluster) {
@@ -146,13 +112,50 @@ public final class ExtendedAEAssemblerMatrixBridge {
 
     @Nullable
     public static ReservedMatrixJob reserveCraftingSlot(ClusterAssemblerMatrix cluster) {
-        if (getAvailableExtendedCraftingSlots(cluster) <= 0) {
+        var craftingState = scanExtendedCraftingState(cluster);
+        if (craftingState.freeThreads() <= getReservedJobCount(cluster)) {
             return null;
         }
 
-        var state = JOB_STATES.computeIfAbsent(cluster, ignored -> new ClusterJobState());
-        state.reserve();
-        return new ReservedMatrixJob(cluster, state, cluster.getSpeedCore());
+        var jobState = JOB_STATES.computeIfAbsent(cluster, ignored -> new ClusterJobState());
+        jobState.reserve();
+        return new ReservedMatrixJob(cluster, jobState, cluster.getSpeedCore());
+    }
+
+    public static boolean pushExtendedCraftingJob(ClusterAssemblerMatrix cluster, IPatternDetails patternDetails,
+            KeyCounter[] inputHolder) {
+        if (!(patternDetails instanceof ExtendedTableCraftingPattern)
+                || cluster == null
+                || cluster.isDestroyed()) {
+            return false;
+        }
+
+        ExtendedAssemblerMatrixCraftingCoreBlockEntity availableCore = null;
+        var hasPatternCore = false;
+        var freeThreads = 0;
+        var iterator = cluster.getBlockEntities();
+        while (iterator.hasNext()) {
+            var matrixBlock = iterator.next();
+            if (matrixBlock instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity) {
+                hasPatternCore = true;
+                continue;
+            }
+            if (matrixBlock instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity core) {
+                var coreFreeThreads = core.extendedmolecularassembler$getExtendedFreeThreadCount();
+                if (coreFreeThreads <= 0) {
+                    continue;
+                }
+                freeThreads += coreFreeThreads;
+                if (availableCore == null) {
+                    availableCore = core;
+                }
+            }
+        }
+
+        if (!hasPatternCore || availableCore == null || freeThreads <= getReservedJobCount(cluster)) {
+            return false;
+        }
+        return availableCore.extendedmolecularassembler$pushExtendedJob(patternDetails, inputHolder);
     }
 
     public static JobScope activateJob(ReservedMatrixJob job) {
@@ -273,6 +276,40 @@ public final class ExtendedAEAssemblerMatrixBridge {
                 this.reservedJobs--;
             }
             return this.reservedJobs;
+        }
+    }
+
+    private static int getReservedJobCount(ClusterAssemblerMatrix cluster) {
+        var state = JOB_STATES.get(cluster);
+        return state == null ? 0 : state.reservedJobs;
+    }
+
+    private static ExtendedCraftingState scanExtendedCraftingState(ClusterAssemblerMatrix cluster) {
+        if (cluster == null || cluster.isDestroyed()) {
+            return ExtendedCraftingState.EMPTY;
+        }
+
+        var hasPatternCore = false;
+        var usedThreads = 0;
+        var capacity = 0;
+        var iterator = cluster.getBlockEntities();
+        while (iterator.hasNext()) {
+            var matrixBlock = iterator.next();
+            if (matrixBlock instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity) {
+                hasPatternCore = true;
+            } else if (matrixBlock instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity core) {
+                usedThreads += core.extendedmolecularassembler$getExtendedUsedThreadCount();
+                capacity += core.extendedmolecularassembler$getExtendedThreadCapacity();
+            }
+        }
+        return new ExtendedCraftingState(hasPatternCore, usedThreads, capacity);
+    }
+
+    private record ExtendedCraftingState(boolean hasPatternCore, int usedThreads, int capacity) {
+        private static final ExtendedCraftingState EMPTY = new ExtendedCraftingState(false, 0, 0);
+
+        private int freeThreads() {
+            return Math.max(0, this.capacity - this.usedThreads);
         }
     }
 }

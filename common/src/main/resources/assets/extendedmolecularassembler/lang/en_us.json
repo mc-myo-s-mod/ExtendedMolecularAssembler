@@ -55,7 +55,7 @@
   "message.extendedmolecularassembler.matrix_upload.no_pattern": "No encoded extended crafting pattern to upload.",
   "message.extendedmolecularassembler.matrix_upload.invalid_pattern": "Only EMA extended crafting patterns can be uploaded to the EMA Matrix.",
   "message.extendedmolecularassembler.matrix_upload.no_extendedae": "ExtendedAE is required for EMA Matrix upload.",
-  "message.extendedmolecularassembler.matrix_upload.no_extendedae_plus": "ExtendedAE-Plus is required for EMA Matrix upload.",
+  "message.extendedmolecularassembler.matrix_upload.no_extendedae_plus": "EMA Matrix upload requires ExtendedAE Plus or general.StandaloneExtendedAEPlusContent enabled in the EMA common config.",
   "message.extendedmolecularassembler.matrix_upload.no_network": "No ME network is available for matrix upload.",
   "message.extendedmolecularassembler.matrix_upload.no_matrix": "No active EMA Matrix with a Pattern Uploader Core was found.",
   "message.extendedmolecularassembler.matrix_upload.duplicate": "This recipe already exists in the EMA Matrix. The encoded pattern was kept.",

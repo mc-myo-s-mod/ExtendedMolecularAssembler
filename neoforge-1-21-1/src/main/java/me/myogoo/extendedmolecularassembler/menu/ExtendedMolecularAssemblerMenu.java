@@ -9,6 +9,7 @@ import appeng.menu.implementations.MenuTypeBuilder;
 import appeng.menu.implementations.UpgradeableMenu;
 import appeng.menu.interfaces.IProgressProvider;
 import appeng.menu.slot.AppEngSlot;
+import it.unimi.dsi.fastutil.shorts.ShortSet;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
 import me.myogoo.extendedmolecularassembler.menu.slot.ExtendedMolecularAssemblerEncodedPatternSlot;
@@ -35,16 +36,18 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
     private static final String ACTION_SET_PAGE = "setPage";
     private static final String ACTION_CANCEL_CURRENT_JOB = "cancelCurrentJob";
     private static final int MAX_CRAFT_PROGRESS = 100;
+    private static final short PAGE_SYNC_ID = 7;
 
     @GuiSync(4)
     public int craftProgress = 0;
-    @GuiSync(7)
+    @GuiSync(PAGE_SYNC_ID)
     public int page = 0;
     @GuiSync(8)
     public LanePatternSync lanePatterns = LanePatternSync.empty();
 
     private final ExtendedMolecularAssemblerBlockEntity assembler;
     private Slot encodedPatternSlot;
+    private int shownPage = -1;
     private LanePatternSync decodedPatternSource = LanePatternSync.empty();
     private final boolean[] decodedPatternLoaded = new boolean[ExtendedMolecularAssemblerBlockEntity.PARALLEL_LANE_COUNT];
     private final ExtendedTableCraftingPattern[] decodedPatterns =
@@ -101,10 +104,19 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
 
     @Override
     public void broadcastChanges() {
-        this.setPage(this.page);
-        this.lanePatterns = LanePatternSync.from(this.assembler);
+        if (!this.lanePatterns.matchesCurrentPatterns(this.assembler)) {
+            this.lanePatterns = LanePatternSync.from(this.assembler);
+        }
         this.craftProgress = this.assembler.getCraftingProgress(this.page);
         this.standardDetectAndSendChanges();
+    }
+
+    @Override
+    public void onServerDataSync(ShortSet updatedFields) {
+        super.onServerDataSync(updatedFields);
+        if (updatedFields.contains(PAGE_SYNC_ID)) {
+            this.showPage();
+        }
     }
 
     @Override
@@ -137,6 +149,11 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
     }
 
     public void showPage() {
+        if (this.shownPage == this.page) {
+            return;
+        }
+        this.shownPage = this.page;
+
         for (Slot slot : this.slots) {
             if (slot instanceof ExtendedMolecularAssemblerPatternSlot patternSlot) {
                 var active = patternSlot.getLaneIndex() == this.page;
@@ -198,7 +215,11 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
 
     private void setPage(Integer page) {
         var maxPage = Math.max(0, this.getPageCount() - 1);
-        this.page = Mth.clamp(page, 0, maxPage);
+        var newPage = Mth.clamp(page, 0, maxPage);
+        if (this.page == newPage) {
+            return;
+        }
+        this.page = newPage;
         this.showPage();
     }
 
@@ -231,6 +252,29 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
                 patterns.add(assembler.getCurrentPatternStack(lane));
             }
             return new LanePatternSync(patterns);
+        }
+
+        public boolean matchesCurrentPatterns(ExtendedMolecularAssemblerBlockEntity assembler) {
+            if (this.patterns.size() != assembler.getLaneCount()) {
+                return false;
+            }
+
+            for (int lane = 0; lane < assembler.getLaneCount(); lane++) {
+                var pattern = assembler.getCurrentPattern(lane);
+                var syncedStack = this.patterns.get(lane);
+                if (pattern != null) {
+                    if (syncedStack.getCount() != 1
+                            || !ItemStack.isSameItemSameComponents(
+                                    syncedStack, pattern.getDefinition().getReadOnlyStack())) {
+                        return false;
+                    }
+                } else if (!ItemStack.matches(
+                        syncedStack,
+                        lane == 0 ? assembler.getPatternInventory().getStackInSlot(0) : ItemStack.EMPTY)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public ItemStack patternAt(int laneIndex) {

@@ -2,17 +2,14 @@
 navigation:
   parent: index.md
   title: EMA Matrix Cores
-  icon: extendedmolecularassembler:extended_assembler_matrix_pattern_core
   position: 30
 categories:
 - machines
-item_ids:
-- extendedmolecularassembler:extended_assembler_matrix_pattern_core
-- extendedmolecularassembler:extended_assembler_matrix_crafting_core
 ---
 
 # EMA Matrix Cores
 
+<myotus:condition load="extendedae">
 <BlockImage id="extendedmolecularassembler:extended_assembler_matrix_pattern_core" scale="5" />
 
 EMA Matrix blocks integrate with an ExtendedAE Assembler Matrix, but they keep extended pattern storage and extended job execution separate from the upstream Matrix pattern slots.
@@ -62,3 +59,4 @@ EMA Matrix jobs share the ExtendedAE Matrix speed core count. Pattern storage an
 <RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_pattern_core" />
 
 <RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_crafting_core" />
+</myotus:condition>

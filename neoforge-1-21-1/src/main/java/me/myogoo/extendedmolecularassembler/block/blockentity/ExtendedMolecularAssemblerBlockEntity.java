@@ -100,6 +100,9 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     private boolean isPowered = false;
     private boolean isAwake = false;
     @Nullable
+    private AEItemKey queuedAnimationItem;
+    private byte queuedAnimationRate;
+    @Nullable
     private Component lastTierRejectReason;
     @OnlyIn(Dist.CLIENT)
     private AssemblerAnimationStatus animationStatus;
@@ -468,6 +471,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
         var rate = TickRateModulation.SLEEP;
         var speedProfile = getSpeedProfile();
+        this.queuedAnimationItem = null;
         for (int i = 0; i < this.laneCount; i++) {
             var lane = this.lanes[i];
             if (lane.isAwake) {
@@ -477,6 +481,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                 }
             }
         }
+        this.flushCraftingAnimation(node);
         return rate;
     }
 
@@ -762,12 +767,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                     }
 
                     this.ejectHeldItems();
-                    var item = AEItemKey.of(output);
-                    if (item != null) {
-                        PacketDistributor.sendToPlayersNear(node.getLevel(), null, worldPosition.getX(),
-                                worldPosition.getY(), worldPosition.getZ(), 32,
-                                new EMAAssemblerAnimationPacket(worldPosition, (byte) speed, item));
-                    }
+                    ExtendedMolecularAssemblerBlockEntity.this.queueCraftingAnimation(speed, output);
 
                     ExtendedMolecularAssemblerBlockEntity.this.saveChanges();
                     this.updateSleepiness();
@@ -1016,6 +1016,26 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     }
 
     private record SpeedProfile(int speed, double acceleratorTax) {
+    }
+
+    private void queueCraftingAnimation(int speed, ItemStack output) {
+        var item = AEItemKey.of(output);
+        if (item == null) {
+            return;
+        }
+        this.queuedAnimationRate = (byte) speed;
+        this.queuedAnimationItem = item;
+    }
+
+    private void flushCraftingAnimation(IGridNode node) {
+        var item = this.queuedAnimationItem;
+        if (item == null) {
+            return;
+        }
+        this.queuedAnimationItem = null;
+        var level = node.getLevel();
+        PacketDistributor.sendToPlayersNear(level, null, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(),
+                32, new EMAAssemblerAnimationPacket(worldPosition, this.queuedAnimationRate, item));
     }
 
     private class CraftingGridFilter implements IAEItemFilter {

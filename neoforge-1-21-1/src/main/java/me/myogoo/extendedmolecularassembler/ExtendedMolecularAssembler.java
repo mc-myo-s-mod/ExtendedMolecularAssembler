@@ -8,6 +8,7 @@ import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.init.EMABlockEntities;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMACapabilities;
+import me.myogoo.extendedmolecularassembler.init.EMAConditions;
 import me.myogoo.extendedmolecularassembler.init.EMACreativeModeTabs;
 import me.myogoo.extendedmolecularassembler.init.EMADataComponents;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
@@ -15,7 +16,6 @@ import me.myogoo.extendedmolecularassembler.init.EMAMenus;
 import me.myogoo.extendedmolecularassembler.init.EMANetwork;
 import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
 import me.myogoo.extendedmolecularassembler.init.EMAParts;
-import me.myogoo.extendedmolecularassembler.integration.ae2wtlib.EMAAE2WTLibIntegration;
 import me.myogoo.myotus.api.MyotusAPI;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -39,14 +39,14 @@ public class ExtendedMolecularAssembler {
         EMADataComponents.REGISTER.register(modEventBus);
         EMABlocks.BLOCKS.register(modEventBus);
         EMAItems.ITEMS.register(modEventBus);
-        EMAAE2WTLibIntegration.registerTerminal();
+        EMAConditions.REGISTER.register(modEventBus);
         EMAParts.REGISTER.register(modEventBus);
         EMABlockEntities.BLOCK_ENTITIES.register(modEventBus);
         EMAMenus.REGISTER.register(modEventBus);
         EMACreativeModeTabs.CREATIVE_MODE_TABS.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
-        modEventBus.addListener(EMAAE2WTLibIntegration::onCommonSetup);
+        modEventBus.addListener(EMAOptionalIntegrations::onCommonSetup);
         modEventBus.addListener(EMACapabilities::register);
         modEventBus.addListener(EMANetwork::init);
 

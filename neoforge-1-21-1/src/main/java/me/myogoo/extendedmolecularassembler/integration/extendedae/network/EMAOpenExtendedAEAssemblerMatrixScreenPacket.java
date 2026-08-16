@@ -1,6 +1,7 @@
 package me.myogoo.extendedmolecularassembler.integration.extendedae.network;
 
 import appeng.menu.MenuOpener;
+import appeng.menu.AEBaseMenu;
 import appeng.menu.locator.MenuLocators;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixBase;
 import com.glodblock.github.extendedae.container.ContainerAssemblerMatrix;
@@ -17,6 +18,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record EMAOpenExtendedAEAssemblerMatrixScreenPacket(BlockPos pos, Target target)
         implements CustomPacketPayload {
+    private static final double MAX_INTERACTION_DISTANCE_SQR = 64.0;
+
     public static final Type<EMAOpenExtendedAEAssemblerMatrixScreenPacket> TYPE =
             new Type<>(ExtendedMolecularAssembler.makeId("open_extendedae_assembler_matrix_screen"));
     public static final StreamCodec<RegistryFriendlyByteBuf, EMAOpenExtendedAEAssemblerMatrixScreenPacket>
@@ -47,28 +50,90 @@ public record EMAOpenExtendedAEAssemblerMatrixScreenPacket(BlockPos pos, Target 
     }
 
     private void handleOnServer(ServerPlayer player) {
-        var level = player.serverLevel();
-        if (!level.isLoaded(this.pos)) {
+        switch (this.target) {
+            case PATTERN_CORE -> this.openPatternCoreFromMatrix(player);
+            case MATRIX -> this.openMatrixFromPatternCore(player);
+        }
+    }
+
+    private void openPatternCoreFromMatrix(ServerPlayer player) {
+        if (!(player.containerMenu instanceof ContainerAssemblerMatrix menu) || !isValidMenu(menu, player)) {
             return;
         }
 
-        BlockEntity blockEntity = level.getBlockEntity(this.pos);
-        if (!(blockEntity instanceof TileAssemblerMatrixBase matrixBlock)
-                || !matrixBlock.isActive()
-                || !matrixBlock.isFormed()) {
-            return;
-        }
-
-        if (this.target == Target.MATRIX) {
-            MenuOpener.open(ContainerAssemblerMatrix.TYPE, player, MenuLocators.forBlockEntity(matrixBlock));
+        var matrixBlock = menu.getHost();
+        if (!this.pos.equals(matrixBlock.getBlockPos()) || !isValidInteractionHost(player, matrixBlock)) {
             return;
         }
 
         var patternCore = findPatternCore(matrixBlock);
-        if (patternCore != null) {
-            MenuOpener.open(ExtendedAssemblerMatrixPatternCoreMenu.TYPE, player,
-                    MenuLocators.forBlockEntity(patternCore));
+        if (patternCore == null || !isLiveMatrixBlock(player, patternCore)
+                || !isSameActiveCluster(matrixBlock, patternCore)) {
+            return;
         }
+
+        MenuOpener.open(ExtendedAssemblerMatrixPatternCoreMenu.TYPE, player,
+                MenuLocators.forBlockEntity(patternCore));
+    }
+
+    private void openMatrixFromPatternCore(ServerPlayer player) {
+        if (!(player.containerMenu instanceof ExtendedAssemblerMatrixPatternCoreMenu menu)
+                || !isValidMenu(menu, player)) {
+            return;
+        }
+
+        var patternCore = menu.getHost();
+        if (!isLiveMatrixBlock(player, patternCore)) {
+            return;
+        }
+
+        var matrixBlock = getLoadedMatrixBlock(player, this.pos);
+        if (matrixBlock == null || !isValidInteractionHost(player, matrixBlock)
+                || !isSameActiveCluster(patternCore, matrixBlock)) {
+            return;
+        }
+
+        MenuOpener.open(ContainerAssemblerMatrix.TYPE, player, MenuLocators.forBlockEntity(matrixBlock));
+    }
+
+    private static boolean isValidMenu(AEBaseMenu menu, ServerPlayer player) {
+        return menu.isValidMenu() && menu.stillValid(player);
+    }
+
+    private static TileAssemblerMatrixBase getLoadedMatrixBlock(ServerPlayer player, BlockPos pos) {
+        var level = player.serverLevel();
+        if (!level.isLoaded(pos)) {
+            return null;
+        }
+
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof TileAssemblerMatrixBase matrixBlock) {
+            return matrixBlock;
+        }
+        return null;
+    }
+
+    private static boolean isValidInteractionHost(ServerPlayer player, TileAssemblerMatrixBase matrixBlock) {
+        return isLiveMatrixBlock(player, matrixBlock)
+                && isWithinInteractionDistance(player, matrixBlock.getBlockPos());
+    }
+
+    private static boolean isLiveMatrixBlock(ServerPlayer player, TileAssemblerMatrixBase matrixBlock) {
+        return matrixBlock.getLevel() == player.serverLevel()
+                && !matrixBlock.isRemoved()
+                && matrixBlock.getLevel().getBlockEntity(matrixBlock.getBlockPos()) == matrixBlock
+                && matrixBlock.isActive()
+                && matrixBlock.isFormed();
+    }
+
+    private static boolean isWithinInteractionDistance(ServerPlayer player, BlockPos pos) {
+        return player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5)
+                <= MAX_INTERACTION_DISTANCE_SQR;
+    }
+
+    private static boolean isSameActiveCluster(TileAssemblerMatrixBase source, TileAssemblerMatrixBase target) {
+        var cluster = source.getCluster();
+        return cluster != null && !cluster.isDestroyed() && target.getCluster() == cluster;
     }
 
     private static ExtendedAssemblerMatrixPatternCoreBlockEntity findPatternCore(TileAssemblerMatrixBase matrixBlock) {

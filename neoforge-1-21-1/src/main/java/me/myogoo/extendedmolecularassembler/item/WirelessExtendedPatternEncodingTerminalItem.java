@@ -5,10 +5,12 @@ import appeng.helpers.WirelessTerminalMenuHost;
 import de.mari_023.ae2wtlib.api.terminal.ItemWT;
 import me.myogoo.extendedmolecularassembler.integration.ae2wtlib.WirelessExtendedPatternEncodingTerminalMenuHost;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
+import me.myogoo.myotus.api.annotation.mods.AE2WTLib;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.phys.BlockHitResult;
 
+@AE2WTLib
 public class WirelessExtendedPatternEncodingTerminalItem extends ItemWT {
     @Override
     public MenuType<?> getMenuType(ItemMenuHostLocator locator, Player player) {

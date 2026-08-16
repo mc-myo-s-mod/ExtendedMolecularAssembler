@@ -18,16 +18,28 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.List;
 
 public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemblerMatrixFunction
         implements IGridTickable, ExtendedAEAssemblerMatrixCrafterAccess {
     public static final int DEFAULT_THREAD_COUNT = 8;
     public static final int PLUS_THREAD_COUNT = 32;
     private static final int OUTPUT_SLOT = ExtendedTableCraftingPattern.MACHINE_GRID_SIZE;
+    private static final SpeedProfile[] SPEED_PROFILES = {
+            new SpeedProfile(20, 1.0),
+            new SpeedProfile(26, 1.3),
+            new SpeedProfile(34, 1.7),
+            new SpeedProfile(40, 2.0),
+            new SpeedProfile(50, 2.5),
+            new SpeedProfile(100, 5.0)
+    };
 
     private final ExtendedMatrixThread[] extendedThreads;
+    private int usedThreadCount = 0;
 
     public ExtendedAssemblerMatrixCraftingCoreBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         this(type, pos, blockState, DEFAULT_THREAD_COUNT);
@@ -55,12 +67,12 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         if (!(patternDetails instanceof ExtendedTableCraftingPattern pattern)) {
             return false;
         }
+        if (this.usedThreadCount >= this.extendedThreads.length) {
+            return false;
+        }
         for (var thread : this.extendedThreads) {
             if (thread.acceptJob(pattern, inputHolder)) {
                 this.wakeCore();
-                if (this.cluster != null) {
-                    this.cluster.updateStatus(false);
-                }
                 return true;
             }
         }
@@ -69,18 +81,16 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
 
     @Override
     public int extendedmolecularassembler$getExtendedUsedThreadCount() {
-        var used = 0;
-        for (var thread : this.extendedThreads) {
-            if (thread.isUsed()) {
-                used++;
-            }
-        }
-        return used;
+        return this.usedThreadCount;
     }
 
     @Override
     public int extendedmolecularassembler$getExtendedThreadCapacity() {
         return this.extendedThreads.length;
+    }
+
+    public int extendedmolecularassembler$getExtendedFreeThreadCount() {
+        return this.extendedThreads.length - this.usedThreadCount;
     }
 
     @Override
@@ -92,9 +102,6 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         if (changed) {
             this.saveChanges();
             this.wakeCore();
-        }
-        if (this.cluster != null) {
-            this.cluster.updateStatus(false);
         }
     }
 
@@ -120,9 +127,6 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         }
         if (changed) {
             this.saveChanges();
-            if (this.cluster != null) {
-                this.cluster.updateStatus(false);
-            }
         }
         return active ? TickRateModulation.URGENT : TickRateModulation.SLEEP;
     }
@@ -145,6 +149,14 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             this.extendedThreads[i].load(data.getCompound("ema_extended_thread_" + i), registries);
         }
         this.wakeCore();
+    }
+
+    @Override
+    public void addAdditionalDrops(Level level, BlockPos pos, List<ItemStack> drops) {
+        super.addAdditionalDrops(level, pos, drops);
+        for (var thread : this.extendedThreads) {
+            thread.addAdditionalDrops(drops);
+        }
     }
 
     @Override
@@ -180,14 +192,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
     }
 
     private SpeedProfile speedProfile(int speedCore) {
-        return switch (Math.max(0, Math.min(speedCore, 5))) {
-            case 1 -> new SpeedProfile(26, 1.3);
-            case 2 -> new SpeedProfile(34, 1.7);
-            case 3 -> new SpeedProfile(40, 2.0);
-            case 4 -> new SpeedProfile(50, 2.5);
-            case 5 -> new SpeedProfile(100, 5.0);
-            default -> new SpeedProfile(20, 1.0);
-        };
+        return SPEED_PROFILES[Math.max(0, Math.min(speedCore, SPEED_PROFILES.length - 1))];
     }
 
     private final class ExtendedMatrixThread {
@@ -197,6 +202,8 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         private ItemStack patternStack = ItemStack.EMPTY;
         private double progress = 0;
         private int outputRetryCooldown = 0;
+        private int occupiedGridSlots = 0;
+        private boolean used = false;
 
         private ExtendedMatrixThread(int index) {
             this.index = index;
@@ -209,6 +216,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             }
             this.pattern = pattern;
             this.patternStack = pattern.getDefinition().toStack();
+            this.updateUsedState();
             try {
                 pattern.fillCraftingGrid(table, this::setGridItem);
                 for (var list : table) {
@@ -276,9 +284,10 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             this.patternStack = ItemStack.EMPTY;
             this.clearGrid();
             for (int i = 0; i < Math.min(remainders.size(), ExtendedTableCraftingPattern.MACHINE_GRID_SIZE); i++) {
-                this.grid[i] = remainders.get(i).copy();
+                this.setGridItem(i, remainders.get(i));
             }
-            this.grid[OUTPUT_SLOT] = output.copy();
+            this.setGridItem(OUTPUT_SLOT, output);
+            this.updateUsedState();
             this.pushOutputToNetwork();
             this.ejectHeldItems();
             if (this.isGridEmpty()) {
@@ -293,7 +302,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             }
             var remaining = ExtendedAEAssemblerMatrixBridge.insertIntoMatrixNetwork(
                     ExtendedAssemblerMatrixCraftingCoreBlockEntity.this.cluster, this.grid[OUTPUT_SLOT].copy());
-            this.grid[OUTPUT_SLOT] = remaining;
+            this.setGridItem(OUTPUT_SLOT, remaining);
             if (!remaining.isEmpty()) {
                 this.outputRetryCooldown = 100;
             }
@@ -306,8 +315,8 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             for (int i = 0; i < ExtendedTableCraftingPattern.MACHINE_GRID_SIZE; i++) {
                 var stack = this.grid[i];
                 if (!stack.isEmpty()) {
-                    this.grid[OUTPUT_SLOT] = stack;
-                    this.grid[i] = ItemStack.EMPTY;
+                    this.setGridItem(OUTPUT_SLOT, stack);
+                    this.setGridItem(i, ItemStack.EMPTY);
                     return true;
                 }
             }
@@ -320,8 +329,8 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             }
             for (int i = 0; i < ExtendedTableCraftingPattern.MACHINE_GRID_SIZE; i++) {
                 if (!this.grid[i].isEmpty()) {
-                    this.grid[OUTPUT_SLOT] = this.grid[i];
-                    this.grid[i] = ItemStack.EMPTY;
+                    this.setGridItem(OUTPUT_SLOT, this.grid[i]);
+                    this.setGridItem(i, ItemStack.EMPTY);
                     break;
                 }
             }
@@ -331,16 +340,11 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         }
 
         private boolean isUsed() {
-            return this.pattern != null || !this.isGridEmpty();
+            return this.used;
         }
 
         private boolean isGridEmpty() {
-            for (var stack : this.grid) {
-                if (!stack.isEmpty()) {
-                    return false;
-                }
-            }
-            return true;
+            return this.occupiedGridSlots == 0;
         }
 
         private ItemStack getGridItem(int slot) {
@@ -352,8 +356,21 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
 
         private void setGridItem(int slot, ItemStack stack) {
             if (slot >= 0 && slot < this.grid.length) {
-                this.grid[slot] = stack.copy();
+                this.setGridItemDirect(slot, stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
             }
+        }
+
+        private void setGridItemDirect(int slot, ItemStack stack) {
+            var oldEmpty = this.grid[slot].isEmpty();
+            var newStack = stack.isEmpty() ? ItemStack.EMPTY : stack;
+            var newEmpty = newStack.isEmpty();
+            this.grid[slot] = newStack;
+            if (oldEmpty && !newEmpty) {
+                this.occupiedGridSlots++;
+            } else if (!oldEmpty && newEmpty) {
+                this.occupiedGridSlots--;
+            }
+            this.updateUsedState();
         }
 
         private boolean stopProcessing() {
@@ -362,6 +379,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             this.patternStack = ItemStack.EMPTY;
             this.progress = 0;
             this.outputRetryCooldown = 0;
+            this.updateUsedState();
             this.returnHeldItemsToNetwork();
             this.dropHeldItems();
             return wasUsed;
@@ -373,8 +391,8 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
                 if (stack.isEmpty()) {
                     continue;
                 }
-                this.grid[i] = ExtendedAEAssemblerMatrixBridge.insertIntoMatrixNetwork(
-                        ExtendedAssemblerMatrixCraftingCoreBlockEntity.this.cluster, stack.copy());
+                this.setGridItem(i, ExtendedAEAssemblerMatrixBridge.insertIntoMatrixNetwork(
+                        ExtendedAssemblerMatrixCraftingCoreBlockEntity.this.cluster, stack.copy()));
             }
         }
 
@@ -390,7 +408,15 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
                     Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                             stack.copy());
                 }
-                this.grid[i] = ItemStack.EMPTY;
+                this.setGridItem(i, ItemStack.EMPTY);
+            }
+        }
+
+        private void addAdditionalDrops(List<ItemStack> drops) {
+            for (var stack : this.grid) {
+                if (!stack.isEmpty()) {
+                    drops.add(stack.copy());
+                }
             }
         }
 
@@ -399,6 +425,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             this.patternStack = ItemStack.EMPTY;
             this.progress = 0;
             this.outputRetryCooldown = 0;
+            this.updateUsedState();
             this.clearGrid();
             ExtendedAssemblerMatrixCraftingCoreBlockEntity.this.saveChanges();
         }
@@ -407,6 +434,17 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             for (int i = 0; i < this.grid.length; i++) {
                 this.grid[i] = ItemStack.EMPTY;
             }
+            this.occupiedGridSlots = 0;
+            this.updateUsedState();
+        }
+
+        private void updateUsedState() {
+            var newUsed = this.pattern != null || this.occupiedGridSlots > 0;
+            if (this.used == newUsed) {
+                return;
+            }
+            this.used = newUsed;
+            ExtendedAssemblerMatrixCraftingCoreBlockEntity.this.usedThreadCount += newUsed ? 1 : -1;
         }
 
         private CompoundTag save(HolderLookup.Provider registries) {
@@ -432,6 +470,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             this.patternStack = ItemStack.EMPTY;
             this.progress = 0;
             this.outputRetryCooldown = tag.getInt("outputRetryCooldown");
+            this.updateUsedState();
             if (tag.isEmpty()) {
                 return;
             }
@@ -443,10 +482,11 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
                     this.pattern = decoded;
                 }
                 this.progress = tag.getDouble("progress");
+                this.updateUsedState();
             }
             for (int i = 0; i < this.grid.length; i++) {
                 if (tag.contains("grid" + i)) {
-                    this.grid[i] = ItemStack.parseOptional(registries, tag.getCompound("grid" + i));
+                    this.setGridItemDirect(i, ItemStack.parseOptional(registries, tag.getCompound("grid" + i)));
                 }
             }
         }

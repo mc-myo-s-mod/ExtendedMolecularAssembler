@@ -14,9 +14,13 @@ import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAE;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAEPlus;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
 import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
+import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
+import me.myogoo.extendedmolecularassembler.block.blockentity.TieredMECraftingProviderBlockEntity;
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMADataComponents;
+import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
 import me.myogoo.extendedmolecularassembler.integration.advancedae.AdvancedAEGameTestHelper;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAEGameTestHelper;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinder;
@@ -25,6 +29,7 @@ import me.myogoo.extendedmolecularassembler.pattern.EncodedExtendedCraftingPatte
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedPatternTableTypes;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import me.myogoo.myotus.api.MyotusAPI;
+import me.myogoo.myotus.api.annotation.mods.AE2WTLib;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -36,6 +41,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -165,20 +171,61 @@ public final class ExtendedPatternGameTests {
     @GameTest(template = "empty", timeoutTicks = 20)
     public static void optionalRegistrationsFollowMyotusIntegrations(GameTestHelper helper) {
         boolean extendedAE = MyotusAPI.integrations().isLoaded(ExtendedAE.class);
-        boolean extendedAEPlus = extendedAE && MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class);
+        boolean extendedAEPlusStyleContent = extendedAE
+                && (MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)
+                        || EMAConfig.standaloneExtendedAEPlusContent());
         boolean advancedAE = MyotusAPI.integrations().isLoaded(AdvancedAE.class);
+        boolean ae2wtlib = MyotusAPI.integrations().isLoaded(AE2WTLib.class);
 
         assertOptionalBlockRegistration(helper, "ex_extended_molecular_assembler", extendedAE);
         assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_core", extendedAE);
         assertOptionalBlockRegistration(helper, "extended_assembler_matrix_crafting_core", extendedAE);
-        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_uploader", extendedAEPlus);
-        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_core_plus", extendedAEPlus);
-        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_crafting_core_plus", extendedAEPlus);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_uploader", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_core_plus", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_crafting_core_plus", extendedAE);
         assertOptionalBlockRegistration(helper, "extended_quantum_crafter", advancedAE);
+        assertRecipeRegistration(helper, "ex_extended_molecular_assembler", extendedAE);
+        assertEqual(helper, ae2wtlib,
+                BuiltInRegistries.ITEM.containsKey(
+                        ExtendedMolecularAssembler.makeId("wireless_extended_pattern_encoding_terminal")),
+                "AE2WTLib wireless terminal item registration");
 
         var matrixMenuId = ExtendedMolecularAssembler.makeId("extended_assembler_matrix_pattern_core");
         assertEqual(helper, extendedAE, BuiltInRegistries.MENU.containsKey(matrixMenuId),
                 "ExtendedAE matrix pattern core menu registration");
+        assertEqual(helper, extendedAEPlusStyleContent,
+                EMAOptionalIntegrations.isExtendedAEPlusStyleContentEnabled(),
+                "ExtendedAE Plus-style content availability");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void wirelessTerminalRecipesFollowAE2WTLib(GameTestHelper helper) {
+        boolean ae2wtlib = MyotusAPI.integrations().isLoaded(AE2WTLib.class);
+        assertRecipeRegistration(helper, "wireless_extended_pattern_encoding_terminal", ae2wtlib);
+        assertRecipeRegistration(helper,
+                "wireless_universal_terminal/upgrade_extended_pattern_encoding",
+                ae2wtlib);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void extendedAEPlusRecipesFollowModAndConfig(GameTestHelper helper) {
+        boolean extendedAE = MyotusAPI.integrations().isLoaded(ExtendedAE.class);
+        boolean extendedAEPlus = MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class);
+        boolean standalone = extendedAE
+                && !extendedAEPlus
+                && EMAConfig.standaloneExtendedAEPlusContent();
+
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_uploader",
+                extendedAE && extendedAEPlus);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_crafting_core_plus",
+                extendedAE && extendedAEPlus);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core_plus",
+                extendedAE && extendedAEPlus);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_uploader_standalone", standalone);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_crafting_core_plus_standalone", standalone);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core_plus_standalone", standalone);
         helper.succeed();
     }
 
@@ -191,6 +238,39 @@ public final class ExtendedPatternGameTests {
                     "Ex Extended Molecular Assembler");
         }
         helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void tieredMECraftingProvidersExposeConfiguredIdlePower(GameTestHelper helper) {
+        var tiers = TieredMECraftingProviderTier.values();
+        for (int i = 0; i < tiers.length; i++) {
+            helper.setBlock(providerTestPosition(i), providerBlock(tiers[i]));
+        }
+
+        helper.runAfterDelay(1, () -> {
+            for (int i = 0; i < tiers.length; i++) {
+                var tier = tiers[i];
+                var configPath = List.of("blocks", tier.blockId(), "idlePowerUsage");
+                var configValue = EMAConfig.COMMON.getValues().get(configPath);
+                helper.assertTrue(configValue instanceof ModConfigSpec.DoubleValue,
+                        tier + " is missing its idlePowerUsage config");
+                assertEqual(helper, 1.0, ((ModConfigSpec.DoubleValue) configValue).getDefault(),
+                        tier + " provider default idle AE/t");
+
+                var blockEntity = helper.getBlockEntity(providerTestPosition(i));
+                helper.assertTrue(blockEntity instanceof TieredMECraftingProviderBlockEntity,
+                        tier + " did not create a TieredMECraftingProviderBlockEntity");
+
+                var provider = (TieredMECraftingProviderBlockEntity) blockEntity;
+                assertEqual(helper, tier, provider.getTier(), tier + " provider tier");
+
+                var node = provider.getMainNode().getNode();
+                helper.assertTrue(node != null, tier + " provider ME node was not created");
+                assertEqual(helper, EMAConfig.tieredMECraftingProviderIdlePowerUsage(tier),
+                        node.getIdlePowerUsage(), tier + " provider idle AE/t");
+            }
+            helper.succeed();
+        });
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)
@@ -285,7 +365,7 @@ public final class ExtendedPatternGameTests {
     @GameTest(template = "empty", timeoutTicks = 40)
     public static void extendedAEPatternUploaderUploadsIntoExtendedPatternCore(GameTestHelper helper) {
         if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
-                || !MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)
+                || !EMAOptionalIntegrations.isExtendedAEPlusStyleContentEnabled()
                 || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             helper.succeed();
             return;
@@ -306,6 +386,32 @@ public final class ExtendedPatternGameTests {
 
         var pattern = decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
         ExtendedAEGameTestHelper.assertMatrixCraftingCoreTracksAndCancelsExtendedJobs(helper, pattern);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 40)
+    public static void extendedAEMatrixClusterDispatchesExtendedJob(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var pattern = decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
+        ExtendedAEGameTestHelper.assertClusterDispatchesExtendedJob(helper, pattern);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 40)
+    public static void extendedAEMatrixCraftingCoreDropsActiveExtendedJobInputs(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var pattern = decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
+        ExtendedAEGameTestHelper.assertMatrixCraftingCoreDropsActiveExtendedJobInputs(helper, pattern);
         helper.succeed();
     }
 
@@ -354,6 +460,23 @@ public final class ExtendedPatternGameTests {
                 name + " does not expose AE2 crafting-machine capability");
     }
 
+    private static BlockPos providerTestPosition(int index) {
+        return new BlockPos(index % 3, 1, index / 3);
+    }
+
+    private static Block providerBlock(TieredMECraftingProviderTier tier) {
+        return switch (tier) {
+            case BASIC -> EMABlocks.BASIC_ME_CRAFTING_PROVIDER.get();
+            case ADVANCED -> EMABlocks.ADVANCED_ME_CRAFTING_PROVIDER.get();
+            case ELITE -> EMABlocks.ELITE_ME_CRAFTING_PROVIDER.get();
+            case ULTIMATE -> EMABlocks.ULTIMATE_ME_CRAFTING_PROVIDER.get();
+            case RE_AVARITIA_SCULK -> EMABlocks.RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER.get();
+            case RE_AVARITIA_NETHER -> EMABlocks.RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER.get();
+            case RE_AVARITIA_END -> EMABlocks.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get();
+            case XTREME -> EMABlocks.XTREME_ME_CRAFTING_PROVIDER.get();
+        };
+    }
+
     private static ExtendedMolecularAssemblerBlockEntity placeAssembler(GameTestHelper helper, Block block, BlockPos pos,
             String name) {
         helper.setBlock(pos, block);
@@ -369,6 +492,12 @@ public final class ExtendedPatternGameTests {
         assertEqual(helper, expected, BuiltInRegistries.ITEM.containsKey(id), path + " item registration");
         assertEqual(helper, expected, BuiltInRegistries.BLOCK_ENTITY_TYPE.containsKey(id),
                 path + " block entity registration");
+    }
+
+    private static void assertRecipeRegistration(GameTestHelper helper, String path, boolean expected) {
+        var id = ExtendedMolecularAssembler.makeId(path);
+        assertEqual(helper, expected, helper.getLevel().getRecipeManager().byKey(id).isPresent(),
+                path + " recipe registration");
     }
 
     private static void validateCases(GameTestHelper helper, List<PatternCase> cases) {

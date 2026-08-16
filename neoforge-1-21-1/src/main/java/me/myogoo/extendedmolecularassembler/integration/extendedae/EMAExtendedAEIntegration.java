@@ -2,7 +2,6 @@ package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
 import appeng.api.AECapabilities;
 import appeng.blockentity.AEBaseBlockEntity;
-import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAEPlus;
 import me.myogoo.extendedmolecularassembler.init.EMABlockEntities;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
@@ -11,7 +10,6 @@ import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContex
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAMatrixPatternCoreUpdatePacket;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAOpenExtendedAEAssemblerMatrixScreenPacket;
-import me.myogoo.myotus.api.MyotusAPI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.MenuType;
@@ -85,9 +83,7 @@ public final class EMAExtendedAEIntegration {
                 "extended_assembler_matrix_pattern_core",
                 () -> ExtendedAssemblerMatrixPatternCoreMenu.TYPE);
 
-        if (MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)) {
-            registerExtendedAEPlusDeferred();
-        }
+        registerExtendedAEPlusDeferred();
     }
 
     private static void registerExtendedAEPlusDeferred() {
@@ -126,13 +122,11 @@ public final class EMAExtendedAEIntegration {
                 EMAExtendedAEIntegration::createCraftingCorePlusBlockEntityType);
     }
 
-    public static void addCreativeTabItems(CreativeModeTab.Output output) {
+    public static void addCreativeTabItems(CreativeModeTab.Output output, boolean includePlusStyleContent) {
         output.accept(EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_ITEM.get());
         output.accept(EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_ITEM.get());
-        if (EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ITEM != null) {
+        if (includePlusStyleContent) {
             output.accept(EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ITEM.get());
-        }
-        if (EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM != null) {
             output.accept(EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM.get());
             output.accept(EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM.get());
         }

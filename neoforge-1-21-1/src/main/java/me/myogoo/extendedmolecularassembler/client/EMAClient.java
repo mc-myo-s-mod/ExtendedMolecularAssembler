@@ -1,6 +1,7 @@
 package me.myogoo.extendedmolecularassembler.client;
 
 import appeng.api.util.AEColor;
+import appeng.client.gui.style.StyleManager;
 import appeng.client.render.StaticItemColor;
 import appeng.init.client.InitScreens;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
@@ -26,6 +27,9 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 @Mod(value = ExtendedMolecularAssembler.MODID, dist = Dist.CLIENT)
 public class EMAClient {
+    private static final String EXTENDED_PATTERN_ENCODING_TERMINAL_STYLE =
+            "/screens/extended_molecular_assembler/extended_pattern_encoding_terminal.json";
+
     public EMAClient(IEventBus eventBus) {
         eventBus.addListener(EMAClient::clientSetup);
         eventBus.addListener(EMAClient::initScreens);
@@ -41,8 +45,21 @@ public class EMAClient {
     private static void initScreens(RegisterMenuScreensEvent event) {
         InitScreens.register(event, ExtendedMolecularAssemblerMenu.TYPE, ExtendedMolecularAssemblerScreen::new,
                 "/screens/extended_molecular_assembler/extended_molecular_assembler.json");
-        InitScreens.register(event, ExtendedPatternEncodingTermMenu.TYPE, ExtendedPatternEncodingTermScreen::new,
-                "/screens/extended_molecular_assembler/extended_pattern_encoding_terminal.json");
+        event.<ExtendedPatternEncodingTermMenu, ExtendedPatternEncodingTermScreen>register(
+                ExtendedPatternEncodingTermMenu.TYPE, (menu, playerInventory, title) -> {
+                    var optionalScreen = EMAOptionalClientIntegrations.tryCreateAE2WTLibPatternEncodingScreen(
+                            menu,
+                            playerInventory,
+                            title);
+                    if (optionalScreen != null) {
+                        return optionalScreen;
+                    }
+                    return new ExtendedPatternEncodingTermScreen(
+                            menu,
+                            playerInventory,
+                            title,
+                            StyleManager.loadStyleDoc(EXTENDED_PATTERN_ENCODING_TERMINAL_STYLE));
+                });
         EMAOptionalClientIntegrations.initScreens(event);
     }
 

@@ -2,19 +2,17 @@
 navigation:
   parent: index.md
   title: ExtendedAE Plus Matrix Blocks
-  icon: extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus
   position: 40
 categories:
 - machines
-item_ids:
-- extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus
-- extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus
-- extendedmolecularassembler:extended_assembler_matrix_pattern_uploader
 ---
 
 # ExtendedAE Plus Matrix Blocks
 
-ExtendedAE Plus unlocks higher-capacity EMA Matrix blocks and the Pattern Uploader.
+<myotus:condition load="extendedae">
+EMA always keeps these registry entries available alongside ExtendedAE so worlds remain stable when ExtendedAE Plus is added or removed.
+
+Install ExtendedAE Plus, or enable `general.StandaloneExtendedAEPlusContent` in `extendedmolecularassembler-common.toml`, to expose the blocks, Pattern Uploader support, and standalone recipes. Restart the game after changing the setting.
 
 ## Pattern Core Plus
 
@@ -54,3 +52,12 @@ It does not provide pattern capacity by itself. It only enables the upload route
 <RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus" />
 
 <RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_pattern_uploader" />
+
+When ExtendedAE Plus is absent and standalone mode is enabled, EMA uses these alternative recipes:
+
+<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus_standalone" />
+
+<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus_standalone" />
+
+<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_pattern_uploader_standalone" />
+</myotus:condition>

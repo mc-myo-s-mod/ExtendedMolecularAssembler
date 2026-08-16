@@ -55,7 +55,7 @@
   "message.extendedmolecularassembler.matrix_upload.no_pattern": "업로드할 인코딩된 확장 조합 패턴이 없습니다.",
   "message.extendedmolecularassembler.matrix_upload.invalid_pattern": "EMA 확장 조합 패턴만 EMA 매트릭스에 업로드할 수 있습니다.",
   "message.extendedmolecularassembler.matrix_upload.no_extendedae": "EMA 매트릭스 업로드에는 ExtendedAE가 필요합니다.",
-  "message.extendedmolecularassembler.matrix_upload.no_extendedae_plus": "EMA 매트릭스 업로드에는 ExtendedAE-Plus가 필요합니다.",
+  "message.extendedmolecularassembler.matrix_upload.no_extendedae_plus": "EMA 매트릭스 업로드에는 ExtendedAE Plus가 필요하거나 EMA 공통 설정의 general.StandaloneExtendedAEPlusContent를 활성화해야 합니다.",
   "message.extendedmolecularassembler.matrix_upload.no_network": "매트릭스 업로드에 사용할 ME 네트워크가 없습니다.",
   "message.extendedmolecularassembler.matrix_upload.no_matrix": "패턴 업로더 코어가 있는 활성 EMA 매트릭스를 찾지 못했습니다.",
   "message.extendedmolecularassembler.matrix_upload.duplicate": "이미 같은 레시피가 EMA 매트릭스에 있습니다. 인코딩된 패턴은 유지했습니다.",
