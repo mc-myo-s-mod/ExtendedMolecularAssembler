@@ -8,7 +8,7 @@ categories:
 - tools
 item_ids:
 - extendedmolecularassembler:extended_pattern_encoding_terminal
-- extendedmolecularassembler:extended_crafting_pattern
+- extendedmolecularassembler:wireless_extended_pattern_encoding_terminal
 ---
 
 # Extended Pattern Encoding Terminal

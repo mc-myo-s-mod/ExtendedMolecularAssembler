@@ -8,6 +8,7 @@ categories:
 - machines
 item_ids:
 - extendedmolecularassembler:extended_molecular_assembler
+- extendedmolecularassembler:ex_extended_molecular_assembler
 ---
 
 # Extended Molecular Assemblers
@@ -37,11 +38,3 @@ The Ex Extended Molecular Assembler is the stronger ExtendedAE-gated variant. It
 3. Ensure the assembler can receive the ingredients and return the output to the ME network.
 
 For Matrix-based setups, prefer the dedicated EMA Matrix Pattern Core and Crafting Core blocks instead of placing extended patterns in ordinary ExtendedAE pattern slots.
-
-## Recipes
-
-<RecipeFor id="extendedmolecularassembler:extended_molecular_assembler" />
-
-<myotus:condition load="extendedae" silent="true">
-<RecipeFor id="extendedmolecularassembler:ex_extended_molecular_assembler" />
-</myotus:condition>

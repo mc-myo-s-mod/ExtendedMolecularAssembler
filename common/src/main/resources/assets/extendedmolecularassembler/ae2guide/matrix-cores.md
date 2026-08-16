@@ -5,6 +5,9 @@ navigation:
   position: 30
 categories:
 - machines
+item_ids:
+  - extendedmolecularassembler:extended_assembler_matrix_crafting_core
+  -  extendedmolecularassembler:extended_assembler_matrix_pattern_core
 ---
 
 # EMA Matrix Cores
@@ -53,10 +56,4 @@ A Matrix with only Crafting Cores must not accept or execute EMA extended patter
 ## Shared Speed
 
 EMA Matrix jobs share the ExtendedAE Matrix speed core count. Pattern storage and job counts remain EMA-local.
-
-## Recipes
-
-<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_pattern_core" />
-
-<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_crafting_core" />
 </myotus:condition>

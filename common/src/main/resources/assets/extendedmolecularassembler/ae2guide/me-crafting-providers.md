@@ -59,23 +59,3 @@ The Xtreme provider is shared by both Re:Avaritia Xtreme recipes and Avaritia Ne
 * Different recipe tables require their matching provider tier.
 
 If an extended crafting job is rejected in Expert Mode, check the encoded table shown by the Extended Pattern Encoding Terminal and place the matching provider on the same ME network.
-
-## Recipes
-
-<RecipeFor id="extendedmolecularassembler:basic_me_crafting_provider" />
-
-<RecipeFor id="extendedmolecularassembler:advanced_me_crafting_provider" />
-
-<RecipeFor id="extendedmolecularassembler:elite_me_crafting_provider" />
-
-<RecipeFor id="extendedmolecularassembler:ultimate_me_crafting_provider" />
-
-<RecipeFor id="extendedmolecularassembler:re_avaritia_sculk_me_crafting_provider" />
-
-<RecipeFor id="extendedmolecularassembler:re_avaritia_nether_me_crafting_provider" />
-
-<RecipeFor id="extendedmolecularassembler:re_avaritia_end_me_crafting_provider" />
-
-<RecipeFor id="extendedmolecularassembler:xtreme_me_crafting_provider_from_re_avaritia" />
-
-<RecipeFor id="extendedmolecularassembler:xtreme_me_crafting_provider_from_avaritia_neo" />

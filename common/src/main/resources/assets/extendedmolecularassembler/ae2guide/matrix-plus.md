@@ -5,6 +5,10 @@ navigation:
   position: 40
 categories:
 - machines
+item_ids:
+  - extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus
+  - extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus
+  - extendedmolecularassembler:extended_assembler_matrix_pattern_uploader
 ---
 
 # ExtendedAE Plus Matrix Blocks
@@ -44,20 +48,4 @@ Use it when a Matrix has enough patterns but not enough parallel execution capac
 The <ItemLink id="extendedmolecularassembler:extended_assembler_matrix_pattern_uploader" /> enables direct upload from the Extended Pattern Encoding Terminal to an eligible EMA Matrix on the same ME network.
 
 It does not provide pattern capacity by itself. It only enables the upload route.
-
-## Recipes
-
-<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus" />
-
-<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus" />
-
-<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_pattern_uploader" />
-
-When ExtendedAE Plus is absent and standalone mode is enabled, EMA uses these alternative recipes:
-
-<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus_standalone" />
-
-<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus_standalone" />
-
-<RecipeFor id="extendedmolecularassembler:extended_assembler_matrix_pattern_uploader_standalone" />
 </myotus:condition>
