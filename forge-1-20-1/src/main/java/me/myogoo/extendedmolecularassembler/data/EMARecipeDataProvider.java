@@ -40,10 +40,6 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 new String[]{"CXC", "SMS", "CXC"},
                 key('C', COMPAT_PROCESSOR, 'M', "extendedmolecularassembler:extended_molecular_assembler", 'S', "ae2:speed_card", 'X', "expatternprovider:ex_molecular_assembler"),
                 "extendedmolecularassembler:ex_extended_molecular_assembler", true);
-        saveShaped(output, "extended_crafting_pattern", null, "misc",
-                new String[]{"FQF", "RPR", "FTF"},
-                key('F', "ae2:fluix_crystal", 'P', "ae2:blank_pattern", 'Q', "ae2:calculation_processor", 'R', "minecraft:redstone", 'T', "minecraft:crafting_table"),
-                "extendedmolecularassembler:extended_crafting_pattern", true);
         shapeless("minecraft:crafting_shapeless",
                 "extendedmolecularassembler:extended_pattern_encoding_terminal", 1)
                 .requires(item(COMPAT_PROCESSOR))
