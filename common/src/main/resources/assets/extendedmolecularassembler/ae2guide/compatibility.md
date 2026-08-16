@@ -46,7 +46,7 @@ Use EMA Pattern Core blocks for extended pattern storage and EMA Crafting Core b
 ## AdvancedAE Quantum Crafter
 
 The Extended Quantum Crafter is currently a work in progress. It remains available for development and
-creative-mode testing, but has no survival recipe and is marked `[WIP]` in its tooltip.
+creative-mode testing, but has no survival recipe.
 
 ## Capacity Reference
 
@@ -56,11 +56,3 @@ creative-mode testing, but has no survival recipe and is marked `[WIP]` in its t
 | EMA Pattern Core Plus | 72 patterns |
 | EMA Crafting Core | 8 jobs |
 | EMA Crafting Core Plus | 32 jobs |
-
-## Troubleshooting
-
-If extended patterns are visible but jobs do not start, check that the formed Matrix has at least one EMA Crafting Core with free jobs.
-
-If the encoder cannot upload to the Matrix, check that the Matrix has a Pattern Uploader and free Pattern Core storage.
-
-If a job appears blocked, make sure the ME network can accept the output item. EMA jobs retry output insertion rather than deleting the result.
