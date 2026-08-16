@@ -44,6 +44,8 @@ minecraft {
 
         client {
             property 'forge.enabledGameTestNamespaces', mod_id
+            property 'guideme.ae2.guide.sources', "${file('../common/src/main/resources').absolutePath}/assets/${mod_id}/ae2guide"
+            property 'guideme.ae2.guide.sourcesNamespace', mod_id
         }
 
         server {
