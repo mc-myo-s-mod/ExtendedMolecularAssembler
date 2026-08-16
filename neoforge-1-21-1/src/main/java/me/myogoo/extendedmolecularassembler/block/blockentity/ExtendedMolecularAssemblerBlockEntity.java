@@ -73,13 +73,23 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     public static final int PARALLEL_LANE_COUNT = 8;
     private static final int LANE_SIZE = GRID_SIZE + 1;
     private static final Direction[] DIRECTIONS = Direction.values();
-    private static final SpeedProfile[] SPEED_PROFILES = {
+    // Keep the standard assembler aligned with AE2's Molecular Assembler speed curve.
+    private static final SpeedProfile[] STANDARD_SPEED_PROFILES = {
             new SpeedProfile(10, 1.0),
             new SpeedProfile(13, 1.3),
             new SpeedProfile(17, 1.7),
             new SpeedProfile(20, 2.0),
             new SpeedProfile(25, 2.5),
             new SpeedProfile(50, 5.0)
+    };
+    // ExtendedAE doubles every point on AE2's curve for its Extended Molecular Assembler.
+    private static final SpeedProfile[] EX_SPEED_PROFILES = {
+            new SpeedProfile(20, 1.0),
+            new SpeedProfile(26, 1.3),
+            new SpeedProfile(34, 1.7),
+            new SpeedProfile(40, 2.0),
+            new SpeedProfile(50, 2.5),
+            new SpeedProfile(100, 5.0)
     };
     private static final SpeedProfile[] MATRIX_SPEED_PROFILES = {
             new SpeedProfile(20, 1.0),
@@ -504,7 +514,8 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
 
     private SpeedProfile getSpeedProfile() {
         var upgrades = this.upgrades.getInstalledUpgrades(AEItems.SPEED_CARD);
-        return SPEED_PROFILES[Math.max(0, Math.min(upgrades, SPEED_PROFILES.length - 1))];
+        var speedProfiles = this.isExAssembler() ? EX_SPEED_PROFILES : STANDARD_SPEED_PROFILES;
+        return speedProfiles[Math.max(0, Math.min(upgrades, speedProfiles.length - 1))];
     }
 
     @Override
