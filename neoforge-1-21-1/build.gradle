@@ -46,6 +46,10 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+if (rootProject == project) {
+    apply from: file('../gradle/ema-common-sources.gradle')
+}
+
 neoForge {
     // Specify the version of NeoForge to use.
     version = project.neo_version
@@ -92,15 +96,15 @@ neoForge {
     }
 }
 
-sourceSets.main.resources { srcDir 'src/generated/resources' }
-
 
 dependencies {
-    implementation "me.myogoo:myotus:${myotus_version}"
+    implementation("me.myogoo:myotus:${myotus_version}") {
+        exclude group: "de.mari_023", module: "ae2wtlib"
+        exclude group: "de.mari_023", module: "ae2wtlib_api"
+    }
     implementation "org.appliedenergistics:appliedenergistics2:${AE2_version}"
     compileOnly "de.mari_023:ae2wtlib_api:${AE2WTLib_version}"
     compileOnly "de.mari_023:ae2wtlib:${AE2WTLib_version}"
-    runtimeOnly "de.mari_023:ae2wtlib:${AE2WTLib_version}"
     compileOnly "org.appliedenergistics:guideme:${guideme_version}:api"
     runtimeOnly "org.appliedenergistics:guideme:${guideme_version}"
 
@@ -108,7 +112,6 @@ dependencies {
     compileOnly "maven.modrinth:extended-crafting:${ExtendedCrafting_version}"
     compileOnly "maven.modrinth:glodium:${Glodium_version}"
     compileOnly "maven.modrinth:extended-ae:${ExtendedAE_version}"
-    compileOnly "maven.modrinth:extendedae-plus:${ExtendedAEPlus_version}"
     compileOnly "maven.modrinth:advancedae:${AdvancedAE_version}"
     compileOnly "io.github.pedroksl:ae2addonlib:${AE2AddonLib_version}"
     compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${GeckoLib_version}"
@@ -131,9 +134,19 @@ dependencies {
         runtimeOnly "maven.modrinth:extended-crafting:${ExtendedCrafting_version}"
     }
 
+    if (project.enable_ae2wtlib == "true") {
+        runtimeOnly "de.mari_023:ae2wtlib:${AE2WTLib_version}"
+    }
+
     if (project.enable_extendedae == "true") {
         runtimeOnly "maven.modrinth:glodium:${Glodium_version}"
         runtimeOnly "maven.modrinth:extended-ae:${ExtendedAE_version}"
+    }
+
+    if (project.enable_extendedae_plus == "true") {
+        if (project.enable_extendedae != "true") {
+            throw new GradleException("enable_extendedae_plus requires enable_extendedae=true")
+        }
         runtimeOnly "maven.modrinth:extendedae-plus:${ExtendedAEPlus_version}"
     }
 

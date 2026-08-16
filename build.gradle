@@ -101,101 +101,10 @@ configure(project(':common')) {
 }
 
 configure(modProjects) {
-    def commonJavaSourceDir = rootProject.layout.projectDirectory.dir('common/src/main/java').asFile
-    def commonResourcesSourceDir = rootProject.layout.projectDirectory.dir('common/src/main/resources').asFile
-    def generatedCommonJavaDir = layout.buildDirectory.dir('generated/sources/extendedMolecularAssemblerCommon/java')
-    def generatedCommonResourcesDir = layout.buildDirectory.dir('generated/resources/extendedMolecularAssemblerCommon')
-
-    def syncEMACommonJava = tasks.register('syncEMACommonJava', Sync) {
-        from commonJavaSourceDir
-        into generatedCommonJavaDir
-    }
-
-    def syncEMACommonResources = tasks.register('syncEMACommonResources', Sync) {
-        from commonResourcesSourceDir
-        exclude 'assets/extendedmolecularassembler/lang/*.json'
-        into generatedCommonResourcesDir
-    }
-
-    def mergeEMACommonLang = tasks.register('mergeEMACommonLang') {
-        dependsOn syncEMACommonResources
-        inputs.files(fileTree(commonResourcesSourceDir) {
-            include 'assets/extendedmolecularassembler/lang/*.json'
-        })
-        inputs.files(fileTree(project.layout.projectDirectory.dir('src/main/resources').asFile) {
-            include 'assets/extendedmolecularassembler/lang/*.json'
-        })
-        outputs.dir generatedCommonResourcesDir
-
-        doLast {
-            def commonLangDir = new File(commonResourcesSourceDir, 'assets/extendedmolecularassembler/lang')
-            def projectLangDir = project.layout.projectDirectory.dir('src/main/resources/assets/extendedmolecularassembler/lang').asFile
-            def outputLangDir = new File(generatedCommonResourcesDir.get().asFile,
-                    'assets/extendedmolecularassembler/lang')
-            outputLangDir.mkdirs()
-
-            def parser = new groovy.json.JsonSlurper()
-            def langFiles = [] as Set
-            if (commonLangDir.isDirectory()) {
-                commonLangDir.eachFileMatch(~/.*\.json/) { langFiles.add(it.name) }
-            }
-            if (projectLangDir.isDirectory()) {
-                projectLangDir.eachFileMatch(~/.*\.json/) { langFiles.add(it.name) }
-            }
-
-            langFiles.sort().each { fileName ->
-                def merged = new LinkedHashMap<String, Object>()
-                def commonFile = new File(commonLangDir, fileName)
-                def projectFile = new File(projectLangDir, fileName)
-                if (commonFile.isFile()) {
-                    merged.putAll(parser.parse(commonFile) as Map<String, Object>)
-                }
-                if (projectFile.isFile()) {
-                    merged.putAll(parser.parse(projectFile) as Map<String, Object>)
-                }
-
-                new File(outputLangDir, fileName).text = groovy.json.JsonOutput.prettyPrint(
-                        groovy.json.JsonOutput.toJson(merged)) + '\n'
-            }
-        }
-    }
-
-    def generatedCommonJavaSources = files(generatedCommonJavaDir).builtBy(syncEMACommonJava)
-    def generatedCommonResources = files(generatedCommonResourcesDir).builtBy(syncEMACommonResources)
+    apply from: rootProject.file('gradle/ema-common-sources.gradle')
 
     base {
         archivesName = "${project.mod_name}-${project.minecraft_version}"
-    }
-
-    sourceSets {
-        main {
-            java.srcDir generatedCommonJavaSources
-            resources.setSrcDirs([generatedCommonResources, 'src/main/resources', 'src/generated/resources'])
-        }
-    }
-
-    tasks.named('compileJava').configure {
-        dependsOn syncEMACommonJava
-    }
-
-    tasks.named('processResources').configure {
-        dependsOn syncEMACommonResources
-        dependsOn mergeEMACommonLang
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    }
-
-    tasks.matching { it.name in ['genIntellijRuns', 'neoForgeIdeSync', 'idea', 'ideaModule'] }.configureEach {
-        dependsOn syncEMACommonJava
-        dependsOn syncEMACommonResources
-        dependsOn mergeEMACommonLang
-    }
-
-    idea {
-        module {
-            sourceDirs += generatedCommonJavaDir.get().asFile
-            generatedSourceDirs += generatedCommonJavaDir.get().asFile
-            resourceDirs += generatedCommonResourcesDir.get().asFile
-        }
     }
 }
 
