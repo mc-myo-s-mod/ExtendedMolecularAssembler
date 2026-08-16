@@ -2,23 +2,26 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "item": "minecraft:crafting_table"
+    "F": {
+      "item": "ae2:fluix_crystal"
     },
     "P": {
       "item": "ae2:blank_pattern"
     },
     "Q": {
-      "item": "ae2:certus_quartz_crystal"
+      "item": "ae2:calculation_processor"
     },
     "R": {
       "item": "minecraft:redstone"
+    },
+    "T": {
+      "item": "minecraft:crafting_table"
     }
   },
   "pattern": [
-    "QPQ",
-    "RCR",
-    "QPQ"
+    "FQF",
+    "RPR",
+    "FTF"
   ],
   "result": {
     "count": 1,

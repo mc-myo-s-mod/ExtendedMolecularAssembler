@@ -6,6 +6,7 @@ import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.data.EMADataGenerators;
 import me.myogoo.extendedmolecularassembler.init.EMABlockEntities;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
+import me.myogoo.extendedmolecularassembler.init.EMACreativeModeTabs;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
 import me.myogoo.extendedmolecularassembler.init.EMAMenus;
 import me.myogoo.extendedmolecularassembler.init.EMAModIntegration;
@@ -35,6 +36,7 @@ public final class ExtendedMolecularAssembler {
         EMABlocks.BLOCKS.register(modBus);
         EMAItems.ITEMS.register(modBus);
         EMAParts.ITEMS.register(modBus);
+        EMACreativeModeTabs.CREATIVE_MODE_TABS.register(modBus);
         EMABlockEntities.BLOCK_ENTITIES.register(modBus);
         EMAMenus.MENUS.register(modBus);
         EMAAE2WTLibIntegration.registerTerminal();

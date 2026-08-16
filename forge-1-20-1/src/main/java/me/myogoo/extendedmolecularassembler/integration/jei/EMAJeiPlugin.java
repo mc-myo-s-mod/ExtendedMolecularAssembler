@@ -1,11 +1,15 @@
 package me.myogoo.extendedmolecularassembler.integration.jei;
 
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExPatternProvider;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
+import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
-import me.myogoo.extendedmolecularassembler.init.EMAModPresence;
 import me.myogoo.extendedmolecularassembler.integration.jei.avaritianeo.AvaritiaNeoJeiIntegration;
 import me.myogoo.extendedmolecularassembler.integration.jei.extendedcrafting.ExtendedCraftingJeiIntegration;
 import me.myogoo.extendedmolecularassembler.integration.jei.reavaritia.ReAvaritiaJeiIntegration;
+import me.myogoo.myotus.api.MyotusAPI;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -26,34 +30,33 @@ public class EMAJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(@NotNull IRecipeCatalystRegistration registration) {
-        // Forge 1.20.1 currently only has the assembler block/items ported; the 1.21 extended
-        // pattern encoding terminal part (used as the original catalyst) is not present here.
         registration.addRecipeCatalyst(new ItemStack(EMAItems.EXTENDED_MOLECULAR_ASSEMBLER.get()), RecipeTypes.CRAFTING);
-        registration.addRecipeCatalyst(new ItemStack(EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER.get()), RecipeTypes.CRAFTING);
+        if (MyotusAPI.integrations().isLoaded(ExPatternProvider.class)) {
+            registration.addRecipeCatalyst(
+                    new ItemStack(EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER.get()),
+                    RecipeTypes.CRAFTING);
+        }
 
-        if (EMAModPresence.isExtendedCraftingLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             ExtendedCraftingJeiIntegration.registerRecipeCatalysts(registration);
         }
-        if (EMAModPresence.isReAvaritiaLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ReAvaritia.class)) {
             ReAvaritiaJeiIntegration.registerRecipeCatalysts(registration);
         }
-        if (EMAModPresence.isAvaritiaNeoLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)) {
             AvaritiaNeoJeiIntegration.registerRecipeCatalysts(registration);
         }
     }
 
     @Override
     public void registerRecipeTransferHandlers(@NotNull IRecipeTransferRegistration registration) {
-        // Recipe transfer in the 1.21 integration targets ExtendedPatternEncodingTermMenu.
-        // That menu/part has not been ported to Forge 1.20.1, so transfer handlers are left
-        // disabled here to keep the JEI plugin loadable and compile-safe.
-        if (EMAModPresence.isExtendedCraftingLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
             ExtendedCraftingJeiIntegration.registerRecipeTransferHandlers(registration);
         }
-        if (EMAModPresence.isReAvaritiaLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ReAvaritia.class)) {
             ReAvaritiaJeiIntegration.registerRecipeTransferHandlers(registration);
         }
-        if (EMAModPresence.isAvaritiaNeoLoaded()) {
+        if (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)) {
             AvaritiaNeoJeiIntegration.registerRecipeTransferHandlers(registration);
         }
     }

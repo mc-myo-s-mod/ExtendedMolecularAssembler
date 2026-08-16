@@ -9,7 +9,7 @@
     "width": 240,
     "height": 290
   },
-  "helpTopic": "extendedmolecularassembler:machines/extended_molecular_assembler",
+  "helpTopic": "extendedmolecularassembler:extended-molecular-assemblers",
   "slots": {
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_1": {
       "left": 8,

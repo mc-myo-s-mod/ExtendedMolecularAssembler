@@ -1,24 +1,30 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
+  "conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "expatternprovider"
+    }
+  ],
   "key": {
-    "A": {
-      "item": "ae2:engineering_processor"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "E": {
-      "item": "minecraft:ender_eye"
+    "C": {
+      "item": "myotus:compat_processor"
     },
     "M": {
       "item": "extendedmolecularassembler:extended_molecular_assembler"
+    },
+    "S": {
+      "item": "ae2:speed_card"
+    },
+    "X": {
+      "item": "expatternprovider:ex_molecular_assembler"
     }
   },
   "pattern": [
-    "EDE",
-    "AMA",
-    "EDE"
+    "CXC",
+    "SMS",
+    "CXC"
   ],
   "result": {
     "count": 1,

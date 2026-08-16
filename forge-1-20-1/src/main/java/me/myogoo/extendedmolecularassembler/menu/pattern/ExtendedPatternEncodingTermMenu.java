@@ -12,9 +12,12 @@ import appeng.menu.slot.FakeSlot;
 import appeng.menu.slot.PatternTermSlot;
 import appeng.menu.slot.RestrictedInputSlot;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
-import me.myogoo.extendedmolecularassembler.init.EMAModPresence;
+import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
+import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
 import me.myogoo.extendedmolecularassembler.menu.EMASlotSemantics;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.myotus.api.MyotusAPI;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -641,9 +644,9 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
 
         public boolean isActive() {
             return switch (this) {
-                case EXTENDED_CRAFTING -> EMAModPresence.isExtendedCraftingLoaded();
-                case AVARITIA_NEO -> EMAModPresence.isAvaritiaNeoLoaded();
-                case RE_AVARITIA -> EMAModPresence.isReAvaritiaLoaded();
+                case EXTENDED_CRAFTING -> MyotusAPI.integrations().isLoaded(ExtendedCrafting.class);
+                case AVARITIA_NEO -> MyotusAPI.integrations().isLoaded(AvaritiaNeo.class);
+                case RE_AVARITIA -> MyotusAPI.integrations().isLoaded(ReAvaritia.class);
             };
         }
 

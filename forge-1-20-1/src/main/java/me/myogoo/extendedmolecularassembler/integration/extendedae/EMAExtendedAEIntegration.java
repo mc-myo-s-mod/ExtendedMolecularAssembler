@@ -4,6 +4,7 @@ import appeng.blockentity.AEBaseBlockEntity;
 import me.myogoo.extendedmolecularassembler.init.EMABlockEntities;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -76,5 +77,10 @@ public final class EMAExtendedAEIntegration {
         AEBaseBlockEntity.registerBlockEntityItem(
                 EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ENTITY.get(),
                 EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ITEM.get());
+    }
+
+    public static void addCreativeTabItems(CreativeModeTab.Output output) {
+        output.accept(EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_ITEM.get());
+        output.accept(EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ITEM.get());
     }
 }

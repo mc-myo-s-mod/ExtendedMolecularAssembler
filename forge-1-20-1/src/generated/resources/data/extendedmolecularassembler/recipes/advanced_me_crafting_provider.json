@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    }
+  ],
+  "key": {
+    "C": {
+      "item": "extendedmolecularassembler:basic_me_crafting_provider"
+    },
+    "L": {
+      "item": "myotus:compat_processor"
+    },
+    "P": {
+      "item": "ae2:fluix_covered_cable"
+    },
+    "T": {
+      "item": "extendedcrafting:advanced_table"
+    }
+  },
+  "pattern": [
+    " L ",
+    "PCP",
+    " T "
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:advanced_me_crafting_provider"
+  },
+  "show_notification": true
+}

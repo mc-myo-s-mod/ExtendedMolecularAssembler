@@ -1,8 +1,12 @@
 package me.myogoo.extendedmolecularassembler.menu.pattern;
 
+import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
+import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
-import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.myotus.api.MyotusAPI;
+import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -90,9 +94,13 @@ public final class ExtendedPatternRecipeFinder {
 
     private static IMyotusTableRecipe<?> tryCreateAdapter(Recipe<?> recipe) {
         var className = recipe.getClass().getName();
-        if (!className.startsWith("com.blakebr0.extendedcrafting.")
-                && !className.startsWith("net.byAqua3.avaritia.")
-                && !className.startsWith("committee.nova.mods.avaritia.")) {
+        var supported = (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)
+                && className.startsWith("com.blakebr0.extendedcrafting."))
+                || (MyotusAPI.integrations().isLoaded(ReAvaritia.class)
+                && className.startsWith("committee.nova.mods.avaritia."))
+                || (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)
+                && className.startsWith("net.byAqua3.avaritia."));
+        if (!supported) {
             return null;
         }
 

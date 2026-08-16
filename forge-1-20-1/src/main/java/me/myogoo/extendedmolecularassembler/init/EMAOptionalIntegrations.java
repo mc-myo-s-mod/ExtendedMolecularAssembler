@@ -1,8 +1,11 @@
 package me.myogoo.extendedmolecularassembler.init;
 
+import me.myogoo.extendedmolecularassembler.api.annotation.ExPatternProvider;
 import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContext;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.EMAExtendedAEIntegration;
+import me.myogoo.myotus.api.MyotusAPI;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +22,7 @@ public final class EMAOptionalIntegrations {
     }
 
     public static void registerDeferred() {
-        if (EMAModPresence.isExtendedAELoaded()) {
+        if (MyotusAPI.integrations().isLoaded(ExPatternProvider.class)) {
             EMAExtendedAEIntegration.registerDeferred();
             extendedAERegistered = true;
         }
@@ -28,6 +31,12 @@ public final class EMAOptionalIntegrations {
     public static void registerRepresentativeItems() {
         if (extendedAERegistered) {
             EMAExtendedAEIntegration.registerRepresentativeItems();
+        }
+    }
+
+    public static void addCreativeTabItems(CreativeModeTab.Output output) {
+        if (extendedAERegistered) {
+            EMAExtendedAEIntegration.addCreativeTabItems(output);
         }
     }
 
