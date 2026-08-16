@@ -1,10 +1,10 @@
 ---
 navigation:
-  title: 확장 분자 조립기
+  title: 확장 분자 조합기
   position: 900
 ---
 
-# 확장 분자 조립기
+# 확장 분자 조합기
 
 <ItemImage id="extendedmolecularassembler:extended_molecular_assembler" scale="4" />
 
@@ -12,13 +12,13 @@ Extended Molecular Assembler는 Extended Crafting, Re:Avaritia, Avaritia Neo와 
 
 이 모드는 크게 두 가지 방식을 제공합니다.
 
-* 패턴 공급기를 사용하는 독립형 조립기 자동 조합.
+* 패턴 공급기를 사용하는 독립형 조합기 자동 조합.
 * 대용량 패턴 저장과 병렬 실행을 위한 ExtendedAE 매트릭스 연동.
 
 ## 빠른 링크
 
 * [확장 패턴 인코딩 터미널](pattern-encoding-terminal.md)
-* [확장 분자 조립기](extended-molecular-assemblers.md)
+* [확장 분자 조합기](extended-molecular-assemblers.md)
 * [ME 조합 공급기](me-crafting-providers.md)
 * [EMA 매트릭스 코어](matrix-cores.md)
 * [ExtendedAE Plus 매트릭스 블록](matrix-plus.md)

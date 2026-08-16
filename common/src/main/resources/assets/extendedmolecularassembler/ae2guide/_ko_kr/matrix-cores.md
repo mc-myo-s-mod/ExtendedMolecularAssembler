@@ -15,7 +15,7 @@ item_ids:
 <myotus:condition load="extendedae">
 <BlockImage id="extendedmolecularassembler:extended_assembler_matrix_pattern_core" scale="5" />
 
-EMA 매트릭스 블록은 ExtendedAE 조립기 매트릭스와 연동되지만, 확장 패턴 저장소와 확장 작업 실행은 기존 매트릭스 패턴 슬롯과 별도로 관리합니다.
+EMA 매트릭스 블록은 ExtendedAE 조합기 매트릭스와 연동되지만, 확장 패턴 저장소와 확장 작업 실행은 기존 매트릭스 패턴 슬롯과 별도로 관리합니다.
 
 ## 패턴 코어
 
