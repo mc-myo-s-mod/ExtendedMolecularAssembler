@@ -33,7 +33,7 @@ import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.filter.IAEItemFilter;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
@@ -178,10 +178,10 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                     Tooltips.of(AEItems.SPEED_CARD.asItem().getDescription()),
                     Tooltips.ofUnformattedNumber(accelerationCards)));
         }
-        if (EMAConfig.tieredMode()) {
-            tooltip.add(Component.translatable(EMATranslationKey.TOOLTIP.TIERED_MODE_ENABLED.key()));
+        if (EMAConfig.exportMode()) {
+            tooltip.add(Component.translatable(EMATranslationKey.TOOLTIP.EXPORT_MODE_ENABLED.key()));
             if (this.lastTierRejectReason != null) {
-                tooltip.add(Component.translatable(EMATranslationKey.TOOLTIP.TIERED_MODE_LAST_REJECT.key(),
+                tooltip.add(Component.translatable(EMATranslationKey.TOOLTIP.EXPORT_MODE_LAST_REJECT.key(),
                         this.lastTierRejectReason));
             }
         }
@@ -210,31 +210,31 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     }
 
     private boolean isTierAllowed(ExtendedTableCraftingPattern pattern) {
-        if (!EMAConfig.tieredMode()) {
+        if (!EMAConfig.exportMode()) {
             this.clearTierRejectReason();
             return true;
         }
 
         final int tableTier = pattern.tableTier();
-        final TieredMECraftingProviderTier providerTier;
+        final ExportMECraftingProviderTier providerTier;
         try {
-            providerTier = TieredMECraftingProviderTier.requiredFor(pattern.tableType(), tableTier);
+            providerTier = ExportMECraftingProviderTier.requiredFor(pattern.tableType(), tableTier);
         } catch (IllegalArgumentException ignored) {
             this.setTierRejectReason(Component.translatable(
-                    EMATranslationKey.TOOLTIP.TIERED_MODE_UNSUPPORTED_TIER.key(),
-                    TieredMECraftingProviderTier.tierName(tableTier), tableTier));
+                    EMATranslationKey.TOOLTIP.EXPORT_MODE_UNSUPPORTED_TIER.key(),
+                    ExportMECraftingProviderTier.tierName(tableTier), tableTier));
             return false;
         }
 
         var grid = this.getMainNode().getGrid();
         if (grid == null) {
             this.setTierRejectReason(Component.translatable(
-                    EMATranslationKey.TOOLTIP.TIERED_MODE_OFFLINE_GRID.key(),
+                    EMATranslationKey.TOOLTIP.EXPORT_MODE_OFFLINE_GRID.key(),
                     providerTier.displayName(), tableTier));
             return false;
         }
 
-        for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
+        for (var provider : grid.getActiveMachines(ExportMECraftingProviderBlockEntity.class)) {
             if (provider.getTier().provides(pattern.tableType(), tableTier) && provider.isOnline()) {
                 this.clearTierRejectReason();
                 return true;
@@ -242,7 +242,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
         }
 
         this.setTierRejectReason(Component.translatable(
-                EMATranslationKey.TOOLTIP.TIERED_MODE_MISSING_PROVIDER.key(),
+                EMATranslationKey.TOOLTIP.EXPORT_MODE_MISSING_PROVIDER.key(),
                 providerTier.displayName(), tableTier));
         return false;
     }

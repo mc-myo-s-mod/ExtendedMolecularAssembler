@@ -15,16 +15,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ClusterAssemblerMatrixMixin {
     @Inject(method = "pushCraftingJob(Lappeng/api/crafting/IPatternDetails;[Lappeng/api/stacks/KeyCounter;)Z",
             at = @At("HEAD"), cancellable = true, require = 1, expect = 1)
-    private void extendedmolecularassembler$pushExtendedPattern(IPatternDetails patternDetails,
+    private void ema$pushExtendedPattern(IPatternDetails patternDetails,
             KeyCounter[] inputHolder, CallbackInfoReturnable<Boolean> cir) {
         if (patternDetails instanceof ExtendedTableCraftingPattern) {
             cir.setReturnValue(ExtendedAEAssemblerMatrixBridge.pushExtendedCraftingJob(
-                    this.extendedmolecularassembler$self(), patternDetails, inputHolder));
+                    this.ema$self(), patternDetails, inputHolder));
         }
     }
 
     @Unique
-    private ClusterAssemblerMatrix extendedmolecularassembler$self() {
+    private ClusterAssemblerMatrix ema$self() {
         return (ClusterAssemblerMatrix) (Object) this;
     }
 }

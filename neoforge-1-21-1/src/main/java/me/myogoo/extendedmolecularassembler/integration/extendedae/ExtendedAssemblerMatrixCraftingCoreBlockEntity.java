@@ -63,7 +63,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
     }
 
     @Override
-    public boolean extendedmolecularassembler$pushExtendedJob(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
+    public boolean ema$pushExtendedJob(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (!(patternDetails instanceof ExtendedTableCraftingPattern pattern)) {
             return false;
         }
@@ -80,21 +80,21 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
     }
 
     @Override
-    public int extendedmolecularassembler$getExtendedUsedThreadCount() {
+    public int ema$getExtendedUsedThreadCount() {
         return this.usedThreadCount;
     }
 
     @Override
-    public int extendedmolecularassembler$getExtendedThreadCapacity() {
+    public int ema$getExtendedThreadCapacity() {
         return this.extendedThreads.length;
     }
 
-    public int extendedmolecularassembler$getExtendedFreeThreadCount() {
+    public int ema$getExtendedFreeThreadCount() {
         return this.extendedThreads.length - this.usedThreadCount;
     }
 
     @Override
-    public void extendedmolecularassembler$cancelExtendedJobs() {
+    public void ema$cancelExtendedJobs() {
         var changed = false;
         for (var thread : this.extendedThreads) {
             changed |= thread.stopProcessing();

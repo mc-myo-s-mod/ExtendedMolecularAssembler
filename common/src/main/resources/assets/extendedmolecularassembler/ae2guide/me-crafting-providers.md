@@ -21,9 +21,9 @@ item_ids:
 
 <BlockImage id="extendedmolecularassembler:basic_me_crafting_provider" scale="5" />
 
-ME Crafting Providers are Expert Mode gate blocks for Extended Molecular Assembler autocrafting.
+ME Crafting Providers are Export Mode gate blocks for Extended Molecular Assembler autocrafting.
 
-When Expert Mode is enabled, an extended crafting job is accepted only if the same ME network contains an online provider for the exact encoded recipe table.
+When Export Mode is enabled, an extended crafting job is accepted only if the same ME network contains an online provider for the exact encoded recipe table.
 
 ## Extended Crafting Providers
 
@@ -58,4 +58,4 @@ The Xtreme provider is shared by both Re:Avaritia Xtreme recipes and Avaritia Ne
 * Providers do not open a screen and do not need manual interaction after placement.
 * Different recipe tables require their matching provider tier.
 
-If an extended crafting job is rejected in Expert Mode, check the encoded table shown by the Extended Pattern Encoding Terminal and place the matching provider on the same ME network.
+If an extended crafting job is rejected in Export Mode, check the encoded table shown by the Extended Pattern Encoding Terminal and place the matching provider on the same ME network.

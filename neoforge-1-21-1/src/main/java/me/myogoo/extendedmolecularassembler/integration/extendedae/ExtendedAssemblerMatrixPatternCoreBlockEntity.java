@@ -18,8 +18,8 @@ import appeng.util.inv.InternalInventoryHost;
 import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixFunction;
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
-import me.myogoo.extendedmolecularassembler.block.blockentity.TieredMECraftingProviderBlockEntity;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.blockentity.ExportMECraftingProviderBlockEntity;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
@@ -187,7 +187,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         if (!formed || !active || !knownPattern) {
             return false;
         }
-        if (EMAConfig.tieredMode() && patternDetails instanceof ExtendedTableCraftingPattern pattern
+        if (EMAConfig.exportMode() && patternDetails instanceof ExtendedTableCraftingPattern pattern
                 && !hasMatchingProvider(pattern)) {
             return false;
         }
@@ -196,7 +196,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
 
     private boolean hasMatchingProvider(ExtendedTableCraftingPattern pattern) {
         try {
-            TieredMECraftingProviderTier.requiredFor(pattern.tableType(), pattern.tableTier());
+            ExportMECraftingProviderTier.requiredFor(pattern.tableType(), pattern.tableTier());
         } catch (IllegalArgumentException ignored) {
             return false;
         }
@@ -206,7 +206,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
             return false;
         }
 
-        for (var provider : grid.getActiveMachines(TieredMECraftingProviderBlockEntity.class)) {
+        for (var provider : grid.getActiveMachines(ExportMECraftingProviderBlockEntity.class)) {
             if (provider.getTier().provides(pattern.tableType(), pattern.tableTier()) && provider.isOnline()) {
                 return true;
             }

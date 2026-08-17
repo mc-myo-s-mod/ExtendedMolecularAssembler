@@ -25,7 +25,7 @@ public abstract class GuiAssemblerMatrixMixin extends AEBaseScreen<ContainerAsse
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void extendedmolecularassembler$addExtendedPatternButton(ContainerAssemblerMatrix menu,
+    private void ema$addExtendedPatternButton(ContainerAssemblerMatrix menu,
             Inventory playerInventory, Component title, ScreenStyle style, CallbackInfo ci) {
         var button = new CustomImageButton(MyoIcon.EMA_CONFIG, btn -> {
             var matrixPos = menu.getHost().getBlockPos();

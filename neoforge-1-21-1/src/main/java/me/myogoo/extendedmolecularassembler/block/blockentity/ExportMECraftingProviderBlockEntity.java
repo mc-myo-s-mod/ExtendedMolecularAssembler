@@ -5,7 +5,7 @@ import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridNodeListener;
 import appeng.api.util.AEColor;
 import appeng.blockentity.networking.CableBusBlockEntity;
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,21 +14,21 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class TieredMECraftingProviderBlockEntity extends EMABaseProvider implements IPowerChannelState {
-    private final TieredMECraftingProviderTier tier;
+public class ExportMECraftingProviderBlockEntity extends EMABaseProvider implements IPowerChannelState {
+    private final ExportMECraftingProviderTier tier;
     private boolean clientSideOnline;
     private AEColor clientSideCableColor = AEColor.TRANSPARENT;
 
-    public TieredMECraftingProviderBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState blockState,
-            TieredMECraftingProviderTier tier) {
+    public ExportMECraftingProviderBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState blockState,
+            ExportMECraftingProviderTier tier) {
         super(blockEntityType, pos, blockState);
         this.tier = tier;
         getMainNode()
-                .setIdlePowerUsage(EMAConfig.tieredMECraftingProviderIdlePowerUsage(tier))
+                .setIdlePowerUsage(EMAConfig.exportMECraftingProviderIdlePowerUsage(tier))
                 .setFlags(GridFlags.REQUIRE_CHANNEL);
     }
 
-    public TieredMECraftingProviderTier getTier() {
+    public ExportMECraftingProviderTier getTier() {
         return tier;
     }
 

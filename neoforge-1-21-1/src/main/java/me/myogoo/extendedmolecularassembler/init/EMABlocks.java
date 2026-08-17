@@ -2,8 +2,8 @@ package me.myogoo.extendedmolecularassembler.init;
 
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.block.ExtendedMolecularAssemblerBlock;
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderBlock;
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderBlock;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -20,25 +20,25 @@ public final class EMABlocks {
     @Nullable
     public static DeferredBlock<ExtendedMolecularAssemblerBlock> EX_EXTENDED_MOLECULAR_ASSEMBLER;
 
-    public static final DeferredBlock<TieredMECraftingProviderBlock> BASIC_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.BASIC);
-    public static final DeferredBlock<TieredMECraftingProviderBlock> ADVANCED_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.ADVANCED);
-    public static final DeferredBlock<TieredMECraftingProviderBlock> ELITE_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.ELITE);
-    public static final DeferredBlock<TieredMECraftingProviderBlock> ULTIMATE_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.ULTIMATE);
-    public static final DeferredBlock<TieredMECraftingProviderBlock> RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_SCULK);
-    public static final DeferredBlock<TieredMECraftingProviderBlock> RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_NETHER);
-    public static final DeferredBlock<TieredMECraftingProviderBlock> RE_AVARITIA_END_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.RE_AVARITIA_END);
-    public static final DeferredBlock<TieredMECraftingProviderBlock> XTREME_ME_CRAFTING_PROVIDER =
-            registerProvider(TieredMECraftingProviderTier.XTREME);
+    public static final DeferredBlock<ExportMECraftingProviderBlock> BASIC_ME_CRAFTING_PROVIDER =
+            registerProvider(ExportMECraftingProviderTier.BASIC);
+    public static final DeferredBlock<ExportMECraftingProviderBlock> ADVANCED_ME_CRAFTING_PROVIDER =
+            registerProvider(ExportMECraftingProviderTier.ADVANCED);
+    public static final DeferredBlock<ExportMECraftingProviderBlock> ELITE_ME_CRAFTING_PROVIDER =
+            registerProvider(ExportMECraftingProviderTier.ELITE);
+    public static final DeferredBlock<ExportMECraftingProviderBlock> ULTIMATE_ME_CRAFTING_PROVIDER =
+            registerProvider(ExportMECraftingProviderTier.ULTIMATE);
+    public static final DeferredBlock<ExportMECraftingProviderBlock> RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER =
+            registerProvider(ExportMECraftingProviderTier.RE_AVARITIA_SCULK);
+    public static final DeferredBlock<ExportMECraftingProviderBlock> RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER =
+            registerProvider(ExportMECraftingProviderTier.RE_AVARITIA_NETHER);
+    public static final DeferredBlock<ExportMECraftingProviderBlock> RE_AVARITIA_END_ME_CRAFTING_PROVIDER =
+            registerProvider(ExportMECraftingProviderTier.RE_AVARITIA_END);
+    public static final DeferredBlock<ExportMECraftingProviderBlock> XTREME_ME_CRAFTING_PROVIDER =
+            registerProvider(ExportMECraftingProviderTier.XTREME);
 
-    private static DeferredBlock<TieredMECraftingProviderBlock> registerProvider(TieredMECraftingProviderTier tier) {
-        return BLOCKS.register(tier.blockId(), () -> new TieredMECraftingProviderBlock(tier, providerProperties()));
+    private static DeferredBlock<ExportMECraftingProviderBlock> registerProvider(ExportMECraftingProviderTier tier) {
+        return BLOCKS.register(tier.blockId(), () -> new ExportMECraftingProviderBlock(tier, providerProperties()));
     }
 
     public static void registerExtendedAEDeferred() {

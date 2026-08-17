@@ -105,7 +105,7 @@ public final class ExtendedAEAssemblerMatrixBridge {
         while (iterator.hasNext()) {
             var matrixBlock = iterator.next();
             if (matrixBlock instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity core) {
-                core.extendedmolecularassembler$cancelExtendedJobs();
+                core.ema$cancelExtendedJobs();
             }
         }
     }
@@ -141,7 +141,7 @@ public final class ExtendedAEAssemblerMatrixBridge {
                 continue;
             }
             if (matrixBlock instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity core) {
-                var coreFreeThreads = core.extendedmolecularassembler$getExtendedFreeThreadCount();
+                var coreFreeThreads = core.ema$getExtendedFreeThreadCount();
                 if (coreFreeThreads <= 0) {
                     continue;
                 }
@@ -155,7 +155,7 @@ public final class ExtendedAEAssemblerMatrixBridge {
         if (!hasPatternCore || availableCore == null || freeThreads <= getReservedJobCount(cluster)) {
             return false;
         }
-        return availableCore.extendedmolecularassembler$pushExtendedJob(patternDetails, inputHolder);
+        return availableCore.ema$pushExtendedJob(patternDetails, inputHolder);
     }
 
     public static JobScope activateJob(ReservedMatrixJob job) {
@@ -298,8 +298,8 @@ public final class ExtendedAEAssemblerMatrixBridge {
             if (matrixBlock instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity) {
                 hasPatternCore = true;
             } else if (matrixBlock instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity core) {
-                usedThreads += core.extendedmolecularassembler$getExtendedUsedThreadCount();
-                capacity += core.extendedmolecularassembler$getExtendedThreadCapacity();
+                usedThreads += core.ema$getExtendedUsedThreadCount();
+                capacity += core.ema$getExtendedThreadCapacity();
             }
         }
         return new ExtendedCraftingState(hasPatternCore, usedThreads, capacity);

@@ -2,6 +2,7 @@ package me.myogoo.extendedmolecularassembler.init;
 
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.network.clientbound.EMAAssemblerAnimationPacket;
+import me.myogoo.extendedmolecularassembler.network.clientbound.EMACraftConfirmPlanBlockPacket;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class EMANetwork {
@@ -14,6 +15,10 @@ public final class EMANetwork {
                 EMAAssemblerAnimationPacket.TYPE,
                 EMAAssemblerAnimationPacket.STREAM_CODEC,
                 EMAAssemblerAnimationPacket::handle);
+        registrar.playToClient(
+                EMACraftConfirmPlanBlockPacket.TYPE,
+                EMACraftConfirmPlanBlockPacket.STREAM_CODEC,
+                EMACraftConfirmPlanBlockPacket::handle);
         EMAOptionalIntegrations.registerNetwork(registrar);
     }
 }

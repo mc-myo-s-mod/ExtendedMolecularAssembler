@@ -5,7 +5,7 @@ import appeng.client.gui.style.StyleManager;
 import appeng.client.render.StaticItemColor;
 import appeng.init.client.InitScreens;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
-import me.myogoo.extendedmolecularassembler.block.blockentity.TieredMECraftingProviderBlockEntity;
+import me.myogoo.extendedmolecularassembler.block.blockentity.ExportMECraftingProviderBlockEntity;
 import me.myogoo.extendedmolecularassembler.client.render.ExtendedMolecularAssemblerRenderer;
 import me.myogoo.extendedmolecularassembler.client.screen.ExtendedMolecularAssemblerScreen;
 import me.myogoo.extendedmolecularassembler.client.screen.ExtendedPatternEncodingTermScreen;
@@ -80,7 +80,7 @@ public class EMAClient {
 
                     var color = AEColor.TRANSPARENT;
                     if (level != null && pos != null
-                            && level.getBlockEntity(pos) instanceof TieredMECraftingProviderBlockEntity provider) {
+                            && level.getBlockEntity(pos) instanceof ExportMECraftingProviderBlockEntity provider) {
                         color = provider.getCableColor();
                     }
                     return color.getVariantByTintIndex(tintIndex) | 0xFF000000;

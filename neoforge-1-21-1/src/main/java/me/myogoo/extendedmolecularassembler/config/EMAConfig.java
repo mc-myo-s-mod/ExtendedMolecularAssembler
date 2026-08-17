@@ -1,6 +1,6 @@
 package me.myogoo.extendedmolecularassembler.config;
 
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.EnumMap;
@@ -13,14 +13,14 @@ public final class EMAConfig {
 
     private static final PowerSettings EXTENDED_MOLECULAR_ASSEMBLER;
     private static final PowerSettings EX_EXTENDED_MOLECULAR_ASSEMBLER;
-    private static final Map<TieredMECraftingProviderTier, PowerSettings> TIERED_ME_CRAFTING_PROVIDERS;
+    private static final Map<ExportMECraftingProviderTier, PowerSettings> EXPORT_ME_CRAFTING_PROVIDERS;
     private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE;
     private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE;
     private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER;
     private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS;
     private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS;
     private static final PowerSettings EXTENDED_QUANTUM_CRAFTER;
-    private static final ModConfigSpec.BooleanValue TIERED_MODE;
+    private static final ModConfigSpec.BooleanValue EXPORT_MODE;
     private static final ModConfigSpec.BooleanValue STANDALONE_EXTENDEDAE_PLUS_CONTENT;
 
     static {
@@ -31,15 +31,15 @@ public final class EMAConfig {
         EX_EXTENDED_MOLECULAR_ASSEMBLER = defineBlock("ex_extended_molecular_assembler",
                 "EX Extended Molecular Assembler");
 
-        var providerSettings = new EnumMap<TieredMECraftingProviderTier, PowerSettings>(
-                TieredMECraftingProviderTier.class);
-        for (var tier : TieredMECraftingProviderTier.values()) {
+        var providerSettings = new EnumMap<ExportMECraftingProviderTier, PowerSettings>(
+                ExportMECraftingProviderTier.class);
+        for (var tier : ExportMECraftingProviderTier.values()) {
             providerSettings.put(tier, defineBlock(
                     tier.blockId(),
                     tier.displayName().getString(),
                     DEFAULT_CRAFTING_PROVIDER_IDLE_POWER_USAGE));
         }
-        TIERED_ME_CRAFTING_PROVIDERS = Map.copyOf(providerSettings);
+        EXPORT_ME_CRAFTING_PROVIDERS = Map.copyOf(providerSettings);
 
         EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE = defineBlock("extended_assembler_matrix_pattern_core",
                 "Extended Assembler Matrix Pattern Core");
@@ -56,11 +56,11 @@ public final class EMAConfig {
         BUILDER.pop();
 
         BUILDER.comment("Extended Molecular Assembler Settings").push("general");
-        TIERED_MODE = BUILDER
+        EXPORT_MODE = BUILDER
                 .comment(
                         "When enabled, extended table auto-crafting is accepted only if an online ME crafting provider for the exact encoded table exists in the same ME network.",
                         "Use the Extended Crafting providers for Extended Crafting tables, Re:Avaritia providers for Re:Avaritia Sculk/Nether/End tables, and the shared Xtreme provider for both Re:Avaritia Xtreme and AvaritiaNeo Xtreme recipes.")
-                .define("TieredMode", false);
+                .define("export", false);
         STANDALONE_EXTENDEDAE_PLUS_CONTENT = BUILDER
                 .comment(
                         "When enabled, EMA exposes standalone recipes, creative-tab entries, and Pattern Uploader support for its Plus-style Matrix blocks when ExtendedAE Plus is not installed.",
@@ -110,16 +110,16 @@ public final class EMAConfig {
                 .idlePowerUsage().get();
     }
 
-    public static double tieredMECraftingProviderCraftingPowerMultiplier(TieredMECraftingProviderTier tier) {
-        return TIERED_ME_CRAFTING_PROVIDERS.get(tier).craftingPowerMultiplier().get();
+    public static double exportMECraftingProviderCraftingPowerMultiplier(ExportMECraftingProviderTier tier) {
+        return EXPORT_ME_CRAFTING_PROVIDERS.get(tier).craftingPowerMultiplier().get();
     }
 
-    public static double tieredMECraftingProviderIdlePowerUsage(TieredMECraftingProviderTier tier) {
-        return TIERED_ME_CRAFTING_PROVIDERS.get(tier).idlePowerUsage().get();
+    public static double exportMECraftingProviderIdlePowerUsage(ExportMECraftingProviderTier tier) {
+        return EXPORT_ME_CRAFTING_PROVIDERS.get(tier).idlePowerUsage().get();
     }
 
-    public static boolean tieredMode() {
-        return TIERED_MODE.get();
+    public static boolean exportMode() {
+        return EXPORT_MODE.get();
     }
 
     public static boolean standaloneExtendedAEPlusContent() {

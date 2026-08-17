@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.Locale;
 
-public enum TieredMECraftingProviderTier {
+public enum ExportMECraftingProviderTier {
     BASIC(1, "basic", ChatFormatting.WHITE, EMATranslationKey.TIER.BASIC,
             ExtendedPatternTableTypes.EXTENDED_CRAFTING_BASIC),
     ADVANCED(2, "advanced", ChatFormatting.AQUA, EMATranslationKey.TIER.ADVANCED,
@@ -34,7 +34,7 @@ public enum TieredMECraftingProviderTier {
     private final MyoTranslateKey translationKey;
     private final ResourceLocation[] tableTypes;
 
-    TieredMECraftingProviderTier(int tier, String id, ChatFormatting color,
+    ExportMECraftingProviderTier(int tier, String id, ChatFormatting color,
             MyoTranslateKey translationKey, ResourceLocation... tableTypes) {
         this.tier = tier;
         this.id = id;
@@ -85,7 +85,7 @@ public enum TieredMECraftingProviderTier {
         return false;
     }
 
-    public static TieredMECraftingProviderTier requiredFor(ResourceLocation tableType, int tableTier) {
+    public static ExportMECraftingProviderTier requiredFor(ResourceLocation tableType, int tableTier) {
         for (var value : values()) {
             if (value.provides(tableType, tableTier)) {
                 return value;
@@ -95,7 +95,7 @@ public enum TieredMECraftingProviderTier {
                 + " tier " + tableTier);
     }
 
-    public static TieredMECraftingProviderTier byTier(int tier) {
+    public static ExportMECraftingProviderTier byTier(int tier) {
         for (var value : values()) {
             if (value.tier == tier) {
                 return value;

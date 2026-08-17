@@ -3,10 +3,10 @@ package me.myogoo.extendedmolecularassembler.init;
 import appeng.blockentity.AEBaseBlockEntity;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.block.ExtendedMolecularAssemblerBlock;
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderBlock;
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderBlock;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
-import me.myogoo.extendedmolecularassembler.block.blockentity.TieredMECraftingProviderBlockEntity;
+import me.myogoo.extendedmolecularassembler.block.blockentity.ExportMECraftingProviderBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -27,38 +27,38 @@ public final class EMABlockEntities {
     public static DeferredHolder<BlockEntityType<?>, BlockEntityType<ExtendedMolecularAssemblerBlockEntity>>
             EX_EXTENDED_MOLECULAR_ASSEMBLER;
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExportMECraftingProviderBlockEntity>>
             BASIC_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("basic_me_crafting_provider",
                     () -> createProviderType(EMABlocks.BASIC_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.BASIC));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
+                            ExportMECraftingProviderTier.BASIC));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExportMECraftingProviderBlockEntity>>
             ADVANCED_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("advanced_me_crafting_provider",
                     () -> createProviderType(EMABlocks.ADVANCED_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.ADVANCED));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
+                            ExportMECraftingProviderTier.ADVANCED));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExportMECraftingProviderBlockEntity>>
             ELITE_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("elite_me_crafting_provider",
                     () -> createProviderType(EMABlocks.ELITE_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.ELITE));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
+                            ExportMECraftingProviderTier.ELITE));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExportMECraftingProviderBlockEntity>>
             ULTIMATE_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("ultimate_me_crafting_provider",
                     () -> createProviderType(EMABlocks.ULTIMATE_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.ULTIMATE));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
+                            ExportMECraftingProviderTier.ULTIMATE));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExportMECraftingProviderBlockEntity>>
             RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("re_avaritia_sculk_me_crafting_provider",
                     () -> createProviderType(EMABlocks.RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.RE_AVARITIA_SCULK));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
+                            ExportMECraftingProviderTier.RE_AVARITIA_SCULK));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExportMECraftingProviderBlockEntity>>
             RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("re_avaritia_nether_me_crafting_provider",
                     () -> createProviderType(EMABlocks.RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.RE_AVARITIA_NETHER));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
+                            ExportMECraftingProviderTier.RE_AVARITIA_NETHER));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExportMECraftingProviderBlockEntity>>
             RE_AVARITIA_END_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("re_avaritia_end_me_crafting_provider",
                     () -> createProviderType(EMABlocks.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.RE_AVARITIA_END));
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TieredMECraftingProviderBlockEntity>>
+                            ExportMECraftingProviderTier.RE_AVARITIA_END));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ExportMECraftingProviderBlockEntity>>
             XTREME_ME_CRAFTING_PROVIDER = BLOCK_ENTITIES.register("xtreme_me_crafting_provider",
                     () -> createProviderType(EMABlocks.XTREME_ME_CRAFTING_PROVIDER.get(),
-                            TieredMECraftingProviderTier.XTREME));
+                            ExportMECraftingProviderTier.XTREME));
 
     private static BlockEntityType<ExtendedMolecularAssemblerBlockEntity> createAssemblerType(
             ExtendedMolecularAssemblerBlock block) {
@@ -79,14 +79,14 @@ public final class EMABlockEntities {
         }
     }
 
-    private static BlockEntityType<TieredMECraftingProviderBlockEntity> createProviderType(
-            TieredMECraftingProviderBlock block, TieredMECraftingProviderTier tier) {
-        var typeHolder = new AtomicReference<BlockEntityType<TieredMECraftingProviderBlockEntity>>();
-        BlockEntityType.BlockEntitySupplier<TieredMECraftingProviderBlockEntity> supplier =
-                (pos, state) -> new TieredMECraftingProviderBlockEntity(typeHolder.get(), pos, state, tier);
+    private static BlockEntityType<ExportMECraftingProviderBlockEntity> createProviderType(
+            ExportMECraftingProviderBlock block, ExportMECraftingProviderTier tier) {
+        var typeHolder = new AtomicReference<BlockEntityType<ExportMECraftingProviderBlockEntity>>();
+        BlockEntityType.BlockEntitySupplier<ExportMECraftingProviderBlockEntity> supplier =
+                (pos, state) -> new ExportMECraftingProviderBlockEntity(typeHolder.get(), pos, state, tier);
         var type = BlockEntityType.Builder.of(supplier, block).build(null);
         typeHolder.setPlain(type);
-        block.setBlockEntity(TieredMECraftingProviderBlockEntity.class, type, null, null);
+        block.setBlockEntity(ExportMECraftingProviderBlockEntity.class, type, null, null);
         return type;
     }
 
@@ -125,7 +125,7 @@ public final class EMABlockEntities {
                 EMAItems.XTREME_ME_CRAFTING_PROVIDER.get());
     }
 
-    public static List<BlockEntityType<TieredMECraftingProviderBlockEntity>> providerTypes() {
+    public static List<BlockEntityType<ExportMECraftingProviderBlockEntity>> providerTypes() {
         return List.of(
                 BASIC_ME_CRAFTING_PROVIDER.get(),
                 ADVANCED_ME_CRAFTING_PROVIDER.get(),

@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = CalculatorAssemblerMatrix.class, remap = false)
 public abstract class CalculatorAssemblerMatrixMixin {
     @Inject(method = "verifyInternalStructure", at = @At("HEAD"), cancellable = true)
-    private void extendedmolecularassembler$verifyExtendedPatternCore(ServerLevel level, BlockPos min, BlockPos max,
+    private void ema$verifyExtendedPatternCore(ServerLevel level, BlockPos min, BlockPos max,
             CallbackInfoReturnable<Boolean> cir) {
         var anyPattern = false;
         var anyCrafter = false;
@@ -38,12 +38,12 @@ public abstract class CalculatorAssemblerMatrixMixin {
                     || blockEntity instanceof TileAssemblerMatrixCrafter
                     || blockEntity instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity;
 
-            if (extendedmolecularassembler$isInternal(pos, min, max)) {
+            if (ema$isInternal(pos, min, max)) {
                 if (!(blockEntity instanceof TileAssemblerMatrixFunction)) {
                     cir.setReturnValue(false);
                     return;
                 }
-            } else if (extendedmolecularassembler$isEdge(pos, min, max)) {
+            } else if (ema$isEdge(pos, min, max)) {
                 if (!(blockEntity instanceof TileAssemblerMatrixFrame)) {
                     cir.setReturnValue(false);
                     return;
@@ -57,14 +57,14 @@ public abstract class CalculatorAssemblerMatrixMixin {
     }
 
     @Unique
-    private static boolean extendedmolecularassembler$isInternal(BlockPos pos, BlockPos min, BlockPos max) {
+    private static boolean ema$isInternal(BlockPos pos, BlockPos min, BlockPos max) {
         return pos.getX() < max.getX() && pos.getX() > min.getX()
                 && pos.getY() < max.getY() && pos.getY() > min.getY()
                 && pos.getZ() < max.getZ() && pos.getZ() > min.getZ();
     }
 
     @Unique
-    private static boolean extendedmolecularassembler$isEdge(BlockPos pos, BlockPos min, BlockPos max) {
+    private static boolean ema$isEdge(BlockPos pos, BlockPos min, BlockPos max) {
         var boundaryAxes = 0;
         if (pos.getX() == min.getX() || pos.getX() == max.getX()) {
             boundaryAxes++;

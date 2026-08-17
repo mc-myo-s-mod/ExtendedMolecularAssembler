@@ -137,12 +137,12 @@ public enum EMATranslationKey implements MyoTranslateKey {
     public enum TOOLTIP implements MyoTranslateKey {
         TABLE("tooltip.extendedmolecularassembler.table"),
         EXTENDED_QUANTUM_CRAFTER_WIP("tooltip.extendedmolecularassembler.extended_quantum_crafter.wip"),
-        ME_CRAFTING_PROVIDER_EXPERT_MODE("tooltip.extendedmolecularassembler.me_crafting_provider.expert_mode"),
-        TIERED_MODE_ENABLED("tooltip.extendedmolecularassembler.tiered_mode.enabled"),
-        TIERED_MODE_LAST_REJECT("tooltip.extendedmolecularassembler.tiered_mode.last_reject"),
-        TIERED_MODE_MISSING_PROVIDER("tooltip.extendedmolecularassembler.tiered_mode.missing_provider"),
-        TIERED_MODE_OFFLINE_GRID("tooltip.extendedmolecularassembler.tiered_mode.offline_grid"),
-        TIERED_MODE_UNSUPPORTED_TIER("tooltip.extendedmolecularassembler.tiered_mode.unsupported_tier"),
+        ME_CRAFTING_PROVIDER_EXPORT_MODE("tooltip.extendedmolecularassembler.me_crafting_provider.export_mode"),
+        EXPORT_MODE_ENABLED("tooltip.extendedmolecularassembler.export_mode.enabled"),
+        EXPORT_MODE_LAST_REJECT("tooltip.extendedmolecularassembler.export_mode.last_reject"),
+        EXPORT_MODE_MISSING_PROVIDER("tooltip.extendedmolecularassembler.export_mode.missing_provider"),
+        EXPORT_MODE_OFFLINE_GRID("tooltip.extendedmolecularassembler.export_mode.offline_grid"),
+        EXPORT_MODE_UNSUPPORTED_TIER("tooltip.extendedmolecularassembler.export_mode.unsupported_tier"),
         ME_CRAFTING_PROVIDER_TIER("tooltip.extendedmolecularassembler.me_crafting_provider.tier"),
         ME_CRAFTING_PROVIDER_PROVIDES("tooltip.extendedmolecularassembler.me_crafting_provider.provides"),
         ME_CRAFTING_PROVIDER_REQUIREMENT("tooltip.extendedmolecularassembler.me_crafting_provider.requirement");

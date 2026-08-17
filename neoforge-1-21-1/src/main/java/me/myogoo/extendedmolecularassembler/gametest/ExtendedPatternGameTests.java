@@ -6,6 +6,7 @@ import appeng.api.implementations.blockentities.ICraftingMachine;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.util.AECableType;
+import appeng.menu.me.crafting.CraftConfirmMenu;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
 import me.myogoo.extendedmolecularassembler.api.annotation.AdvancedAE;
@@ -14,15 +15,16 @@ import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAE;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAEPlus;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
 import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
-import me.myogoo.extendedmolecularassembler.block.blockentity.TieredMECraftingProviderBlockEntity;
+import me.myogoo.extendedmolecularassembler.block.blockentity.ExportMECraftingProviderBlockEntity;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMADataComponents;
 import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
 import me.myogoo.extendedmolecularassembler.integration.advancedae.AdvancedAEGameTestHelper;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAEGameTestHelper;
+import me.myogoo.extendedmolecularassembler.menu.crafting.CraftConfirmExportPlanGate;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinder;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeMatch;
 import me.myogoo.extendedmolecularassembler.pattern.EncodedExtendedCraftingPattern;
@@ -249,6 +251,13 @@ public final class ExtendedPatternGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)
+    public static void craftConfirmationMenuHasExportModeGate(GameTestHelper helper) {
+        helper.assertTrue(CraftConfirmExportPlanGate.class.isAssignableFrom(CraftConfirmMenu.class),
+                "AE2 CraftConfirmMenu is missing EMA's export-mode server gate");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
     public static void assemblerConnectionCapabilitiesFollowAe2(GameTestHelper helper) {
         assertAssemblerConnection(helper, EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get(), new BlockPos(1, 1, 1),
                 "Extended Molecular Assembler");
@@ -260,8 +269,8 @@ public final class ExtendedPatternGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)
-    public static void tieredMECraftingProvidersExposeConfiguredIdlePower(GameTestHelper helper) {
-        var tiers = TieredMECraftingProviderTier.values();
+    public static void exportMECraftingProvidersExposeConfiguredIdlePower(GameTestHelper helper) {
+        var tiers = ExportMECraftingProviderTier.values();
         for (int i = 0; i < tiers.length; i++) {
             helper.setBlock(providerTestPosition(i), providerBlock(tiers[i]));
         }
@@ -277,15 +286,15 @@ public final class ExtendedPatternGameTests {
                         tier + " provider default idle AE/t");
 
                 var blockEntity = helper.getBlockEntity(providerTestPosition(i));
-                helper.assertTrue(blockEntity instanceof TieredMECraftingProviderBlockEntity,
-                        tier + " did not create a TieredMECraftingProviderBlockEntity");
+                helper.assertTrue(blockEntity instanceof ExportMECraftingProviderBlockEntity,
+                        tier + " did not create an ExportMECraftingProviderBlockEntity");
 
-                var provider = (TieredMECraftingProviderBlockEntity) blockEntity;
+                var provider = (ExportMECraftingProviderBlockEntity) blockEntity;
                 assertEqual(helper, tier, provider.getTier(), tier + " provider tier");
 
                 var node = provider.getMainNode().getNode();
                 helper.assertTrue(node != null, tier + " provider ME node was not created");
-                assertEqual(helper, EMAConfig.tieredMECraftingProviderIdlePowerUsage(tier),
+                assertEqual(helper, EMAConfig.exportMECraftingProviderIdlePowerUsage(tier),
                         node.getIdlePowerUsage(), tier + " provider idle AE/t");
             }
             helper.succeed();
@@ -483,7 +492,7 @@ public final class ExtendedPatternGameTests {
         return new BlockPos(index % 3, 1, index / 3);
     }
 
-    private static Block providerBlock(TieredMECraftingProviderTier tier) {
+    private static Block providerBlock(ExportMECraftingProviderTier tier) {
         return switch (tier) {
             case BASIC -> EMABlocks.BASIC_ME_CRAFTING_PROVIDER.get();
             case ADVANCED -> EMABlocks.ADVANCED_ME_CRAFTING_PROVIDER.get();

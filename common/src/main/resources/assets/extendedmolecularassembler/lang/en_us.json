@@ -66,12 +66,12 @@
   "tier.extendedmolecularassembler.advanced": "Advanced",
   "tier.extendedmolecularassembler.elite": "Elite",
   "tier.extendedmolecularassembler.ultimate": "Ultimate",
-  "tooltip.extendedmolecularassembler.me_crafting_provider.expert_mode": "Expert Mode only",
-  "tooltip.extendedmolecularassembler.tiered_mode.enabled": "Expert Mode: exact-table ME Crafting Provider required.",
-  "tooltip.extendedmolecularassembler.tiered_mode.last_reject": "Last rejected: %s",
-  "tooltip.extendedmolecularassembler.tiered_mode.missing_provider": "Missing online %s provider for this recipe table on this ME network.",
-  "tooltip.extendedmolecularassembler.tiered_mode.offline_grid": "Assembler is not online on an ME network; %s provider for table tier %s cannot be found.",
-  "tooltip.extendedmolecularassembler.tiered_mode.unsupported_tier": "Unsupported extended table %s (%s); no matching ME Crafting Provider tier exists.",
+  "tooltip.extendedmolecularassembler.me_crafting_provider.export_mode": "Export Mode only",
+  "tooltip.extendedmolecularassembler.export_mode.enabled": "Export Mode: exact-table ME Crafting Provider required.",
+  "tooltip.extendedmolecularassembler.export_mode.last_reject": "Last rejected: %s",
+  "tooltip.extendedmolecularassembler.export_mode.missing_provider": "Missing online %s provider for this recipe table on this ME network.",
+  "tooltip.extendedmolecularassembler.export_mode.offline_grid": "Assembler is not online on an ME network; %s provider for table tier %s cannot be found.",
+  "tooltip.extendedmolecularassembler.export_mode.unsupported_tier": "Unsupported extended table %s (%s); no matching ME Crafting Provider tier exists.",
   "message.extendedmolecularassembler.no_menu": "Pattern providers can push extended crafting patterns into this assembler.",
   "block.extendedmolecularassembler.re_avaritia_sculk_me_crafting_provider": "Re:Avaritia Sculk ME Crafting Provider",
   "block.extendedmolecularassembler.re_avaritia_nether_me_crafting_provider": "Re:Avaritia Nether ME Crafting Provider",
@@ -84,5 +84,5 @@
   "message.extendedmolecularassembler.me_crafting_provider.status": "%s unlocks extended table tier %s patterns while online on the same ME network.",
   "tooltip.extendedmolecularassembler.me_crafting_provider.tier": "%s provider: table tier %s only",
   "tooltip.extendedmolecularassembler.me_crafting_provider.provides": "%s provider: %s only",
-  "tooltip.extendedmolecularassembler.me_crafting_provider.requirement": "TieredMode only: must be online on the same ME network as the assembler."
+  "tooltip.extendedmolecularassembler.me_crafting_provider.requirement": "Export Mode only: must be online on the same ME network as the assembler."
 }

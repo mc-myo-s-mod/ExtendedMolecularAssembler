@@ -22,9 +22,9 @@ public abstract class QuantumCrafterMenuMixin {
     private Slot[] patternSlots;
 
     @Inject(method = "isValidForSlot", at = @At("HEAD"), cancellable = true)
-    private void extendedmolecularassembler$allowExtendedCraftingPatterns(Slot slot, ItemStack stack,
+    private void ema$allowExtendedCraftingPatterns(Slot slot, ItemStack stack,
             CallbackInfoReturnable<Boolean> cir) {
-        if (!this.extendedmolecularassembler$isExtendedQuantumCrafter()) {
+        if (!this.ema$isExtendedQuantumCrafter()) {
             return;
         }
         if (!stack.is(EMAItems.EXTENDED_CRAFTING_PATTERN.get()) || !PatternDetailsHelper.isEncodedPattern(stack)) {
@@ -40,7 +40,7 @@ public abstract class QuantumCrafterMenuMixin {
     }
 
     @Unique
-    private boolean extendedmolecularassembler$isExtendedQuantumCrafter() {
+    private boolean ema$isExtendedQuantumCrafter() {
         if (EMAAdvancedAEIntegration.EXTENDED_QUANTUM_CRAFTER == null) {
             return false;
         }

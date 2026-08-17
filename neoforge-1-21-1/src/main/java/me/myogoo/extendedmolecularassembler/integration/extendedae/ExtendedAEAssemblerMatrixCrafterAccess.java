@@ -8,11 +8,11 @@ import appeng.api.stacks.KeyCounter;
  * Matrix-owned execution cores instead of on external EMA machines.
  */
 public interface ExtendedAEAssemblerMatrixCrafterAccess {
-    boolean extendedmolecularassembler$pushExtendedJob(IPatternDetails patternDetails, KeyCounter[] inputHolder);
+    boolean ema$pushExtendedJob(IPatternDetails patternDetails, KeyCounter[] inputHolder);
 
-    int extendedmolecularassembler$getExtendedUsedThreadCount();
+    int ema$getExtendedUsedThreadCount();
 
-    int extendedmolecularassembler$getExtendedThreadCapacity();
+    int ema$getExtendedThreadCapacity();
 
-    void extendedmolecularassembler$cancelExtendedJobs();
+    void ema$cancelExtendedJobs();
 }
