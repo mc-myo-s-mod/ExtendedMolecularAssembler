@@ -52,13 +52,7 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 .inputItem("ae2:speed_card", 4)
                 .output(EX_EXTENDED_MOLECULAR_ASSEMBLER, 1)
                 .save(output);
-        shapeless("minecraft:crafting_shapeless",
-                "extendedmolecularassembler:extended_pattern_encoding_terminal", 1)
-                .requires(item(COMPAT_PROCESSOR))
-                .requires(item("ae2:pattern_encoding_terminal"))
-                .requires(item("ae2:annihilation_core"))
-                .requires(item("ae2:formation_core"))
-                .save(output, recipeId("extended_pattern_encoding_terminal"));
+        buildExtendedPatternEncodingTerminalRecipes(output);
 
         JsonArray extendedCrafting = myoConditions("extendedcrafting");
         saveShaped(output, "basic_me_crafting_provider", extendedCrafting, "redstone",
@@ -138,6 +132,61 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
         saveMatrixCorePlus(output, "extended_assembler_matrix_pattern_core_plus",
                 "extendedmolecularassembler:extended_assembler_matrix_pattern_core",
                 "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus", extendedAEPlusContent);
+    }
+
+    private static void buildExtendedPatternEncodingTerminalRecipes(JsonRecipeOutput output) {
+        saveExtendedPatternTerminal(output, "extended_pattern_encoding_terminal",
+                conditionsFor(new String[]{}, "Re-Avaritia", "Avaritia", "extendedcrafting"));
+        saveExtendedPatternTerminal(output, "reavaritia/extended_pattern_encoding_terminal",
+                conditionsFor(new String[]{"Re-Avaritia"}, "Avaritia", "extendedcrafting"),
+                "avaritia:sculk_crafting_table",
+                "avaritia:nether_crafting_table",
+                "avaritia:end_crafting_table",
+                "avaritia:extreme_crafting_table");
+        saveExtendedPatternTerminal(output, "avaritianeo/extended_pattern_encoding_terminal",
+                conditionsFor(new String[]{"Avaritia"}, "Re-Avaritia", "extendedcrafting"),
+                "avaritia:extreme_crafting_table");
+        saveExtendedPatternTerminal(output, "extendedcrafting/extended_pattern_encoding_terminal",
+                conditionsFor(new String[]{"extendedcrafting"}, "Re-Avaritia", "Avaritia"),
+                "extendedcrafting:basic_table",
+                "extendedcrafting:advanced_table",
+                "extendedcrafting:elite_table",
+                "extendedcrafting:ultimate_table");
+        saveExtendedPatternTerminal(output, "reavaritia_extendedcrafting/extended_pattern_encoding_terminal",
+                conditionsFor(new String[]{"Re-Avaritia", "extendedcrafting"}, "Avaritia"),
+                "avaritia:sculk_crafting_table",
+                "avaritia:nether_crafting_table",
+                "avaritia:end_crafting_table",
+                "avaritia:extreme_crafting_table",
+                "extendedcrafting:basic_table",
+                "extendedcrafting:advanced_table",
+                "extendedcrafting:elite_table",
+                "extendedcrafting:ultimate_table");
+        saveExtendedPatternTerminal(output, "avaritianeo_extendedcrafting/extended_pattern_encoding_terminal",
+                conditionsFor(new String[]{"Avaritia", "extendedcrafting"}, "Re-Avaritia"),
+                "avaritia:extreme_crafting_table",
+                "extendedcrafting:basic_table",
+                "extendedcrafting:advanced_table",
+                "extendedcrafting:elite_table",
+                "extendedcrafting:ultimate_table");
+        saveExtendedPatternTerminal(output, "extendedterminal/extended_pattern_encoding_terminal",
+                myoConditions("extendedterminal"),
+                "extendedterminal:united_terminal");
+    }
+
+    private static void saveExtendedPatternTerminal(JsonRecipeOutput output, String path, JsonArray conditions,
+            String... extraIngredients) {
+        JsonObject recipe = recipe("minecraft:crafting_shapeless");
+        recipe.add("neoforge:conditions", conditions);
+
+        JsonArray ingredients = new JsonArray();
+        ingredients.add(item("ae2:pattern_encoding_terminal"));
+        for (String ingredient : extraIngredients) {
+            ingredients.add(item(ingredient));
+        }
+        recipe.add("ingredients", ingredients);
+        recipe.add("result", stack("extendedmolecularassembler:extended_pattern_encoding_terminal", 1));
+        save(output, path, recipe);
     }
 
     private static void saveMatrixCoreCrystalAssembler(JsonRecipeOutput output, String path, String result,
@@ -258,6 +307,21 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
             values.add(myoCondition(activeMod));
         }
         return values;
+    }
+
+    private static JsonArray conditionsFor(String[] activeMods, String... inactiveMods) {
+        JsonArray conditions = myoConditions(activeMods);
+        for (String inactiveMod : inactiveMods) {
+            conditions.add(notCondition(myoCondition(inactiveMod)));
+        }
+        return conditions;
+    }
+
+    private static JsonObject notCondition(JsonObject value) {
+        JsonObject condition = new JsonObject();
+        condition.addProperty("type", "neoforge:not");
+        condition.add("value", value);
+        return condition;
     }
 
     private static JsonArray extendedAEPlusContentConditions() {

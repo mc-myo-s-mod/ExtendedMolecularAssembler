@@ -1,6 +1,10 @@
 {
   "neoforge:conditions": [
     {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    },
+    {
       "type": "neoforge:not",
       "value": {
         "type": "myotus:mod_condition",
@@ -13,19 +17,24 @@
         "type": "myotus:mod_condition",
         "active_mod": "Avaritia"
       }
-    },
-    {
-      "type": "neoforge:not",
-      "value": {
-        "type": "myotus:mod_condition",
-        "active_mod": "extendedcrafting"
-      }
     }
   ],
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
       "item": "ae2:pattern_encoding_terminal"
+    },
+    {
+      "item": "extendedcrafting:basic_table"
+    },
+    {
+      "item": "extendedcrafting:advanced_table"
+    },
+    {
+      "item": "extendedcrafting:elite_table"
+    },
+    {
+      "item": "extendedcrafting:ultimate_table"
     }
   ],
   "result": {

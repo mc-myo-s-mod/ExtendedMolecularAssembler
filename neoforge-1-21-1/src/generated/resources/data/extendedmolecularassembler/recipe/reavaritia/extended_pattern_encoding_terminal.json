@@ -1,11 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:not",
-      "value": {
-        "type": "myotus:mod_condition",
-        "active_mod": "Re-Avaritia"
-      }
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
     },
     {
       "type": "neoforge:not",
@@ -26,6 +23,18 @@
   "ingredients": [
     {
       "item": "ae2:pattern_encoding_terminal"
+    },
+    {
+      "item": "avaritia:sculk_crafting_table"
+    },
+    {
+      "item": "avaritia:nether_crafting_table"
+    },
+    {
+      "item": "avaritia:end_crafting_table"
+    },
+    {
+      "item": "avaritia:extreme_crafting_table"
     }
   ],
   "result": {

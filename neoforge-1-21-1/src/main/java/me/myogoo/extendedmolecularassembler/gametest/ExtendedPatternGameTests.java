@@ -14,6 +14,7 @@ import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAE;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAEPlus;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedTerminal;
 import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
 import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
@@ -228,6 +229,29 @@ public final class ExtendedPatternGameTests {
         assertRecipeRegistration(helper,
                 "wireless_universal_terminal/upgrade_extended_pattern_encoding",
                 ae2wtlib);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void extendedPatternTerminalRecipesFollowTableMods(GameTestHelper helper) {
+        boolean extendedCrafting = MyotusAPI.integrations().isLoaded(ExtendedCrafting.class);
+        boolean reAvaritia = MyotusAPI.integrations().isLoaded(ReAvaritia.class);
+        boolean avaritiaNeo = MyotusAPI.integrations().isLoaded(AvaritiaNeo.class);
+
+        assertRecipeRegistration(helper, "extended_pattern_encoding_terminal",
+                !extendedCrafting && !reAvaritia && !avaritiaNeo);
+        assertRecipeRegistration(helper, "reavaritia/extended_pattern_encoding_terminal",
+                reAvaritia && !extendedCrafting);
+        assertRecipeRegistration(helper, "avaritianeo/extended_pattern_encoding_terminal",
+                avaritiaNeo && !extendedCrafting);
+        assertRecipeRegistration(helper, "extendedcrafting/extended_pattern_encoding_terminal",
+                extendedCrafting && !reAvaritia && !avaritiaNeo);
+        assertRecipeRegistration(helper, "reavaritia_extendedcrafting/extended_pattern_encoding_terminal",
+                reAvaritia && extendedCrafting);
+        assertRecipeRegistration(helper, "avaritianeo_extendedcrafting/extended_pattern_encoding_terminal",
+                avaritiaNeo && extendedCrafting);
+        assertRecipeRegistration(helper, "extendedterminal/extended_pattern_encoding_terminal",
+                MyotusAPI.integrations().isLoaded(ExtendedTerminal.class));
         helper.succeed();
     }
 
