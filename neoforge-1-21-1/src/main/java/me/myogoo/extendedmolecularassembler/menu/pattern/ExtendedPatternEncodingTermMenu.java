@@ -22,6 +22,7 @@ import me.myogoo.extendedmolecularassembler.menu.EMASlotSemantics;
 import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import me.myogoo.myotus.api.MyotusAPI;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,6 +30,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +48,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
     private static final String ACTION_SELECT_RECIPE = "selectRecipe";
     private static final String ACTION_REMEMBER_RECIPE_TYPE = "rememberRecipeType";
     private static final String ACTION_UPLOAD_TO_MATRIX = "uploadToMatrix";
+    private static final String ENCODE_PLAYER_TAG = "encodePlayer";
     private static final int MATRIX_UPLOADER_SYNC_INTERVAL = 20;
 
     public static final MenuType<ExtendedPatternEncodingTermMenu> TYPE = MenuTypeBuilder
@@ -558,8 +561,12 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
             return null;
         }
 
-        return ExtendedPatternDetailsHelper.encodeExtendedCraftingPattern(match.recipe(), match.inputs(),
+        var encodedPattern = ExtendedPatternDetailsHelper.encodeExtendedCraftingPattern(match.recipe(), match.inputs(),
                 match.result(), encodingLogic.isSubstitution(), encodingLogic.isFluidSubstitution());
+        var playerName = getPlayerInventory().player.getGameProfile().getName();
+        CustomData.update(DataComponents.CUSTOM_DATA, encodedPattern,
+                tag -> tag.putString(ENCODE_PLAYER_TAG, playerName));
+        return encodedPattern;
     }
 
     @Nullable
