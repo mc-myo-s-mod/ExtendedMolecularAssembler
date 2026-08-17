@@ -12,6 +12,7 @@
     "extendedae.ClusterAssemblerMatrixMixin"
   ],
   "client": [
+    "ae2.AbstractTableRendererMixin",
     "ae2.CraftConfirmScreenMixin",
     "extendedae.GuiAssemblerMatrixMixin"
   ],
