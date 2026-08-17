@@ -141,7 +141,7 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
         if (this.lastRunningThreads != this.menu.runningThreads) {
             this.lastRunningThreads = this.menu.runningThreads;
             this.runningThreadsText = Component.translatable(
-                    EMATranslationKey.GUI.MATRIX_ACTIVE_JOBS.key(), this.menu.runningThreads);
+                    EMATranslationKey.GUI.MATRIX_THREADS.key(), this.menu.runningThreads);
         }
 
         this.refreshPatternCaches();
@@ -150,8 +150,7 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
     @Override
     public void drawFG(GuiGraphics guiGraphics, int offsetX, int offsetY, int mouseX, int mouseY) {
         var color = style.getColor(PaletteColor.DEFAULT_TEXT_COLOR).toARGB();
-        var jobsWidth = this.font.width(this.runningThreadsText);
-        guiGraphics.drawString(this.font, this.runningThreadsText, 187 - jobsWidth, 20, color, false);
+        guiGraphics.drawString(this.font, this.runningThreadsText, 80, 19, color, false);
 
         drawPatternEntries(guiGraphics, mouseX, mouseY);
 

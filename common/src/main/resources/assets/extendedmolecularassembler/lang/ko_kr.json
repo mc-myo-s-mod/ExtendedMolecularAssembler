@@ -29,7 +29,7 @@
   "gui.extendedmolecularassembler.matrix.extendedPatterns": "확장 분자 조합기 패턴",
   "gui.extendedmolecularassembler.matrix.backToMatrix": "조합 매트릭스로 돌아가기",
   "gui.extendedmolecularassembler.matrix.patternCore": "확장 조합기 매트릭스 패턴 코어",
-  "gui.extendedmolecularassembler.matrix.patternCoreShort": "EMA 매트릭스 패턴",
+  "gui.extendedmolecularassembler.matrix.patternCoreShort": "확장 매트릭스 패턴",
   "gui.extendedmolecularassembler.matrix.storedPatterns": "저장된 패턴",
   "gui.extendedmolecularassembler.matrix.activeJobs": "진행 작업: %s",
   "gui.extendedmolecularassembler.matrix.threads": "진행 작업: %s",
