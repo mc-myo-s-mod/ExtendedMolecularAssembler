@@ -6,6 +6,8 @@ import appeng.api.implementations.blockentities.ICraftingMachine;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.util.AECableType;
+import appeng.blockentity.crafting.CraftingBlockEntity;
+import appeng.core.definitions.AEBlocks;
 import appeng.menu.me.crafting.CraftConfirmMenu;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
@@ -279,6 +281,27 @@ public final class ExtendedPatternGameTests {
         helper.assertTrue(CraftConfirmExportPlanGate.class.isAssignableFrom(CraftConfirmMenu.class),
                 "AE2 CraftConfirmMenu is missing EMA's export-mode server gate");
         helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void destroyedCraftingCpuNodeIgnoresLateSideUpdate(GameTestHelper helper) {
+        var pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, AEBlocks.CRAFTING_UNIT.block());
+        helper.runAfterDelay(1, () -> {
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof CraftingBlockEntity,
+                    "AE2 crafting unit did not create a CraftingBlockEntity");
+
+            var craftingBlock = (CraftingBlockEntity) blockEntity;
+            helper.assertTrue(craftingBlock.getMainNode().isReady(),
+                    "AE2 crafting unit node was not ready before regression check");
+            craftingBlock.getMainNode().destroy();
+            craftingBlock.updateSubType(true);
+            helper.assertFalse(craftingBlock.getMainNode().isReady(),
+                    "destroyed AE2 crafting unit node unexpectedly became ready again");
+            helper.destroyBlock(pos);
+            helper.succeed();
+        });
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)

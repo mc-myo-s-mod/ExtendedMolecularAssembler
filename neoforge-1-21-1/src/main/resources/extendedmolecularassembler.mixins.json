@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "me.myogoo.extendedmolecularassembler.mixin.Plugin",
   "mixins": [
+    "ae2.CraftingBlockEntityMixin",
     "ae2.CraftConfirmMenuMixin",
     "advancedae.QuantumCrafterEntityMixin",
     "advancedae.QuantumCrafterMenuMixin",
