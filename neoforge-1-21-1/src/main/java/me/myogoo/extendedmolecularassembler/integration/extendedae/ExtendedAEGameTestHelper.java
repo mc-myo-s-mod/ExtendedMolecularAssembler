@@ -152,18 +152,18 @@ public final class ExtendedAEGameTestHelper {
                 helper,
                 "extended_assembler_matrix_crafting_core",
                 new BlockPos(1, 1, 1),
-                ExtendedAEAssemblerMatrixCrafterAccess.class);
+                ExtendedAssemblerMatrixCraftingCoreBlockEntity.class);
         for (int thread = 0; thread < 8; thread++) {
             helper.assertTrue(pushExtendedMatrixJob(core, pattern),
                     "ExtendedAE matrix crafting core did not accept job for extended thread " + thread);
-            assertEqual(helper, thread + 1, core.ema$getExtendedUsedThreadCount(),
+            assertEqual(helper, thread + 1, core.usedThreadCount(),
                     "ExtendedAE matrix crafting core used thread count after push " + thread);
         }
 
         helper.assertFalse(pushExtendedMatrixJob(core, pattern),
                 "ExtendedAE matrix crafting core accepted a ninth extended job");
-        core.ema$cancelExtendedJobs();
-        assertEqual(helper, 0, core.ema$getExtendedUsedThreadCount(),
+        core.cancelJobs();
+        assertEqual(helper, 0, core.usedThreadCount(),
                 "ExtendedAE matrix crafting core used thread count after cancel");
     }
 
@@ -186,7 +186,7 @@ public final class ExtendedAEGameTestHelper {
 
         helper.assertTrue(cluster.pushCraftingJob(pattern, countersForPattern(pattern)),
                 "ExtendedAE matrix cluster did not dispatch an EMA extended job");
-        assertEqual(helper, 1, craftingCore.ema$getExtendedUsedThreadCount(),
+        assertEqual(helper, 1, craftingCore.usedThreadCount(),
                 "ExtendedAE matrix cluster-dispatched used thread count");
     }
 
@@ -198,7 +198,7 @@ public final class ExtendedAEGameTestHelper {
                 "extended_assembler_matrix_crafting_core",
                 new BlockPos(1, 1, 1),
                 ExtendedAssemblerMatrixCraftingCoreBlockEntity.class);
-        helper.assertTrue(core.ema$pushExtendedJob(pattern, countersForPattern(pattern)),
+        helper.assertTrue(core.pushJob(pattern, countersForPattern(pattern)),
                 "ExtendedAE matrix crafting core did not accept an extended job for drop testing");
 
         var expectedDrops = filledInputGrid(pattern).stream()
@@ -238,9 +238,9 @@ public final class ExtendedAEGameTestHelper {
     }
 
     private static boolean pushExtendedMatrixJob(
-            ExtendedAEAssemblerMatrixCrafterAccess core,
+            ExtendedAssemblerMatrixCraftingCoreBlockEntity core,
             ExtendedTableCraftingPattern pattern) {
-        return core.ema$pushExtendedJob(pattern, countersForPattern(pattern));
+        return core.pushJob(pattern, countersForPattern(pattern));
     }
 
     private static List<ItemStack> filledInputGrid(ExtendedTableCraftingPattern pattern) {

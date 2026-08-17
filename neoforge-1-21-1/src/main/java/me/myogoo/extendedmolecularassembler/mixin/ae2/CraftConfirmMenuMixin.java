@@ -37,20 +37,27 @@ public abstract class CraftConfirmMenuMixin implements CraftConfirmExportPlanGat
     private Component ema$exportPlanBlockReason;
     @Unique
     @Nullable
-    private Component ema$lastSyncedExportPlanBlockReason;
+    private Component ema$sentBlockReason;
     @Unique
     private Map<AEKey, ExportPlanEntryHighlight> ema$exportPlanEntryHighlights = Map.of();
     @Unique
-    private Map<AEKey, ExportPlanEntryHighlight> ema$lastSyncedExportPlanEntryHighlights = Map.of();
+    private Map<AEKey, ExportPlanEntryHighlight> ema$sentHighlights = Map.of();
     @Unique
     @Nullable
-    private ICraftingPlan ema$lastExportHighlightPlan;
+    private ICraftingPlan ema$cachedPlan;
     @Unique
-    private Map<AEKey, ExportMECraftingProviderTier> ema$requiredExportPlanProviders = Map.of();
+    private Map<AEKey, ExportMECraftingProviderTier> ema$requiredProviders = Map.of();
     @Unique
-    private int ema$lastOnlineExportProviderMask = Integer.MIN_VALUE;
+    @Nullable
+    private IGrid ema$providerGrid;
     @Unique
-    private boolean ema$lastExportMode;
+    private long ema$providerRevision = Long.MIN_VALUE;
+    @Unique
+    private int ema$providerMask;
+    @Unique
+    private boolean ema$cachedExportMode;
+    @Unique
+    private boolean ema$stateCached;
 
     @Override
     @Nullable
@@ -80,14 +87,7 @@ public abstract class CraftConfirmMenuMixin implements CraftConfirmExportPlanGat
             return;
         }
 
-        var grid = ema$getGrid(menu);
-        var exportMode = EMAConfig.exportMode();
-        var onlineProviderMask = exportMode ? ExportCraftingPlanGuard.getOnlineProviderMask(grid) : 0;
-        var reason = ExportCraftingPlanGuard.getBlockReason(grid, this.result, onlineProviderMask, exportMode);
-        ema$setExportPlanBlockReason(reason);
-        ema$syncExportPlanBlockReason(menu);
-
-        ema$refreshExportPlanEntryHighlights(menu, onlineProviderMask, exportMode);
+        ema$refreshState(menu, false);
     }
 
     @Inject(
@@ -103,86 +103,84 @@ public abstract class CraftConfirmMenuMixin implements CraftConfirmExportPlanGat
             return;
         }
 
-        var grid = ema$getGrid(menu);
-        var exportMode = EMAConfig.exportMode();
-        var onlineProviderMask = exportMode ? ExportCraftingPlanGuard.getOnlineProviderMask(grid) : 0;
-        var reason = ExportCraftingPlanGuard.getBlockReason(grid, this.result, onlineProviderMask, exportMode);
+        var reason = ema$refreshState(menu, true);
         if (reason == null) {
-            ema$setExportPlanBlockReason(null);
-            ema$syncExportPlanBlockReason(menu);
             return;
         }
 
-        ema$setExportPlanBlockReason(reason);
-        ema$syncExportPlanBlockReason(menu);
         menu.setAutoStart(false);
         menu.getPlayer().sendSystemMessage(reason);
         ci.cancel();
     }
 
     @Unique
-    private void ema$syncExportPlanBlockReason(CraftConfirmMenu menu) {
-        if (Objects.equals(this.ema$exportPlanBlockReason,
-                this.ema$lastSyncedExportPlanBlockReason)) {
-            return;
-        }
-        this.ema$lastSyncedExportPlanBlockReason =
-                this.ema$exportPlanBlockReason;
-
-        if (menu.getPlayer() instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.sendToPlayer(serverPlayer,
-                    new EMACraftConfirmPlanBlockPacket(
-                            menu.containerId,
-                            this.ema$exportPlanBlockReason));
-        }
-    }
-
-    @Unique
-    private void ema$refreshExportPlanEntryHighlights(CraftConfirmMenu menu, int onlineProviderMask,
-            boolean exportMode) {
-        if (this.result != this.ema$lastExportHighlightPlan) {
-            this.ema$lastExportHighlightPlan = this.result;
-            this.ema$requiredExportPlanProviders = ExportCraftingPlanGuard.getRequiredProviders(this.result);
-            this.ema$lastOnlineExportProviderMask = Integer.MIN_VALUE;
-        }
-
-        if (onlineProviderMask == this.ema$lastOnlineExportProviderMask
-                && exportMode == this.ema$lastExportMode) {
-            return;
-        }
-        this.ema$lastOnlineExportProviderMask = onlineProviderMask;
-        this.ema$lastExportMode = exportMode;
-        ema$setExportPlanEntryHighlights(ExportCraftingPlanGuard.getEntryHighlights(
-                this.ema$requiredExportPlanProviders,
-                onlineProviderMask,
-                exportMode));
-        ema$syncExportPlanEntryHighlights(menu);
-    }
-
-    @Unique
-    private void ema$syncExportPlanEntryHighlights(CraftConfirmMenu menu) {
-        if (Objects.equals(this.ema$exportPlanEntryHighlights,
-                this.ema$lastSyncedExportPlanEntryHighlights)) {
-            return;
-        }
-        this.ema$lastSyncedExportPlanEntryHighlights =
-                this.ema$exportPlanEntryHighlights;
-
-        if (menu.getPlayer() instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.sendToPlayer(serverPlayer,
-                    new EMACraftConfirmPlanHighlightsPacket(
-                            menu.containerId,
-                            this.ema$exportPlanEntryHighlights));
-        }
-    }
-
-    @Unique
     @Nullable
-    private static IGrid ema$getGrid(CraftConfirmMenu menu) {
-        if (!(menu.getTarget() instanceof IActionHost host)) {
-            return null;
+    private Component ema$refreshState(CraftConfirmMenu menu, boolean forceProviderScan) {
+        var exportMode = EMAConfig.exportMode();
+        var planChanged = this.result != this.ema$cachedPlan;
+        if (planChanged) {
+            this.ema$cachedPlan = this.result;
+            this.ema$requiredProviders = ExportCraftingPlanGuard.getRequiredProviders(this.result);
         }
-        var node = host.getActionableNode();
-        return node == null ? null : node.getGrid();
+
+        IGrid grid = null;
+        if (exportMode && menu.getTarget() instanceof IActionHost host) {
+            var node = host.getActionableNode();
+            if (node != null) {
+                grid = node.getGrid();
+            }
+        }
+
+        var providerRevision = ExportCraftingPlanGuard.getProviderRevision();
+        var providersChanged = forceProviderScan
+                || grid != this.ema$providerGrid
+                || providerRevision != this.ema$providerRevision;
+        if (providersChanged) {
+            this.ema$providerGrid = grid;
+            this.ema$providerRevision = providerRevision;
+            this.ema$providerMask = exportMode ? ExportCraftingPlanGuard.getOnlineProviderMask(grid) : 0;
+        }
+
+        if (!this.ema$stateCached
+                || planChanged
+                || providersChanged
+                || exportMode != this.ema$cachedExportMode) {
+            this.ema$stateCached = true;
+            this.ema$cachedExportMode = exportMode;
+            ema$setExportPlanBlockReason(ExportCraftingPlanGuard.getBlockReason(
+                    grid, this.result, this.ema$providerMask, exportMode));
+            ema$setExportPlanEntryHighlights(ExportCraftingPlanGuard.getEntryHighlights(
+                    this.ema$requiredProviders, this.ema$providerMask, exportMode));
+        }
+
+        ema$syncBlockReason(menu);
+        ema$syncHighlights(menu);
+        return this.ema$exportPlanBlockReason;
+    }
+
+    @Unique
+    private void ema$syncBlockReason(CraftConfirmMenu menu) {
+        if (Objects.equals(this.ema$exportPlanBlockReason, this.ema$sentBlockReason)) {
+            return;
+        }
+        this.ema$sentBlockReason = this.ema$exportPlanBlockReason;
+
+        if (menu.getPlayer() instanceof ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayer(serverPlayer,
+                    new EMACraftConfirmPlanBlockPacket(menu.containerId, this.ema$exportPlanBlockReason));
+        }
+    }
+
+    @Unique
+    private void ema$syncHighlights(CraftConfirmMenu menu) {
+        if (Objects.equals(this.ema$exportPlanEntryHighlights, this.ema$sentHighlights)) {
+            return;
+        }
+        this.ema$sentHighlights = this.ema$exportPlanEntryHighlights;
+
+        if (menu.getPlayer() instanceof ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayer(serverPlayer,
+                    new EMACraftConfirmPlanHighlightsPacket(menu.containerId, this.ema$exportPlanEntryHighlights));
+        }
     }
 }

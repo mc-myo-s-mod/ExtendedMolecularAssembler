@@ -27,7 +27,24 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
 
     public static boolean hasEligibleMatrixUploader(Object menu) {
         var grid = findGrid(menu);
-        return grid != null && !findEligiblePatternCoreInventories(grid).isEmpty();
+        if (grid == null) {
+            return false;
+        }
+
+        try {
+            for (var core : grid.getMachines(ExtendedAssemblerMatrixPatternCoreBlockEntity.class)) {
+                if (core != null
+                        && core.isFormed()
+                        && core.getMainNode().isActive()
+                        && core.getCluster() != null
+                        && clusterHasUploader(core.getCluster())
+                        && core.getExposedInventory() != null) {
+                    return true;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
     }
 
     public static boolean canUploadFromEncodingMenuToMatrix(ServerPlayer player, Object menu, ItemStack stack) {

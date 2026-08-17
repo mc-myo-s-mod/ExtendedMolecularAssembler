@@ -15,7 +15,17 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 public final class ExportCraftingPlanGuard {
+    private static long providerRevision;
+
     private ExportCraftingPlanGuard() {
+    }
+
+    public static long getProviderRevision() {
+        return providerRevision;
+    }
+
+    public static void providersChanged() {
+        providerRevision++;
     }
 
     public static Map<AEKey, ExportMECraftingProviderTier> getRequiredProviders(@Nullable ICraftingPlan plan) {

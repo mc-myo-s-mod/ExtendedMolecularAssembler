@@ -23,6 +23,10 @@ public final class QuantumCraftingBatch {
     public static int maximumCrafts(int upperBound, IntPredicate canStore) {
         var low = 0;
         var high = Math.max(0, upperBound);
+        if (high == 0 || canStore.test(high)) {
+            return high;
+        }
+        high--;
         while (low < high) {
             var middle = low + (high - low + 1) / 2;
             if (canStore.test(middle)) {

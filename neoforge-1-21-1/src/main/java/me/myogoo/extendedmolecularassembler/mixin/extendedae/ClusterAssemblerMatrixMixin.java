@@ -18,7 +18,7 @@ public abstract class ClusterAssemblerMatrixMixin {
     private void ema$pushExtendedPattern(IPatternDetails patternDetails,
             KeyCounter[] inputHolder, CallbackInfoReturnable<Boolean> cir) {
         if (patternDetails instanceof ExtendedTableCraftingPattern) {
-            cir.setReturnValue(ExtendedAEAssemblerMatrixBridge.pushExtendedCraftingJob(
+            cir.setReturnValue(ExtendedAEAssemblerMatrixBridge.pushJob(
                     this.ema$self(), patternDetails, inputHolder));
         }
     }

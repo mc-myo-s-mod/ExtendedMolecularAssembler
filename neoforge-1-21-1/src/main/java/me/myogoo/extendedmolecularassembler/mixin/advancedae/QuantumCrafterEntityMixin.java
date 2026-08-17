@@ -88,7 +88,7 @@ public abstract class QuantumCrafterEntityMixin {
         if (!this.ema$isExtendedQuantumCrafter()) {
             return;
         }
-        this.ema$updateExtendedQuantumCraftingJobs();
+        this.ema$refreshJobs();
     }
 
     @Inject(method = "hasCraftWork", at = @At("RETURN"), cancellable = true)
@@ -115,7 +115,7 @@ public abstract class QuantumCrafterEntityMixin {
         if (!this.ema$isExtendedQuantumCrafter()) {
             return;
         }
-        var job = this.ema$getExtendedQuantumCraftingJob(index);
+        var job = this.ema$getJob(index);
         if (job == null || job.pattern == null) {
             return;
         }
@@ -136,7 +136,7 @@ public abstract class QuantumCrafterEntityMixin {
         if (!this.ema$isExtendedQuantumCrafter()) {
             return;
         }
-        var job = this.ema$getExtendedQuantumCraftingJob(index);
+        var job = this.ema$getJob(index);
         if (job == null || job.pattern == null || job.pattern.getOutputs().isEmpty()) {
             return;
         }
@@ -150,7 +150,7 @@ public abstract class QuantumCrafterEntityMixin {
         if (!this.ema$isExtendedQuantumCrafter()) {
             return;
         }
-        var job = this.ema$getExtendedQuantumCraftingJob(index);
+        var job = this.ema$getJob(index);
         if (job == null || job.pattern == null) {
             return;
         }
@@ -165,7 +165,7 @@ public abstract class QuantumCrafterEntityMixin {
         if (!this.ema$isExtendedQuantumCrafter()) {
             return;
         }
-        var job = this.ema$getExtendedQuantumCraftingJob(index);
+        var job = this.ema$getJob(index);
         if (job == null || job.pattern == null) {
             return;
         }
@@ -183,7 +183,7 @@ public abstract class QuantumCrafterEntityMixin {
         }
         var jobTags = new ListTag();
         var count = this.patternInv.size();
-        this.ema$ensureExtendedQuantumCraftingJobSlots(count);
+        this.ema$resizeJobs(count);
         for (int i = 0; i < count; i++) {
             var tag = new CompoundTag();
             var job = this.ema$extendedJobs.get(i);
@@ -201,7 +201,7 @@ public abstract class QuantumCrafterEntityMixin {
         if (!this.ema$isExtendedQuantumCrafter()) {
             return;
         }
-        this.ema$ensureExtendedQuantumCraftingJobSlots(this.patternInv.size());
+        this.ema$resizeJobs(this.patternInv.size());
         if (!data.contains(EMA$JOBS_TAG)) {
             return;
         }
@@ -211,7 +211,7 @@ public abstract class QuantumCrafterEntityMixin {
             var tag = jobTags.getCompound(i);
             this.ema$extendedJobs.set(i, tag.isEmpty() ? null : ExtendedQuantumCraftingJob.fromTag(tag));
         }
-        this.ema$updateExtendedQuantumCraftingJobs();
+        this.ema$refreshJobs();
     }
 
     @Unique
@@ -220,7 +220,7 @@ public abstract class QuantumCrafterEntityMixin {
             return false;
         }
 
-        this.ema$ensureExtendedQuantumCraftingJobSlots(this.patternInv.size());
+        this.ema$resizeJobs(this.patternInv.size());
         for (int i = 0; i < this.patternInv.size(); i++) {
             var job = this.ema$extendedJobs.get(i);
             if (job == null
@@ -230,7 +230,7 @@ public abstract class QuantumCrafterEntityMixin {
                 continue;
             }
 
-            if (this.ema$maximumCraftableAmount(job) > 0
+            if (this.ema$maxCrafts(job, 1) > 0
                     && this.ema$hasAvailableOutputStorage(job)) {
                 return true;
             }
@@ -247,7 +247,7 @@ public abstract class QuantumCrafterEntityMixin {
 
     @Unique
     private void ema$performExtendedCrafts(int maxCrafts) {
-        this.ema$ensureExtendedQuantumCraftingJobSlots(this.patternInv.size());
+        this.ema$resizeJobs(this.patternInv.size());
         for (int i = 0; i < this.patternInv.size(); i++) {
             var job = this.ema$extendedJobs.get(i);
             if (job == null
@@ -257,8 +257,7 @@ public abstract class QuantumCrafterEntityMixin {
                 continue;
             }
 
-            var craftAmount = this.ema$maximumCraftableAmount(job);
-            var toCraft = Math.min(craftAmount, maxCrafts);
+            var toCraft = this.ema$maxCrafts(job, maxCrafts);
             if (toCraft > 0) {
                 this.ema$performCraft(job, toCraft);
             }
@@ -266,13 +265,13 @@ public abstract class QuantumCrafterEntityMixin {
     }
 
     @Unique
-    private void ema$updateExtendedQuantumCraftingJobs() {
+    private void ema$refreshJobs() {
         var level = this.ema$self().getLevel();
         if (level == null) {
             return;
         }
 
-        this.ema$ensureExtendedQuantumCraftingJobSlots(this.patternInv.size());
+        this.ema$resizeJobs(this.patternInv.size());
         for (int i = 0; i < this.patternInv.size(); i++) {
             var stack = this.patternInv.getStackInSlot(i);
             if (stack.isEmpty() || !stack.is(EMAItems.EXTENDED_CRAFTING_PATTERN.get())) {
@@ -298,8 +297,8 @@ public abstract class QuantumCrafterEntityMixin {
 
     @Unique
     @Nullable
-    private ExtendedQuantumCraftingJob ema$getExtendedQuantumCraftingJob(int index) {
-        this.ema$ensureExtendedQuantumCraftingJobSlots(this.patternInv.size());
+    private ExtendedQuantumCraftingJob ema$getJob(int index) {
+        this.ema$resizeJobs(this.patternInv.size());
         if (index < 0 || index >= this.ema$extendedJobs.size()) {
             return null;
         }
@@ -307,7 +306,7 @@ public abstract class QuantumCrafterEntityMixin {
     }
 
     @Unique
-    private void ema$ensureExtendedQuantumCraftingJobSlots(int size) {
+    private void ema$resizeJobs(int size) {
         while (this.ema$extendedJobs.size() < size) {
             this.ema$extendedJobs.add(null);
         }
@@ -317,7 +316,7 @@ public abstract class QuantumCrafterEntityMixin {
     }
 
     @Unique
-    private int ema$maximumCraftableAmount(ExtendedQuantumCraftingJob job) {
+    private int ema$maxCrafts(ExtendedQuantumCraftingJob job, int upperBound) {
         var node = this.ema$self().getGridNode();
         if (node == null || job == null || job.pattern == null) {
             return 0;
@@ -334,7 +333,10 @@ public abstract class QuantumCrafterEntityMixin {
             return 0;
         }
 
-        var totalCrafts = EMA$MAX_CRAFT_AMOUNT;
+        var totalCrafts = Math.max(0, Math.min(EMA$MAX_CRAFT_AMOUNT, upperBound));
+        if (totalCrafts == 0) {
+            return 0;
+        }
         for (var input : inputs) {
             var minStock = job.minimumInputToKeep(input);
             var success = false;
@@ -385,7 +387,7 @@ public abstract class QuantumCrafterEntityMixin {
             var amountInOutput = 0;
             for (int i = 0; i < this.outputInv.size(); i++) {
                 var stack = this.outputInv.getStackInSlot(i);
-                if (stack.is(output.what().wrapForDisplayOrFilter().getItem())) {
+                if (output.what().matches(GenericStack.fromItemStack(stack))) {
                     amountInOutput += stack.getCount();
                 }
             }
@@ -441,13 +443,18 @@ public abstract class QuantumCrafterEntityMixin {
 
     @Unique
     private boolean ema$canStoreLocalOutputs(ExtendedQuantumCraftingJob job, int crafts) {
+        var localOutputs = this.ema$getLocalOutputs(job, crafts);
+        if (localOutputs.isEmpty()) {
+            return true;
+        }
+
         var simulatedOutput = new AppEngInternalInventory(this.outputInv.size());
         for (int i = 0; i < this.outputInv.size(); i++) {
             simulatedOutput.setMaxStackSize(i, this.outputInv.getSlotLimit(i));
             simulatedOutput.setItemDirect(i, this.outputInv.getStackInSlot(i).copy());
         }
 
-        for (var stack : this.ema$getLocalOutputs(job, crafts)) {
+        for (var stack : localOutputs) {
             if (!this.ema$insertOutput(simulatedOutput, stack).isEmpty()) {
                 return false;
             }

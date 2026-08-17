@@ -7,7 +7,6 @@ import me.myogoo.extendedmolecularassembler.init.EMABlockEntities;
 import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import me.myogoo.extendedmolecularassembler.init.EMAItems;
 import me.myogoo.extendedmolecularassembler.init.EMAMenus;
-import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContext;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAMatrixPatternCoreUpdatePacket;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAOpenExtendedAEAssemblerMatrixScreenPacket;
@@ -27,7 +26,6 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -199,7 +197,7 @@ public final class EMAExtendedAEIntegration {
     }
 
     public static ItemStack tryInsertIntoAssemblerMatrix(Level level, BlockPos pos, ItemStack stack) {
-        return ExtendedAEAssemblerMatrixBridge.insertIntoMatrixNetwork(level, pos, stack);
+        return ExtendedAEAssemblerMatrixBridge.insertOutput(level, pos, stack);
     }
 
     public static boolean hasEligibleMatrixUploader(Object menu) {
@@ -219,11 +217,6 @@ public final class EMAExtendedAEIntegration {
 
     public static ItemStack uploadToAssemblerMatrix(ServerPlayer player, Object menu, ItemStack stack) {
         return ExtendedAssemblerMatrixPatternUploadUtil.uploadFromEncodingMenuToMatrix(player, menu, stack);
-    }
-
-    @Nullable
-    public static AssemblerMatrixJobContext claimAssemblerMatrixJobContext() {
-        return ExtendedAEAssemblerMatrixBridge.claimCurrentJobContext();
     }
 
     private static BlockEntityType<ExtendedAssemblerMatrixPatternCoreBlockEntity> createBlockEntityType() {

@@ -3,6 +3,7 @@ package me.myogoo.extendedmolecularassembler.integration.advancedae;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,5 +33,16 @@ class QuantumCraftingBatchTest {
     @Test
     void outputCapacityLimitsBatch() {
         assertEquals(3, QuantumCraftingBatch.maximumCrafts(8, crafts -> crafts <= 3));
+    }
+
+    @Test
+    void fullBatchCapacitySkipsBinarySearch() {
+        var checks = new AtomicInteger();
+
+        assertEquals(8, QuantumCraftingBatch.maximumCrafts(8, crafts -> {
+            checks.incrementAndGet();
+            return true;
+        }));
+        assertEquals(1, checks.get());
     }
 }

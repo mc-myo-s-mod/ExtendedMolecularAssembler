@@ -307,13 +307,13 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
         if (cluster == null || cluster.isDestroyed()) {
             return 0;
         }
-        return ExtendedAEAssemblerMatrixBridge.getUsedExtendedCraftingSlots(cluster);
+        return ExtendedAEAssemblerMatrixBridge.usedJobCount(cluster);
     }
 
     private void cancelJobs() {
         var cluster = this.host.getCluster();
         if (cluster != null && !cluster.isDestroyed()) {
-            ExtendedAEAssemblerMatrixBridge.cancelExtendedAssemblerJobs(cluster);
+            ExtendedAEAssemblerMatrixBridge.cancelJobs(cluster);
         }
         this.runningThreads = this.getRunningThreads();
         this.runningThreadSyncDelay = 0;
@@ -350,18 +350,23 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
             }
 
             var changes = new HashMap<Integer, ItemStack>();
+            var full = !this.initialized;
             for (int i = 0; i < this.server.size(); i++) {
                 var serverStack = this.server.getStackInSlot(i);
                 var clientStack = this.client.getStackInSlot(i);
-                if (!this.initialized || !ItemStack.isSameItemSameComponents(serverStack, clientStack)
+                if (full || !ItemStack.isSameItemSameComponents(serverStack, clientStack)
                         || serverStack.getCount() != clientStack.getCount()) {
-                    changes.put(i, serverStack.copy());
+                    if (!full || !serverStack.isEmpty()) {
+                        changes.put(i, serverStack.copy());
+                    }
                     this.client.setItemDirect(i, serverStack.copy());
                 }
             }
-            var full = !this.initialized;
             this.initialized = true;
             this.lastRevision = revision;
+            if (!full && changes.isEmpty()) {
+                return null;
+            }
             return new EMAMatrixPatternCoreUpdatePacket(this.host.getLocateID(), this.server.size(), full, changes);
         }
     }

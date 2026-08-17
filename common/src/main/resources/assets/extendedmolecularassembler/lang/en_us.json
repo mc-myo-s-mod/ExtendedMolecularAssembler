@@ -69,7 +69,7 @@
   "tooltip.extendedmolecularassembler.me_crafting_provider.export_mode": "Export Mode only",
   "tooltip.extendedmolecularassembler.export_mode.enabled": "Export Mode: exact-table ME Crafting Provider required.",
   "tooltip.extendedmolecularassembler.export_mode.last_reject": "Last rejected: %s",
-  "tooltip.extendedmolecularassembler.export_mode.missing_provider": "Missing online %s provider for this recipe table on this ME network.",
+  "tooltip.extendedmolecularassembler.export_mode.missing_provider": "%s provider",
   "tooltip.extendedmolecularassembler.export_mode.offline_grid": "Assembler is not online on an ME network; %s provider for table tier %s cannot be found.",
   "tooltip.extendedmolecularassembler.export_mode.unsupported_tier": "Unsupported extended table %s (%s); no matching ME Crafting Provider tier exists.",
   "message.extendedmolecularassembler.no_menu": "Pattern providers can push extended crafting patterns into this assembler.",

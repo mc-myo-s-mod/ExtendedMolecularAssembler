@@ -168,16 +168,11 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
         if (isServerSide()) {
             this.substitute = encodingLogic.isSubstitution();
             this.substituteFluids = encodingLogic.isFluidSubstitution();
-            refreshMatrixUploaderAvailable(false);
+            if (this.matrixUploaderSyncDelay-- <= 0) {
+                this.matrixUploaderSyncDelay = MATRIX_UPLOADER_SYNC_INTERVAL;
+                this.matrixUploaderAvailable = EMAOptionalIntegrations.hasEligibleExtendedAEPatternUploader(this);
+            }
         }
-    }
-
-    private void refreshMatrixUploaderAvailable(boolean force) {
-        if (!force && this.matrixUploaderSyncDelay-- > 0) {
-            return;
-        }
-        this.matrixUploaderSyncDelay = MATRIX_UPLOADER_SYNC_INTERVAL;
-        this.matrixUploaderAvailable = EMAOptionalIntegrations.hasEligibleExtendedAEPatternUploader(this);
     }
 
     @Override

@@ -100,13 +100,13 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     @Override
     public void updateStatus(ClusterAssemblerMatrix c) {
         super.updateStatus(c);
-        this.updatePatterns("matrixFormed");
+        this.updatePatterns();
     }
 
     @Override
     public void onMainNodeStateChanged(IGridNodeListener.State reason) {
         super.onMainNodeStateChanged(reason);
-        this.updatePatterns("nodeState:" + reason);
+        this.updatePatterns();
     }
 
     @Override
@@ -126,20 +126,16 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     @Override
     public void onReady() {
         super.onReady();
-        this.updatePatterns("onReady");
+        this.updatePatterns();
     }
 
     @Override
     public void saveChangedInventory(AppEngInternalInventory inv) {
         this.saveChanges();
-        this.updatePatterns("inventoryChanged");
+        this.updatePatterns();
     }
 
     public void updatePatterns() {
-        this.updatePatterns("manual");
-    }
-
-    private void updatePatterns(String reason) {
         this.patternRevision++;
         this.patterns.clear();
         this.patternSet.clear();
@@ -150,14 +146,9 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
                 this.patternSet.add(pattern);
             }
         }
-        this.requestCraftingProviderRefresh(reason);
-    }
-
-    private void requestCraftingProviderRefresh(String reason) {
-        if (this.getMainNode().getNode() == null) {
-            return;
+        if (this.getMainNode().getNode() != null) {
+            ICraftingProvider.requestUpdate(this.getMainNode());
         }
-        ICraftingProvider.requestUpdate(this.getMainNode());
     }
 
     @Override

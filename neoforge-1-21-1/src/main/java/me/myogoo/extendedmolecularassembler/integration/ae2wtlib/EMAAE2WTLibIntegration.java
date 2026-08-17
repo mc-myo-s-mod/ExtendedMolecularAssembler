@@ -25,7 +25,7 @@ public final class EMAAE2WTLibIntegration {
             16,
             16);
     private static final Icon TERMINAL_ICON = new Icon(0, 0, 16, 16, TERMINAL_ICON_TEXTURE);
-    private static WirelessExtendedPatternEncodingTerminalItem wirelessExtendedPatternEncodingTerminal;
+    private static WirelessExtendedPatternEncodingTerminalItem terminalItem;
 
     private EMAAE2WTLibIntegration() {
     }
@@ -35,7 +35,7 @@ public final class EMAAE2WTLibIntegration {
                 TERMINAL_NAME,
                 WirelessExtendedPatternEncodingTerminalMenuHost::new,
                 ExtendedPatternEncodingTermMenu.TYPE,
-                registerWirelessExtendedPatternEncodingTerminal(),
+                registerTerminalItem(),
                 TERMINAL_ICON)
                 .hotkeyName(HOTKEY_NAME)
                 .addTerminal());
@@ -43,17 +43,17 @@ public final class EMAAE2WTLibIntegration {
 
     public static void onCommonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            if (wirelessExtendedPatternEncodingTerminal != null) {
+            if (terminalItem != null) {
                 GridLinkables.register(
-                        wirelessExtendedPatternEncodingTerminal,
+                        terminalItem,
                         WirelessTerminalItem.LINKABLE_HANDLER);
             }
         });
     }
 
     public static void addCreativeTabItems(CreativeModeTab.Output output) {
-        if (wirelessExtendedPatternEncodingTerminal != null) {
-            output.accept(wirelessExtendedPatternEncodingTerminal);
+        if (terminalItem != null) {
+            output.accept(terminalItem);
         }
     }
 
@@ -70,13 +70,13 @@ public final class EMAAE2WTLibIntegration {
         return host instanceof WirelessExtendedPatternEncodingTerminalMenuHost;
     }
 
-    private static WirelessExtendedPatternEncodingTerminalItem registerWirelessExtendedPatternEncodingTerminal() {
-        if (wirelessExtendedPatternEncodingTerminal == null) {
-            wirelessExtendedPatternEncodingTerminal = Registry.register(
+    private static WirelessExtendedPatternEncodingTerminalItem registerTerminalItem() {
+        if (terminalItem == null) {
+            terminalItem = Registry.register(
                     BuiltInRegistries.ITEM,
                     ExtendedMolecularAssembler.makeId("wireless_extended_pattern_encoding_terminal"),
                     new WirelessExtendedPatternEncodingTerminalItem());
         }
-        return wirelessExtendedPatternEncodingTerminal;
+        return terminalItem;
     }
 }

@@ -4,7 +4,6 @@ import me.myogoo.extendedmolecularassembler.api.annotation.AdvancedAE;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAE;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAEPlus;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
-import me.myogoo.extendedmolecularassembler.integration.AssemblerMatrixJobContext;
 import me.myogoo.extendedmolecularassembler.integration.advancedae.EMAAdvancedAEIntegration;
 import me.myogoo.extendedmolecularassembler.integration.ae2wtlib.EMAAE2WTLibIntegration;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.EMAExtendedAEIntegration;
@@ -19,7 +18,6 @@ import net.minecraft.world.level.Level;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import org.jetbrains.annotations.Nullable;
 
 public final class EMAOptionalIntegrations {
     private static boolean extendedAERegistered = false;
@@ -146,11 +144,4 @@ public final class EMAOptionalIntegrations {
         return stack;
     }
 
-    @Nullable
-    public static AssemblerMatrixJobContext claimExtendedAEAssemblerMatrixJobContext() {
-        if (extendedAERegistered) {
-            return EMAExtendedAEIntegration.claimAssemblerMatrixJobContext();
-        }
-        return null;
-    }
 }

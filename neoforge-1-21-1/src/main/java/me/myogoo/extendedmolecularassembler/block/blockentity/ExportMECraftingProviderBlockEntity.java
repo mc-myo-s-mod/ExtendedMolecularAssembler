@@ -7,6 +7,7 @@ import appeng.api.util.AEColor;
 import appeng.blockentity.networking.CableBusBlockEntity;
 import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
+import me.myogoo.extendedmolecularassembler.crafting.ExportCraftingPlanGuard;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -38,7 +39,18 @@ public class ExportMECraftingProviderBlockEntity extends EMABaseProvider impleme
 
     @Override
     public void onMainNodeStateChanged(IGridNodeListener.State reason) {
+        if (!this.isClientSide()) {
+            ExportCraftingPlanGuard.providersChanged();
+        }
         updateVisualStateIfNeeded();
+    }
+
+    @Override
+    public void setRemoved() {
+        if (!this.isClientSide()) {
+            ExportCraftingPlanGuard.providersChanged();
+        }
+        super.setRemoved();
     }
 
     public void updateVisualStateIfNeeded() {

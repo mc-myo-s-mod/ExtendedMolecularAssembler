@@ -43,7 +43,7 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
                 () -> Icon.ARROW_RIGHT,
                 menu::cycleRecipeTable,
                 menu::cycleRecipeTableBackwards,
-                this::selectedRecipeProviderItem,
+                this::tableIcon,
                 this::recipeCycleTooltip);
         widgets.add("recipeCycle", recipeCycleBtn);
 
@@ -93,9 +93,9 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
         super.onClose();
     }
 
-    private Component selectedRecipeProviderTooltip() {
+    private Component tableTooltip() {
         return Component.literal("Recipe Table: ")
-                .append(selectedRecipeProviderLabel())
+                .append(tableLabel())
                 .append(Component.literal(" "))
                 .append(Component.literal(getMenu().getSelectedRecipeTableSide() + "x"
                         + getMenu().getSelectedRecipeTableSide()));
@@ -103,12 +103,12 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
 
     private List<Component> recipeCycleTooltip() {
         return List.of(
-                selectedRecipeProviderTooltip(),
+                tableTooltip(),
                 Component.literal("Left-click: Next table"),
                 Component.literal("Right-click: Previous table"));
     }
 
-    private Component selectedRecipeProviderLabel() {
+    private Component tableLabel() {
         var tier = getMenu().getSelectedRecipeTableTier();
         return switch (getMenu().getSelectedRecipeProvider()) {
             case EXTENDED_CRAFTING -> Component.literal("Extended Crafting");
@@ -117,9 +117,9 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
         };
     }
 
-    private Item selectedRecipeProviderItem() {
+    private Item tableIcon() {
         return switch (getMenu().getSelectedRecipeProvider()) {
-            case EXTENDED_CRAFTING -> extendedCraftingTableIcon(getMenu().getSelectedRecipeTableSide());
+            case EXTENDED_CRAFTING -> extendedTableIcon(getMenu().getSelectedRecipeTableSide());
             case RE_AVARITIA -> reAvaritiaTableIcon(getMenu().getSelectedRecipeTableTier());
             case AVARITIA_NEO -> icon("avaritia", "extreme_crafting_table");
         };
@@ -143,7 +143,7 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
         });
     }
 
-    private Item extendedCraftingTableIcon(int side) {
+    private Item extendedTableIcon(int side) {
         return icon("extendedcrafting", switch (side) {
             case 3 -> "basic_table";
             case 5 -> "advanced_table";

@@ -30,6 +30,9 @@ public class ExtendedCraftingPatternViewScreen extends GuiPattern<ExtendedCrafti
     private final WidgetStyle tablePreviewStyle;
     private final WidgetStyle substituteTextStyle;
     private final WidgetStyle fluidSubstituteTextStyle;
+    private final Point tablePosition;
+    private final Point substitutePosition;
+    private final Point fluidSubstitutePosition;
     private final int textColor;
 
     public ExtendedCraftingPatternViewScreen(
@@ -47,6 +50,10 @@ public class ExtendedCraftingPatternViewScreen extends GuiPattern<ExtendedCrafti
         this.tablePreviewStyle = style.getWidget(TABLE_PREVIEW_WIDGET);
         this.substituteTextStyle = style.getWidget(SUBSTITUTE_TEXT_WIDGET);
         this.fluidSubstituteTextStyle = style.getWidget(FLUID_SUBSTITUTE_TEXT_WIDGET);
+        var bounds = new Rect2i(0, 0, this.imageWidth, this.imageHeight);
+        this.tablePosition = this.tablePreviewStyle.resolve(bounds);
+        this.substitutePosition = this.substituteTextStyle.resolve(bounds);
+        this.fluidSubstitutePosition = this.fluidSubstituteTextStyle.resolve(bounds);
         this.textColor = style.getColor(PaletteColor.DEFAULT_TEXT_COLOR).toARGB();
         if (this.tablePreviewStyle.getWidth() <= 0 || this.tablePreviewStyle.getHeight() <= 0) {
             throw new IllegalStateException("Pattern view table preview must have a positive size");
@@ -76,36 +83,33 @@ public class ExtendedCraftingPatternViewScreen extends GuiPattern<ExtendedCrafti
         this.background.dest(this.leftPos, this.topPos).blit(guiGraphics);
         drawSlotBackgrounds(guiGraphics, this.leftPos, this.topPos);
 
-        var tablePosition = resolve(this.tablePreviewStyle);
         drawTablePreview(
                 guiGraphics,
-                this.leftPos + tablePosition.getX(),
-                this.topPos + tablePosition.getY(),
+                this.leftPos + this.tablePosition.getX(),
+                this.topPos + this.tablePosition.getY(),
                 this.tablePreviewStyle.getWidth(),
                 this.tablePreviewStyle.getHeight());
     }
 
     @Override
     protected void renderLabels(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        var substitutePosition = resolve(this.substituteTextStyle);
         guiGraphics.drawString(
                 this.font,
                 Component.translatable(
                         "gui.pattern_view.craft.substitute",
                         this.menu.canSubstitute() ? ButtonToolTips.On.text() : ButtonToolTips.Off.text()),
-                substitutePosition.getX(),
-                substitutePosition.getY(),
+                this.substitutePosition.getX(),
+                this.substitutePosition.getY(),
                 this.textColor,
                 false);
 
-        var fluidSubstitutePosition = resolve(this.fluidSubstituteTextStyle);
         guiGraphics.drawString(
                 this.font,
                 Component.translatable(
                         "gui.pattern_view.craft.fluid_substitute",
                         this.menu.canSubstituteFluids() ? ButtonToolTips.On.text() : ButtonToolTips.Off.text()),
-                fluidSubstitutePosition.getX(),
-                fluidSubstitutePosition.getY(),
+                this.fluidSubstitutePosition.getX(),
+                this.fluidSubstitutePosition.getY(),
                 this.textColor,
                 false);
     }
@@ -119,11 +123,10 @@ public class ExtendedCraftingPatternViewScreen extends GuiPattern<ExtendedCrafti
 
         int localX = mouseX - this.leftPos;
         int localY = mouseY - this.topPos;
-        var tablePosition = resolve(this.tablePreviewStyle);
-        if (localX >= tablePosition.getX()
-                && localX < tablePosition.getX() + this.tablePreviewStyle.getWidth()
-                && localY >= tablePosition.getY()
-                && localY < tablePosition.getY() + this.tablePreviewStyle.getHeight()) {
+        if (localX >= this.tablePosition.getX()
+                && localX < this.tablePosition.getX() + this.tablePreviewStyle.getWidth()
+                && localY >= this.tablePosition.getY()
+                && localY < this.tablePosition.getY() + this.tablePreviewStyle.getHeight()) {
             guiGraphics.renderTooltip(this.font, this.menu.tableStack(), mouseX, mouseY);
         }
     }
@@ -176,11 +179,4 @@ public class ExtendedCraftingPatternViewScreen extends GuiPattern<ExtendedCrafti
         return List.copyOf(positions);
     }
 
-    private Point resolve(WidgetStyle widgetStyle) {
-        return widgetStyle.resolve(localBounds());
-    }
-
-    private Rect2i localBounds() {
-        return new Rect2i(0, 0, this.imageWidth, this.imageHeight);
-    }
 }

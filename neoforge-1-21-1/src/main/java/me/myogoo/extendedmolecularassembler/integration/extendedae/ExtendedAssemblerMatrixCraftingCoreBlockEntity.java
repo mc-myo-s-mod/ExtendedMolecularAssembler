@@ -5,6 +5,7 @@ import appeng.api.config.PowerMultiplier;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.networking.IGridNode;
+import appeng.api.networking.energy.IEnergyService;
 import appeng.api.networking.ticking.IGridTickable;
 import appeng.api.networking.ticking.TickRateModulation;
 import appeng.api.networking.ticking.TickingRequest;
@@ -25,7 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
 
 public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemblerMatrixFunction
-        implements IGridTickable, ExtendedAEAssemblerMatrixCrafterAccess {
+        implements IGridTickable {
     public static final int DEFAULT_THREAD_COUNT = 8;
     public static final int PLUS_THREAD_COUNT = 32;
     private static final int OUTPUT_SLOT = ExtendedTableCraftingPattern.MACHINE_GRID_SIZE;
@@ -62,8 +63,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         // Execution core only. It contributes EMA extended threads; pattern exposure stays in Pattern Core.
     }
 
-    @Override
-    public boolean ema$pushExtendedJob(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
+    boolean pushJob(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (!(patternDetails instanceof ExtendedTableCraftingPattern pattern)) {
             return false;
         }
@@ -79,22 +79,15 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         return false;
     }
 
-    @Override
-    public int ema$getExtendedUsedThreadCount() {
+    int usedThreadCount() {
         return this.usedThreadCount;
     }
 
-    @Override
-    public int ema$getExtendedThreadCapacity() {
-        return this.extendedThreads.length;
-    }
-
-    public int ema$getExtendedFreeThreadCount() {
+    int freeThreadCount() {
         return this.extendedThreads.length - this.usedThreadCount;
     }
 
-    @Override
-    public void ema$cancelExtendedJobs() {
+    void cancelJobs() {
         var changed = false;
         for (var thread : this.extendedThreads) {
             changed |= thread.stopProcessing();
@@ -107,28 +100,29 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
 
     @Override
     public TickingRequest getTickingRequest(IGridNode node) {
-        // Keep the EMA execution core independently tickable. ExtendedAE's vanilla Matrix crafter
-        // manages wake/sleep through its own state bits; EMA jobs are stored separately and can be
-        // running while the upstream Matrix crafter state changes. Allowing AE2 to sleep this device
-        // based on the initial/request-time used count can leave EMA jobs stalled until another EMA
-        // event explicitly wakes the node.
-        return new TickingRequest(1, 1, false);
+        return new TickingRequest(1, 1, this.usedThreadCount == 0);
     }
 
     @Override
     public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
+        if (this.usedThreadCount == 0) {
+            return TickRateModulation.SLEEP;
+        }
+
         var changed = false;
-        var active = false;
         var speedCore = this.cluster == null ? 0 : this.cluster.getSpeedCore();
+        var speed = SPEED_PROFILES[Math.max(0, Math.min(speedCore, SPEED_PROFILES.length - 1))];
+        var energyService = node.getGrid().getEnergyService();
+        var powerMultiplier = EMAConfig.extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier(this.isPlusCore());
         for (var thread : this.extendedThreads) {
-            active |= thread.isUsed();
-            changed |= thread.tick(speedCore, ticksSinceLastCall);
-            active |= thread.isUsed();
+            if (thread.isUsed()) {
+                changed |= thread.tick(speed, ticksSinceLastCall, energyService, powerMultiplier);
+            }
         }
         if (changed) {
             this.saveChanges();
         }
-        return active ? TickRateModulation.URGENT : TickRateModulation.SLEEP;
+        return this.usedThreadCount > 0 ? TickRateModulation.URGENT : TickRateModulation.SLEEP;
     }
 
     @Override
@@ -149,6 +143,14 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             this.extendedThreads[i].load(data.getCompound("ema_extended_thread_" + i), registries);
         }
         this.wakeCore();
+    }
+
+    @Override
+    public void onReady() {
+        super.onReady();
+        if (this.usedThreadCount > 0) {
+            this.wakeCore();
+        }
     }
 
     @Override
@@ -175,24 +177,16 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         return this.extendedThreads.length > DEFAULT_THREAD_COUNT;
     }
 
-    private int usePower(int ticksPassed, int bonusValue, double acceleratorTax) {
-        var grid = this.getMainNode().getGrid();
-        if (grid == null) {
-            return 0;
-        }
-        var powerMultiplier = EMAConfig.extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier(this.isPlusCore());
+    private int usePower(IEnergyService energyService, int ticksPassed, int bonusValue, double acceleratorTax,
+            double powerMultiplier) {
         var progress = ticksPassed * bonusValue;
         if (powerMultiplier <= 0) {
             return progress;
         }
 
         var requestedPower = Math.min(progress * acceleratorTax, 5000) * powerMultiplier;
-        return (int) (grid.getEnergyService().extractAEPower(requestedPower,
+        return (int) (energyService.extractAEPower(requestedPower,
                 Actionable.MODULATE, PowerMultiplier.CONFIG) / acceleratorTax / powerMultiplier);
-    }
-
-    private SpeedProfile speedProfile(int speedCore) {
-        return SPEED_PROFILES[Math.max(0, Math.min(speedCore, SPEED_PROFILES.length - 1))];
     }
 
     private final class ExtendedMatrixThread {
@@ -234,7 +228,8 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             return true;
         }
 
-        private boolean tick(int speedCore, int ticksSinceLastCall) {
+        private boolean tick(SpeedProfile speed, int ticksSinceLastCall, IEnergyService energyService,
+                double powerMultiplier) {
             if (this.outputRetryCooldown > 0) {
                 this.outputRetryCooldown = Math.max(0, this.outputRetryCooldown - ticksSinceLastCall);
                 return false;
@@ -262,8 +257,8 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
                 return changed;
             }
 
-            var speed = speedProfile(speedCore);
-            this.progress += usePower(ticksSinceLastCall, speed.speed(), speed.acceleratorTax());
+            this.progress += usePower(energyService, ticksSinceLastCall, speed.speed(), speed.acceleratorTax(),
+                    powerMultiplier);
             if (this.progress < 100) {
                 return false;
             }
@@ -300,7 +295,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             if (this.grid[OUTPUT_SLOT].isEmpty()) {
                 return;
             }
-            var remaining = ExtendedAEAssemblerMatrixBridge.insertIntoMatrixNetwork(
+            var remaining = ExtendedAEAssemblerMatrixBridge.insertOutput(
                     ExtendedAssemblerMatrixCraftingCoreBlockEntity.this.cluster, this.grid[OUTPUT_SLOT].copy());
             this.setGridItem(OUTPUT_SLOT, remaining);
             if (!remaining.isEmpty()) {
@@ -321,22 +316,6 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
                 }
             }
             return false;
-        }
-
-        private void moveFirstInputToOutput() {
-            if (!this.grid[OUTPUT_SLOT].isEmpty()) {
-                return;
-            }
-            for (int i = 0; i < ExtendedTableCraftingPattern.MACHINE_GRID_SIZE; i++) {
-                if (!this.grid[i].isEmpty()) {
-                    this.setGridItem(OUTPUT_SLOT, this.grid[i]);
-                    this.setGridItem(i, ItemStack.EMPTY);
-                    break;
-                }
-            }
-            if (this.isGridEmpty()) {
-                this.clear();
-            }
         }
 
         private boolean isUsed() {
@@ -391,7 +370,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
                 if (stack.isEmpty()) {
                     continue;
                 }
-                this.setGridItem(i, ExtendedAEAssemblerMatrixBridge.insertIntoMatrixNetwork(
+                this.setGridItem(i, ExtendedAEAssemblerMatrixBridge.insertOutput(
                         ExtendedAssemblerMatrixCraftingCoreBlockEntity.this.cluster, stack.copy()));
             }
         }

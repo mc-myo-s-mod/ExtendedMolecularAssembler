@@ -34,7 +34,6 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
             .buildUnregistered(ExtendedMolecularAssembler.makeId("extended_molecular_assembler"));
 
     private static final String ACTION_SET_PAGE = "setPage";
-    private static final String ACTION_CANCEL_CURRENT_JOB = "cancelCurrentJob";
     private static final int MAX_CRAFT_PROGRESS = 100;
     private static final short PAGE_SYNC_ID = 7;
 
@@ -57,7 +56,6 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
         super(TYPE, id, playerInv, be);
         this.assembler = be;
         registerClientAction(ACTION_SET_PAGE, Integer.class, this::setPage);
-        registerClientAction(ACTION_CANCEL_CURRENT_JOB, this::cancelCurrentJob);
         this.showPage();
     }
 
@@ -195,22 +193,6 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
         if (this.isClientSide()) {
             sendClientAction(ACTION_SET_PAGE, this.page);
         }
-    }
-
-    public void cancelCurrentJobFromClient() {
-        if (this.isClientSide()) {
-            sendClientAction(ACTION_CANCEL_CURRENT_JOB);
-        } else {
-            this.cancelCurrentJob();
-        }
-    }
-
-    public boolean hasCurrentJob() {
-        return this.craftProgress > 0 || !this.lanePatterns.patternAt(this.page).isEmpty();
-    }
-
-    private void cancelCurrentJob() {
-        this.assembler.cancelAssemblerMatrixJob(this.page);
     }
 
     private void setPage(Integer page) {
