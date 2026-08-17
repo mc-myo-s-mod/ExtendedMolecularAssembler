@@ -1,12 +1,15 @@
+<div align="center">
+    <img width="200" src="" alt="logo">
+</div>
+<p align="center"><font size="6" color="white"><strong>Extended Molecular Assembler</strong></font></h1>
 <p align="center">
-    <img width="200" src="readme/img/ema.png" alt="logo">
-</p>
-<h1 align="center">Extended Molecular Assembler</h1>
-<p align="center">
-    <img alt="Minecraft 1.21.1" src="https://img.shields.io/badge/Minecraft-1.21.1-62b47a?style=flat-square">
-    <img alt="Minecraft 1.20.1" src="https://img.shields.io/badge/Minecraft-1.20.1-62b47a?style=flat-square">
-    <img alt="Loader NeoForge / Forge" src="https://img.shields.io/badge/Loader-NeoForge%20%2F%20Forge-f16436?style=flat-square">
-    <img alt="GitHub License" src="https://img.shields.io/github/license/mc-myo-s-mod/ExtendedMolecularAseembler?style=flat-square">
+    <a href="https://www.curseforge.com/minecraft/mc-mods/extended-molecular-assembler" target="_blank">
+      <img alt="CurseForge Downloads" src="https://img.shields.io/curseforge/dt/1586480?style=flat-square&logo=curseforge&color=f16436">
+    </a>
+    <a href="https://modrinth.com/mod/extended-molecular-assembler" target="_blank">
+      <img alt="Modrinth Downloads" src="https://img.shields.io/modrinth/dt/extended-molecular-assembler?style=flat-square&logo=modrinth&color=00af5c">
+    </a>
+  <img alt="GitHub License" src="https://img.shields.io/github/license/mc-myo-s-mod/ExtendedMolecularAssembler?style=flat-square">
 </p>
 
 ## Feature
@@ -16,13 +19,6 @@
 - Provides an Extended Pattern Encoding Terminal for selecting supported recipe table providers.
 - Includes Wireless Universal Terminal support for the Extended Pattern Encoding Terminal.
 - You can add **Extended Molecular Assembler** to your modpack.
-
-## Support Version
-
-| Loader   | Minecraft | Module             | Status |
-|----------|-----------|--------------------|--------|
-| NeoForge | 1.21.1    | `neoforge-1-21-1`  | ✔️     |
-| Forge    | 1.20.1    | `forge-1-20-1`     | ✔️     |
 
 
 ## Support Recipe Table
@@ -39,24 +35,3 @@
 |---------------------------------------------------------------------|----------------|----------|-------------------------------------------------------------------------------------------------------------------------------------|
 | [Myotus](https://modrinth.com/mod/myotus)                           | 1.21.1, 1.20.1 | ✔️       | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/myotus-lib), [Modrinth](https://modrinth.com/mod/myotus)                      |
 | [Extended Terminal](https://modrinth.com/mod/extended-terminal)      | 1.21.1, 1.20.1 | ❌         | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/extended-terminal), [Modrinth](https://modrinth.com/mod/extended-terminal) |
-## Build
-
-Run from the repository root:
-
-```bash
-./gradlew :neoforge-1-21-1:build
-./gradlew :forge-1-20-1:build
-```
-
-If you are building on Windows from WSL and Gradle artifacts are locked by IntelliJ or Minecraft, close the process that holds the files or build from a clean copy on the Linux filesystem.
-
-## License
-
-- Code: LGPL 3.0
-- Assets:
-  - AE2-derived screen assets follow their original asset license where applicable.
-  - Mod-specific assets are distributed with this project unless otherwise noted.
-
-### Badges
-
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mc-myo-s-mod/ExtendedMolecularAseembler)
