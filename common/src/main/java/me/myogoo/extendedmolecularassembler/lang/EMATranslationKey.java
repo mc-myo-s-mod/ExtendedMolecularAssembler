@@ -192,7 +192,9 @@ public enum EMATranslationKey implements MyoTranslateKey {
         RE_AVARITIA_SCULK("tier.extendedmolecularassembler.re_avaritia_sculk"),
         RE_AVARITIA_NETHER("tier.extendedmolecularassembler.re_avaritia_nether"),
         RE_AVARITIA_END("tier.extendedmolecularassembler.re_avaritia_end"),
-        XTREME("tier.extendedmolecularassembler.xtreme");
+        XTREME("tier.extendedmolecularassembler.xtreme"),
+        EPIC("tier.extendedmolecularassembler.epic"),
+        LEGENDARY("tier.extendedmolecularassembler.legendary");
 
         private final String key;
 

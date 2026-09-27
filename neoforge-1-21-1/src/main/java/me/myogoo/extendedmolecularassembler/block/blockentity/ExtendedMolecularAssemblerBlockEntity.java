@@ -62,6 +62,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import me.myogoo.extendedmolecularassembler.crafting.AssemblerSpeedProfile;
 
 public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEntity
         implements IUpgradeableObject, IGridTickable, ICraftingMachine, IPowerChannelState {
@@ -73,24 +74,6 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
     public static final int PARALLEL_LANE_COUNT = 8;
     private static final int LANE_SIZE = GRID_SIZE + 1;
     private static final Direction[] DIRECTIONS = Direction.values();
-    // Keep the standard assembler aligned with AE2's Molecular Assembler speed curve.
-    private static final SpeedProfile[] STANDARD_SPEED_PROFILES = {
-            new SpeedProfile(10, 1.0),
-            new SpeedProfile(13, 1.3),
-            new SpeedProfile(17, 1.7),
-            new SpeedProfile(20, 2.0),
-            new SpeedProfile(25, 2.5),
-            new SpeedProfile(50, 5.0)
-    };
-    // ExtendedAE doubles every point on AE2's curve for its Extended Molecular Assembler.
-    private static final SpeedProfile[] EX_SPEED_PROFILES = {
-            new SpeedProfile(20, 1.0),
-            new SpeedProfile(26, 1.3),
-            new SpeedProfile(34, 1.7),
-            new SpeedProfile(40, 2.0),
-            new SpeedProfile(50, 2.5),
-            new SpeedProfile(100, 5.0)
-    };
     private final CraftingLane[] lanes = new CraftingLane[PARALLEL_LANE_COUNT];
     private final int laneCount;
     private final Block machineBlock;
@@ -472,10 +455,8 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                 Actionable.MODULATE, PowerMultiplier.CONFIG) / acceleratorTax / powerMultiplier);
     }
 
-    private SpeedProfile getSpeedProfile() {
-        var upgrades = this.upgrades.getInstalledUpgrades(AEItems.SPEED_CARD);
-        var speedProfiles = this.isExAssembler() ? EX_SPEED_PROFILES : STANDARD_SPEED_PROFILES;
-        return speedProfiles[Math.max(0, Math.min(upgrades, speedProfiles.length - 1))];
+    private AssemblerSpeedProfile getSpeedProfile() {
+        return AssemblerSpeedProfile.forUpgrades(this.isExAssembler(), this.upgrades.getInstalledUpgrades(AEItems.SPEED_CARD));
     }
 
     @Override
@@ -674,7 +655,7 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
             return (int) this.progress;
         }
 
-        private TickRateModulation tick(IGridNode node, int ticksSinceLastCall, SpeedProfile speedProfile,
+        private TickRateModulation tick(IGridNode node, int ticksSinceLastCall, AssemblerSpeedProfile speedProfile,
                 IEnergyService energyService, double powerMultiplier) {
             if (!this.gridInv.getStackInSlot(OUTPUT_SLOT).isEmpty()) {
                 this.pushOut(this.gridInv.getStackInSlot(OUTPUT_SLOT));
@@ -935,9 +916,6 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkedInvBlockEn
                 this.bulkUpdatingGrid = wasBulkUpdating;
             }
         }
-    }
-
-    private record SpeedProfile(int speed, double acceleratorTax) {
     }
 
     private void queueCraftingAnimation(int speed, ItemStack output) {

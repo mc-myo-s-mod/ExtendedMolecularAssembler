@@ -1,102 +1,25 @@
-def commonJavaSourceDir = layout.projectDirectory.dir('../common/src/main/java').asFile
-def commonResourcesSourceDir = layout.projectDirectory.dir('../common/src/main/resources').asFile
-def projectResourcesSourceDir = layout.projectDirectory.dir('src/main/resources').asFile
-def commonLangDir = new File(commonResourcesSourceDir, 'assets/extendedmolecularassembler/lang')
-def projectLangDir = new File(projectResourcesSourceDir, 'assets/extendedmolecularassembler/lang')
-
-def generatedCommonJavaDir = layout.buildDirectory.dir('generated/sources/extendedMolecularAssemblerCommon/java')
-def generatedCommonResourcesDir = layout.buildDirectory.dir('generated/resources/extendedMolecularAssemblerCommon')
-def generatedCommonLangDir = generatedCommonResourcesDir.map {
-    it.dir('assets/extendedmolecularassembler/lang')
-}
-
-def syncEMACommonJava = tasks.register('syncEMACommonJava', Sync) {
-    from commonJavaSourceDir
-    into generatedCommonJavaDir
-}
-
+// Compile shared Java against each loader's dependencies and package shared assets once.
+def loaderResourceDirs = [file('src/main/resources'), file('src/generated/resources')]
+def generatedCommonResourcesDir = layout.buildDirectory.dir('generated/resources/emaCommon')
 def syncEMACommonResources = tasks.register('syncEMACommonResources', Sync) {
-    from commonResourcesSourceDir
-    exclude 'assets/extendedmolecularassembler/lang/*.json'
+    from '../common/src/main/resources'
     into generatedCommonResourcesDir
-}
-
-def mergeEMACommonLang = tasks.register('mergeEMACommonLang') {
-    dependsOn syncEMACommonResources
-    inputs.files(fileTree(commonLangDir) {
-        include '*.json'
-    })
-    inputs.files(fileTree(projectLangDir) {
-        include '*.json'
-    })
-    outputs.dir generatedCommonResourcesDir
-
-    doLast {
-        def outputLangDir = generatedCommonLangDir.get().asFile
-        outputLangDir.mkdirs()
-
-        def parser = new groovy.json.JsonSlurper()
-        def langFiles = [] as Set
-        if (commonLangDir.isDirectory()) {
-            commonLangDir.eachFileMatch(~/.*\.json/) { langFiles.add(it.name) }
-        }
-        if (projectLangDir.isDirectory()) {
-            projectLangDir.eachFileMatch(~/.*\.json/) { langFiles.add(it.name) }
-        }
-
-        langFiles.sort().each { fileName ->
-            def merged = new LinkedHashMap<String, Object>()
-            def commonFile = new File(commonLangDir, fileName)
-            def projectFile = new File(projectLangDir, fileName)
-            if (commonFile.isFile()) {
-                merged.putAll(parser.parse(commonFile) as Map<String, Object>)
-            }
-            if (projectFile.isFile()) {
-                merged.putAll(parser.parse(projectFile) as Map<String, Object>)
-            }
-
-            new File(outputLangDir, fileName).text = groovy.json.JsonOutput.prettyPrint(
-                    groovy.json.JsonOutput.toJson(merged)) + '\n'
-        }
-    }
-}
-
-def generatedCommonJavaSources = files(generatedCommonJavaDir).builtBy(syncEMACommonJava)
-def generatedCommonResources = files(generatedCommonResourcesDir).builtBy(syncEMACommonResources)
-
-sourceSets {
-    main {
-        java.srcDir generatedCommonJavaSources
-        resources {
-            setSrcDirs([generatedCommonResources, 'src/main/resources', 'src/generated/resources'])
-            exclude '.cache/**'
-            exclude '**/.cache/**'
-        }
-    }
-}
-
-tasks.named('compileJava').configure {
-    dependsOn syncEMACommonJava
-}
-
-tasks.named('processResources').configure {
-    dependsOn syncEMACommonResources
-    dependsOn mergeEMACommonLang
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    exclude '.cache/**'
     exclude '**/.cache/**'
-}
-
-tasks.matching { it.name in ['genIntellijRuns', 'neoForgeIdeSync', 'idea', 'ideaModule'] }.configureEach {
-    dependsOn syncEMACommonJava
-    dependsOn syncEMACommonResources
-    dependsOn mergeEMACommonLang
-}
-
-idea {
-    module {
-        sourceDirs += generatedCommonJavaDir.get().asFile
-        generatedSourceDirs += generatedCommonJavaDir.get().asFile
-        resourceDirs += generatedCommonResourcesDir.get().asFile
+    inputs.files(loaderResourceDirs.collect { fileTree(it) })
+            .withPropertyName('loaderResourceOverrides').withPathSensitivity(PathSensitivity.RELATIVE)
+    exclude { details ->
+        !details.directory && loaderResourceDirs.any { new File(it, details.relativePath.pathString).isFile() }
     }
+}
+
+sourceSets.main {
+    java.srcDir project.file('../common/src/main/java')
+    resources {
+        srcDir files(generatedCommonResourcesDir).builtBy(syncEMACommonResources)
+        exclude '**/.cache/**'
+    }
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    duplicatesStrategy = DuplicatesStrategy.FAIL
 }

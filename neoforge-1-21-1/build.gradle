@@ -50,6 +50,8 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+sourceSets.main.resources.srcDir 'src/generated/resources'
+
 if (rootProject == project) {
     apply from: file('../gradle/ema-common-sources.gradle')
 }

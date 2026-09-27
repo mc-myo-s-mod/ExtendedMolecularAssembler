@@ -26,7 +26,6 @@ allprojects {
     version = findProperty('mod_version') ?: 'unspecified'
 
     repositories {
-        mavenLocal()
         mavenCentral()
         maven { url = 'https://maven.blamejared.com/' }
         maven {
@@ -38,6 +37,13 @@ allprojects {
             }
         }
         maven { url = 'https://maven.blakesmods.com' }
+        maven {
+            name = 'TerraformersMC'
+            url = 'https://maven.terraformersmc.com/'
+            content {
+                includeGroup 'dev.emi'
+            }
+        }
         maven {
             name = 'Architectury'
             url = 'https://maven.architectury.dev/'
@@ -91,12 +97,23 @@ def modProjects = [
 
 configure(project(':common')) {
     java {
-        toolchain.languageVersion = JavaLanguageVersion.of(21)
+        toolchain.languageVersion = JavaLanguageVersion.of(17)
     }
 
     dependencies {
         // Lets the EMA common module resolve Myotus API annotations while editing shared sources.
-        compileOnly "me.myogoo:myotus:${project(':neoforge-1-21-1').myotus_version}"
+        compileOnly "me.myogoo:myotus:${project(':forge-1-20-1').myotus_version}"
+    }
+
+    tasks.register('craftingChecks', JavaExec) {
+        group = 'verification'
+        dependsOn testClasses
+        classpath = sourceSets.test.runtimeClasspath
+        mainClass = 'me.myogoo.extendedmolecularassembler.CommonCraftingChecks'
+        enableAssertions = true
+    }
+    tasks.named('check').configure {
+        dependsOn craftingChecks
     }
 }
 

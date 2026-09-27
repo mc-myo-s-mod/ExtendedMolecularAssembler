@@ -8,7 +8,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@MyoMod(value = "avaritia", alias = "Avaritia", versionRange = "[1.2.7,]", customCondition = AvaritiaNeoCondition.class)
+@MyoMod(value = "avaritia", alias = "Avaritia", versionRange = "[1.1.5,]", customCondition = AvaritiaNeoCondition.class)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AvaritiaNeo {

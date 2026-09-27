@@ -1,7 +1,7 @@
 {
   "textures": {
     "lightsBright": "extendedmolecularassembler:part/extended_pattern_encoding_terminal_bright",
-    "lightsMedium": "ae2:part/crafting_terminal_medium",
+    "lightsMedium": "extendedmolecularassembler:part/extended_pattern_encoding_terminal_medium",
     "lightsDark": "extendedmolecularassembler:part/extended_pattern_encoding_terminal_dark"
   },
   "elements": [
