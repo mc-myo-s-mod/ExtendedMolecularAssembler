@@ -1,6 +1,6 @@
 # Forge 1.20.1 rebuild
 
-Updated: 2026-09-05
+Updated: 2026-09-28
 
 The Forge sources were rebuilt from the NeoForge 1.21.1 implementation against
 Forge 47.4.17, AE2 15.4.10, Java 17 and Myotus 15.1.0 from Maven Central.
@@ -54,7 +54,7 @@ Quantum content remains AdvancedAE-only WIP with no crafting recipe.
 - The JEI client reached the title screen and passed all 15 native style checks
   without EMA model/texture errors. All 183 Forge PNG/JSON and generated data
   resources match the built JAR. This includes the terminal edge layers and the
-  approved bright purple Ex frames described below.
+  assembler frame revisions described below.
 - A dedicated `runServer` reached `Done` in a separate smoke-test world without
   opening the existing development world. ExtendedAE's known `ex_emc_interface`
   loot diagnostic remains unrelated to EMA.
@@ -152,6 +152,18 @@ still needs manual confirmation; this resource refresh has not been deployed.
 - `scripts/verify-terminal-models.ps1` checks the shared references, tint indices
   and non-overlapping masks, including complete dark/edge border coverage.
 
+### Current assembler palette (2026-09-28)
+
+- The bright Ex outer frames are replaced with the original dark AE2/ExtendedAE
+  frame colors. Extended's normal cyan and muted-lavender Ex trims stay distinct.
+- Epic and Legendary swap the complete normal/Ex PNGs from the muted-trim revision:
+  normal Epic uses grey-purple, normal Legendary uses burgundy, while their Ex
+  variants use the original dark Epic and vivid red Legendary trims.
+- Only the existing texture contents change. Models, powered lighting, glass,
+  alpha and gameplay behavior are unchanged.
+- The user-updated Epic and Legendary crafting-provider textures are included
+  with this palette revision.
+
 ### Assembler frame refinement (2026-09-27)
 
 - Normal assemblers use AE2's frame pattern, and Ex assemblers use ExtendedAE's
@@ -174,11 +186,11 @@ still needs manual confirmation; this resource refresh has not been deployed.
   Source/deployed SHA-256: `0E012E2EFFB58C6E2A04EAE33EDF67CD7B8C56AC142FF6FF8C5711EF2DB7992F`.
   All six packaged frame textures match source and exactly one EMA mod is installed.
   The modpack was not launched after replacement.
-- The approved bright grey-purple preview is now applied to all three Ex variants,
+- The approved bright grey-purple preview was applied to all three Ex variants,
   using `#493956`, `#80699E`, and `#B09ACB` while preserving the frame shading.
   Only 52 outer pixels change per Ex; normal variants, alpha, glass and metal trim
   remain unchanged. Build and packaged PNG checks pass against the approved preview.
-  This bright-frame revision has not been deployed or checked in-world.
+  This bright-frame revision is superseded by the current palette described above.
 - Deployed the previous frame/light revision to `ae2-1.20.1` on 2026-09-27 at 22:52, without
   committing. The previous EMA JAR is backed up under the instance's
   `codex-backups/2026-09-27_225204-ema-assembler-frames` directory. Source and
