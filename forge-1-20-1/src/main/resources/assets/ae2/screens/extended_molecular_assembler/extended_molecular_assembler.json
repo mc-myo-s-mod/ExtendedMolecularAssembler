@@ -2,110 +2,113 @@
   "$schema": "../schema.json",
   "includes": [
     "../common/common.json",
-    "../common/player_inventory.json",
-    "../common/toolbox.json"
+    "../common/player_inventory.json"
   ],
-  "generatedBackground": {
-    "width": 240,
-    "height": 290
+  "background": {
+    "texture": "guis/extended_molecular_assembler.png",
+    "textureWidth": 512,
+    "textureHeight": 512,
+    "srcRect": [0, 0, 221, 290]
   },
-  "helpTopic": "extendedmolecularassembler:extended-molecular-assemblers",
   "slots": {
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_1": {
-      "left": 8,
-      "top": 31,
+      "left": 10,
+      "top": 30,
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_2": {
-      "left": 8,
-      "top": 31,
+      "left": 10,
+      "top": 30,
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_3": {
-      "left": 8,
-      "top": 31,
+      "left": 10,
+      "top": 30,
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_4": {
-      "left": 8,
-      "top": 31,
+      "left": 10,
+      "top": 30,
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_5": {
-      "left": 8,
-      "top": 31,
+      "left": 10,
+      "top": 30,
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_6": {
-      "left": 8,
-      "top": 31,
+      "left": 10,
+      "top": 30,
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_7": {
-      "left": 8,
-      "top": 31,
+      "left": 10,
+      "top": 30,
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_8": {
-      "left": 8,
-      "top": 31,
+      "left": 10,
+      "top": 30,
       "grid": "BREAK_AFTER_9COLS"
     },
     "ENCODED_PATTERN": {
-      "left": 187,
-      "top": 42
+      "left": 186,
+      "top": 65
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_1": {
-      "left": 187,
-      "top": 80
+      "left": 186,
+      "top": 98
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_2": {
-      "left": 187,
-      "top": 80
+      "left": 186,
+      "top": 98
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_3": {
-      "left": 187,
-      "top": 80
+      "left": 186,
+      "top": 98
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_4": {
-      "left": 187,
-      "top": 80
+      "left": 186,
+      "top": 98
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_5": {
-      "left": 187,
-      "top": 80
+      "left": 186,
+      "top": 98
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_6": {
-      "left": 187,
-      "top": 80
+      "left": 186,
+      "top": 98
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_7": {
-      "left": 187,
-      "top": 80
+      "left": 186,
+      "top": 98
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_8": {
-      "left": 187,
-      "top": 80
+      "left": 186,
+      "top": 98
     },
     "PLAYER_INVENTORY": {
-      "left": 8,
-      "bottom": 84,
+      "left": 10,
+      "bottom": 83,
       "grid": "BREAK_AFTER_9COLS"
     },
     "PLAYER_HOTBAR": {
-      "left": 8,
-      "bottom": 26,
+      "left": 10,
+      "bottom": 25,
       "grid": "HORIZONTAL"
     }
   },
   "text": {
     "dialog_title": {
-      "text": {
-        "translate": "gui.extendedmolecularassembler.extendedMolecularAssembler"
-      },
       "position": {
         "left": 8,
         "top": 6
+      }
+    },
+    "job": {
+      "position": {
+        "left": 8,
+        "top": 18
       }
     },
     "player_inventory_title": {
@@ -113,26 +116,23 @@
         "translate": "container.inventory"
       },
       "position": {
-        "left": 8,
+        "left": 10,
         "bottom": 95
       }
     }
   },
   "images": {
     "progressBar": {
-      "texture": "guis/molecular_assembler.png",
-      "srcRect": [
-        176,
-        0,
-        6,
-        18
-      ]
+      "texture": "guis/extended_molecular_assembler.png",
+      "textureWidth": 512,
+      "textureHeight": 512,
+      "srcRect": [222, 1, 4, 16]
     }
   },
   "widgets": {
     "progressBar": {
-      "left": 213,
-      "top": 79
+      "left": 209,
+      "top": 98
     }
   }
 }

@@ -1,0 +1,44 @@
+{
+  "type": "extendedcrafting:shaped_table",
+  "conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    },
+    {
+      "type": "forge:item_exists",
+      "item": "extendedcrafting:legendary_table"
+    }
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "pattern": [
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCNCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC",
+    "CCCCCCCCCCCCC"
+  ],
+  "result": {
+    "count": 1,
+    "item": "minecraft:netherite_block"
+  },
+  "tier": 6
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedterminal"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "ae2:pattern_encoding_terminal"
+    },
+    {
+      "item": "extendedterminal:united_terminal"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:extended_pattern_encoding_terminal"
+  }
+}

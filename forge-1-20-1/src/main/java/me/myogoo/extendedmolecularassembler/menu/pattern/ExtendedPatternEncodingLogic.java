@@ -15,18 +15,19 @@ import net.minecraft.world.item.ItemStack;
 
 public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
     private final IExtendedPatternEncodingTerminalHost host;
-    private final ConfigInventory encodedInputInv = ConfigInventory.configStacks(null,
-            ExtendedTableCraftingPattern.MACHINE_GRID_SIZE,
-            this::onEncodedInputChanged,
-            true);
+    private final ConfigInventory encodedInputInv;
     private final AppEngInternalInventory blankPatternInv = new AppEngInternalInventory(this, 1);
     private final AppEngInternalInventory encodedPatternInv = new AppEngInternalInventory(this, 1);
 
     private boolean substitute;
+    private boolean substituteFluids = true;
     private boolean loading;
+    private long encodedInputRevision;
 
     public ExtendedPatternEncodingLogic(IExtendedPatternEncodingTerminalHost host) {
         this.host = host;
+        this.encodedInputInv = ConfigInventory.configStacks(null,
+                host.getGridSide() * host.getGridSide(), this::onEncodedInputChanged, true);
         this.blankPatternInv.setFilter(new AEItemDefinitionFilter(AEItems.BLANK_PATTERN));
     }
 
@@ -39,19 +40,16 @@ public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
     }
 
     @Override
-    public void saveChanges() {
-        if (!loading) {
-            host.markForSave();
-        }
-    }
-
-    @Override
     public boolean isClientSide() {
         return host.getLevel().isClientSide();
     }
 
     public ConfigInventory getEncodedInputInv() {
         return encodedInputInv;
+    }
+
+    public long getEncodedInputRevision() {
+        return encodedInputRevision;
     }
 
     public InternalInventory getBlankPatternInv() {
@@ -62,12 +60,21 @@ public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
         return encodedPatternInv;
     }
 
+    public boolean isFluidSubstitution() {
+        return substituteFluids;
+    }
+
     public boolean isSubstitution() {
         return substitute;
     }
 
     public void setSubstitution(boolean substitute) {
         this.substitute = substitute;
+        saveChanges();
+    }
+
+    public void setFluidSubstitution(boolean substituteFluids) {
+        this.substituteFluids = substituteFluids;
         saveChanges();
     }
 
@@ -87,6 +94,7 @@ public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
         loading = true;
         try {
             this.substitute = data.getBoolean("substitute");
+            this.substituteFluids = !data.contains("substituteFluids") || data.getBoolean("substituteFluids");
             blankPatternInv.readFromNBT(data, "blankPattern");
             encodedPatternInv.readFromNBT(data, "encodedPattern");
             encodedInputInv.readFromChildTag(data, "encodedInputs");
@@ -97,14 +105,23 @@ public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
 
     public void writeToNBT(CompoundTag data) {
         data.putBoolean("substitute", substitute);
+        data.putBoolean("substituteFluids", substituteFluids);
         blankPatternInv.writeToNBT(data, "blankPattern");
         encodedPatternInv.writeToNBT(data, "encodedPattern");
         encodedInputInv.writeToChildTag(data, "encodedInputs");
     }
 
     private void onEncodedInputChanged() {
-        fixCraftingInputs();
+        fixCraftingContainers();
+        encodedInputRevision++;
         saveChanges();
+    }
+
+    @Override
+    public void saveChanges() {
+        if (!loading) {
+            host.markForSave();
+        }
     }
 
     private void loadEncodedPattern(ItemStack pattern) {
@@ -113,17 +130,19 @@ public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
         }
 
         var details = PatternDetailsHelper.decodePattern(pattern, host.getLevel());
-        if (!(details instanceof ExtendedTableCraftingPattern tablePattern)) {
+        if (!(details instanceof ExtendedTableCraftingPattern tablePattern)
+                || tablePattern.sideLength() > host.getGridSide()) {
             return;
         }
 
         loading = true;
         try {
             this.substitute = tablePattern.canSubstitute();
+            this.substituteFluids = tablePattern.canSubstituteFluids();
             encodedInputInv.clear();
 
             var side = tablePattern.sideLength();
-            var offset = Math.floorDiv(ExtendedTableCraftingPattern.MACHINE_GRID_SIDE - side, 2);
+            var offset = Math.floorDiv(host.getGridSide() - side, 2);
             var sparseInputs = tablePattern.getSparseInputs();
             for (int patternSlot = 0; patternSlot < sparseInputs.size(); patternSlot++) {
                 var input = sparseInputs.get(patternSlot);
@@ -133,14 +152,14 @@ public class ExtendedPatternEncodingLogic implements InternalInventoryHost {
 
                 var x = patternSlot % side + offset;
                 var y = patternSlot / side + offset;
-                encodedInputInv.setStack(x + y * ExtendedTableCraftingPattern.MACHINE_GRID_SIDE, input);
+                encodedInputInv.setStack(x + y * host.getGridSide(), input);
             }
         } finally {
             loading = false;
         }
     }
 
-    private void fixCraftingInputs() {
+    private void fixCraftingContainers() {
         if (host.getLevel() == null || host.getLevel().isClientSide()) {
             return;
         }

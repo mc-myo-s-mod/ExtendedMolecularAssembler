@@ -1,0 +1,13 @@
+{
+  "type": "ae2wtlib:upgrade",
+  "conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "ae2wtlib"
+    }
+  ],
+  "terminal": {
+    "item": "extendedmolecularassembler:legendary_wireless_extended_pattern_encoding_terminal"
+  },
+  "terminalName": "legendary_pattern_encoding"
+}

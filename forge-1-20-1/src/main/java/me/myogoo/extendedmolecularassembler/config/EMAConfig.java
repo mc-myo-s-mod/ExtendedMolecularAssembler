@@ -1,21 +1,27 @@
 package me.myogoo.extendedmolecularassembler.config;
 
-import me.myogoo.extendedmolecularassembler.block.TieredMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.EnumMap;
 import java.util.Map;
 
 public final class EMAConfig {
+    private static final double DEFAULT_CRAFTING_PROVIDER_IDLE_POWER_USAGE = 1.0;
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static final ForgeConfigSpec SPEC;
+    public static final ForgeConfigSpec COMMON;
 
     private static final PowerSettings EXTENDED_MOLECULAR_ASSEMBLER;
     private static final PowerSettings EX_EXTENDED_MOLECULAR_ASSEMBLER;
-    private static final Map<TieredMECraftingProviderTier, PowerSettings> TIERED_ME_CRAFTING_PROVIDERS;
+    private static final Map<ExportMECraftingProviderTier, PowerSettings> EXPORT_ME_CRAFTING_PROVIDERS;
     private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE;
+    private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE;
     private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER;
-    private static final ForgeConfigSpec.BooleanValue TIERED_MODE;
+    private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS;
+    private static final PowerSettings EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS;
+    private static final PowerSettings EXTENDED_QUANTUM_CRAFTER;
+    private static final ForgeConfigSpec.BooleanValue EXPORT_MODE;
+    private static final ForgeConfigSpec.BooleanValue STANDALONE_EXTENDEDAE_PLUS_CONTENT;
 
     static {
         BUILDER.comment("Per-block AE power settings").push("blocks");
@@ -25,43 +31,65 @@ public final class EMAConfig {
         EX_EXTENDED_MOLECULAR_ASSEMBLER = defineBlock("ex_extended_molecular_assembler",
                 "EX Extended Molecular Assembler");
 
-        var providerSettings = new EnumMap<TieredMECraftingProviderTier, PowerSettings>(
-                TieredMECraftingProviderTier.class);
-        for (var tier : TieredMECraftingProviderTier.values()) {
-            providerSettings.put(tier, defineBlock(tier.blockId(), tier.displayName().getString()));
+        var providerSettings = new EnumMap<ExportMECraftingProviderTier, PowerSettings>(
+                ExportMECraftingProviderTier.class);
+        for (var tier : ExportMECraftingProviderTier.values()) {
+            providerSettings.put(tier, defineBlock(
+                    tier.blockId(),
+                    tier.displayName().getString(),
+                    DEFAULT_CRAFTING_PROVIDER_IDLE_POWER_USAGE));
         }
-        TIERED_ME_CRAFTING_PROVIDERS = Map.copyOf(providerSettings);
+        EXPORT_ME_CRAFTING_PROVIDERS = Map.copyOf(providerSettings);
 
         EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE = defineBlock("extended_assembler_matrix_pattern_core",
                 "Extended Assembler Matrix Pattern Core");
+        EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE = defineBlock("extended_assembler_matrix_crafting_core",
+                "Extended Assembler Matrix Crafting Core");
         EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER = defineBlock("extended_assembler_matrix_pattern_uploader",
                 "Extended Assembler Matrix Pattern Uploader");
+        EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS = defineBlock("extended_assembler_matrix_pattern_core_plus",
+                "Extended Assembler Matrix Pattern Core Plus");
+        EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS = defineBlock("extended_assembler_matrix_crafting_core_plus",
+                "Extended Assembler Matrix Crafting Core Plus");
+        EXTENDED_QUANTUM_CRAFTER = defineBlock("extended_quantum_crafter", "Extended Quantum Crafter");
+
         BUILDER.pop();
 
         BUILDER.comment("Extended Molecular Assembler Settings").push("general");
-        TIERED_MODE = BUILDER
+        EXPORT_MODE = BUILDER
                 .comment(
                         "When enabled, extended table auto-crafting is accepted only if an online ME crafting provider for the exact encoded table exists in the same ME network.",
                         "Use the Extended Crafting providers for Extended Crafting tables, Re:Avaritia providers for Re:Avaritia Sculk/Nether/End tables, and the shared Xtreme provider for both Re:Avaritia Xtreme and AvaritiaNeo Xtreme recipes.")
-                .define("TieredMode", false);
+                .define("export", false);
+        STANDALONE_EXTENDEDAE_PLUS_CONTENT = BUILDER
+                .comment(
+                        "When enabled, EMA exposes standalone recipes, creative-tab entries, and Pattern Uploader support for its Plus-style Matrix blocks when ExtendedAE Plus is not installed.",
+                        "The registry entries always follow ExtendedAE so worlds remain stable when ExtendedAE Plus is added or removed.",
+                        "If ExtendedAE Plus is installed, these EMA features are always enabled. A full game restart is required after changing this setting.")
+                .worldRestart()
+                .define("StandaloneExtendedAEPlusContent", false);
         BUILDER.pop();
 
-        SPEC = BUILDER.build();
+        COMMON = BUILDER.build();
     }
 
     private EMAConfig() {
     }
 
     private static PowerSettings defineBlock(String blockId, String displayName) {
+        return defineBlock(blockId, displayName, 0.0);
+    }
+
+    private static PowerSettings defineBlock(String blockId, String displayName, double defaultIdlePowerUsage) {
         BUILDER.comment(displayName + " power settings").push(blockId);
         var craftingPowerMultiplier = BUILDER
                 .comment("Multiplier for AE power consumed while this block performs EMA-managed crafting. 1.0 keeps the default cost. Blocks without crafting work keep this setting for consistency.")
                 .defineInRange("craftingPowerMultiplier", 1.0, 0.0, Double.MAX_VALUE);
-        var passivePowerUsage = BUILDER
-                .comment("Passive AE/t idle drain for this block's ME network node.")
-                .defineInRange("passivePowerUsage", 0.0, 0.0, Double.MAX_VALUE);
+        var idlePowerUsage = BUILDER
+                .comment("Passive AE/t drain for this block's ME network node. Set to 0.0 to disable it.")
+                .defineInRange("idlePowerUsage", defaultIdlePowerUsage, 0.0, Double.MAX_VALUE);
         BUILDER.pop();
-        return new PowerSettings(craftingPowerMultiplier, passivePowerUsage);
+        return new PowerSettings(craftingPowerMultiplier, idlePowerUsage);
     }
 
     public static double extendedMolecularAssemblerCraftingPowerMultiplier() {
@@ -73,52 +101,84 @@ public final class EMAConfig {
                 .craftingPowerMultiplier().get();
     }
 
-    public static double extendedMolecularAssemblerPassivePowerUsage() {
-        return extendedMolecularAssemblerPassivePowerUsage(false);
+    public static double extendedMolecularAssemblerIdlePowerUsage() {
+        return extendedMolecularAssemblerIdlePowerUsage(false);
     }
 
-    public static double extendedMolecularAssemblerPassivePowerUsage(boolean exAssembler) {
+    public static double extendedMolecularAssemblerIdlePowerUsage(boolean exAssembler) {
         return (exAssembler ? EX_EXTENDED_MOLECULAR_ASSEMBLER : EXTENDED_MOLECULAR_ASSEMBLER)
-                .passivePowerUsage().get();
+                .idlePowerUsage().get();
     }
 
-    public static double tieredMECraftingProviderCraftingPowerMultiplier(TieredMECraftingProviderTier tier) {
-        return TIERED_ME_CRAFTING_PROVIDERS.get(tier).craftingPowerMultiplier().get();
+    public static double exportMECraftingProviderCraftingPowerMultiplier(ExportMECraftingProviderTier tier) {
+        return EXPORT_ME_CRAFTING_PROVIDERS.get(tier).craftingPowerMultiplier().get();
     }
 
-    public static double tieredMECraftingProviderPassivePowerUsage(TieredMECraftingProviderTier tier) {
-        return TIERED_ME_CRAFTING_PROVIDERS.get(tier).passivePowerUsage().get();
+    public static double exportMECraftingProviderIdlePowerUsage(ExportMECraftingProviderTier tier) {
+        return EXPORT_ME_CRAFTING_PROVIDERS.get(tier).idlePowerUsage().get();
     }
 
-    public static boolean tieredMode() {
-        return TIERED_MODE.get();
+    public static boolean exportMode() {
+        return EXPORT_MODE.get();
+    }
+
+    public static boolean standaloneExtendedAEPlusContent() {
+        return STANDALONE_EXTENDEDAE_PLUS_CONTENT.get();
     }
 
     public static double extendedAssemblerMatrixPatternCoreCraftingPowerMultiplier() {
         return extendedAssemblerMatrixPatternCoreCraftingPowerMultiplier(false);
     }
 
-    public static double extendedAssemblerMatrixPatternCoreCraftingPowerMultiplier(boolean ignored) {
-        return EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE.craftingPowerMultiplier().get();
+    public static double extendedAssemblerMatrixPatternCoreCraftingPowerMultiplier(boolean plus) {
+        return (plus ? EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS : EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE)
+                .craftingPowerMultiplier().get();
     }
 
-    public static double extendedAssemblerMatrixPatternCorePassivePowerUsage() {
-        return extendedAssemblerMatrixPatternCorePassivePowerUsage(false);
+    public static double extendedAssemblerMatrixPatternCoreIdlePowerUsage() {
+        return extendedAssemblerMatrixPatternCoreIdlePowerUsage(false);
     }
 
-    public static double extendedAssemblerMatrixPatternCorePassivePowerUsage(boolean ignored) {
-        return EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE.passivePowerUsage().get();
+    public static double extendedAssemblerMatrixPatternCoreIdlePowerUsage(boolean plus) {
+        return (plus ? EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS : EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE)
+                .idlePowerUsage().get();
+    }
+
+    public static double extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier() {
+        return extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier(false);
+    }
+
+    public static double extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier(boolean plus) {
+        return (plus ? EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS : EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE)
+                .craftingPowerMultiplier().get();
+    }
+
+    public static double extendedAssemblerMatrixCraftingCoreIdlePowerUsage() {
+        return extendedAssemblerMatrixCraftingCoreIdlePowerUsage(false);
+    }
+
+    public static double extendedAssemblerMatrixCraftingCoreIdlePowerUsage(boolean plus) {
+        return (plus ? EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS : EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE)
+                .idlePowerUsage().get();
     }
 
     public static double extendedAssemblerMatrixPatternUploaderCraftingPowerMultiplier() {
         return EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER.craftingPowerMultiplier().get();
     }
 
-    public static double extendedAssemblerMatrixPatternUploaderPassivePowerUsage() {
-        return EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER.passivePowerUsage().get();
+    public static double extendedAssemblerMatrixPatternUploaderIdlePowerUsage() {
+        return EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER.idlePowerUsage().get();
+    }
+
+    public static double extendedQuantumCrafterCraftingPowerMultiplier() {
+        return EXTENDED_QUANTUM_CRAFTER.craftingPowerMultiplier().get();
+    }
+
+    public static double extendedQuantumCrafterIdlePowerUsage() {
+        return EXTENDED_QUANTUM_CRAFTER.idlePowerUsage().get();
     }
 
     private record PowerSettings(ForgeConfigSpec.DoubleValue craftingPowerMultiplier,
-            ForgeConfigSpec.DoubleValue passivePowerUsage) {
+            ForgeConfigSpec.DoubleValue idlePowerUsage) {
     }
 }

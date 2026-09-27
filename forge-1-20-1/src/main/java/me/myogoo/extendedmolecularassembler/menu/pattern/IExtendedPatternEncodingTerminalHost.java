@@ -7,6 +7,10 @@ import org.jetbrains.annotations.Nullable;
 public interface IExtendedPatternEncodingTerminalHost extends ITerminalHost {
     ExtendedPatternEncodingLogic getExtendedPatternEncodingLogic();
 
+    default int getGridSide() {
+        return 9;
+    }
+
     Level getLevel();
 
     boolean rememberRecipeType();

@@ -8,13 +8,19 @@ import java.util.List;
 
 public class EMAIconButton extends IconButton {
     private final Icon icon;
-    private final List<Component> tooltip;
+    private List<Component> tooltip;
 
     public EMAIconButton(Icon icon, Component tooltip, OnPress onPress) {
         super(onPress);
         this.icon = icon;
-        this.tooltip = List.of(tooltip);
-        setMessage(tooltip);
+        setTooltipMessage(List.of(tooltip));
+    }
+
+    public void setTooltipMessage(List<Component> tooltip) {
+        this.tooltip = List.copyOf(tooltip);
+        if (!this.tooltip.isEmpty()) {
+            setMessage(this.tooltip.get(0));
+        }
     }
 
     @Override

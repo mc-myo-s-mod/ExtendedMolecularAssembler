@@ -1,20 +1,13 @@
 {
-  "type": "forge:conditional",
-  "recipes": [
+  "type": "ae2wtlib:upgrade",
+  "conditions": [
     {
-      "conditions": [
-        {
-          "type": "myotus:mod_condition",
-          "active_mod": "ae2wtlib"
-        }
-      ],
-      "recipe": {
-        "type": "ae2wtlib:upgrade",
-        "terminal": {
-          "item": "extendedmolecularassembler:wireless_extended_pattern_encoding_terminal"
-        },
-        "terminalName": "extended_pattern_encoding"
-      }
+      "type": "myotus:mod_condition",
+      "active_mod": "ae2wtlib"
     }
-  ]
+  ],
+  "terminal": {
+    "item": "extendedmolecularassembler:wireless_extended_pattern_encoding_terminal"
+  },
+  "terminalName": "extended_pattern_encoding"
 }

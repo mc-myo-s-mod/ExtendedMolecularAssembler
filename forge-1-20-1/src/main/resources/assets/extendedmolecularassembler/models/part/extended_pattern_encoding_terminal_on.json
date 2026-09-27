@@ -1,8 +1,8 @@
 {
   "textures": {
-    "lightsBright": "ae2:part/pattern_encoding_terminal_bright",
-    "lightsMedium": "ae2:part/pattern_encoding_terminal_medium",
-    "lightsDark": "ae2:part/pattern_encoding_terminal_dark"
+    "lightsBright": "extendedmolecularassembler:part/extended_pattern_encoding_terminal_bright",
+    "lightsMedium": "extendedmolecularassembler:part/extended_pattern_encoding_terminal_medium",
+    "lightsDark": "extendedmolecularassembler:part/extended_pattern_encoding_terminal_dark"
   },
   "elements": [
     {
@@ -20,7 +20,7 @@
         "north": {
           "texture": "#lightsBright",
           "tintindex": 3,
-          "neoforge_data": {
+          "forge_data": {
             "block_light": 15,
             "sky_light": 15
           }
@@ -42,7 +42,7 @@
         "north": {
           "texture": "#lightsMedium",
           "tintindex": 2,
-          "neoforge_data": {
+          "forge_data": {
             "block_light": 15,
             "sky_light": 15
           }
@@ -64,7 +64,7 @@
         "north": {
           "texture": "#lightsDark",
           "tintindex": 1,
-          "neoforge_data": {
+          "forge_data": {
             "block_light": 15,
             "sky_light": 15
           }

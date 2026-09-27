@@ -4,7 +4,6 @@ import appeng.api.inventories.InternalInventory;
 import appeng.client.Point;
 import appeng.menu.slot.AppEngSlot;
 import appeng.menu.slot.IOptionalSlot;
-import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
 import me.myogoo.extendedmolecularassembler.menu.ExtendedMolecularAssemblerMenu;
 import net.minecraft.world.item.ItemStack;
 
@@ -41,7 +40,7 @@ public class ExtendedMolecularAssemblerPatternSlot extends AppEngSlot implements
 
     @Override
     public boolean isRenderDisabled() {
-        return true;
+        return this.laneIndex == this.menu.getPage();
     }
 
     @Override
@@ -57,9 +56,10 @@ public class ExtendedMolecularAssemblerPatternSlot extends AppEngSlot implements
 
         var pattern = menu.getCurrentPattern(this.laneIndex);
         return slotIndex >= 0
-                && slotIndex < ExtendedMolecularAssemblerBlockEntity.GRID_SIZE
+                && slotIndex < this.menu.getGridSize()
                 && pattern != null
-                && pattern.isSlotEnabled(slotIndex);
+                && this.menu.getHost().canUsePattern(pattern)
+                && pattern.isSlotEnabled(slotIndex, this.menu.getGridSide());
     }
 
     @Override

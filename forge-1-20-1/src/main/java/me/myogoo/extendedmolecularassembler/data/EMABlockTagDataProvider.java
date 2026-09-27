@@ -1,13 +1,13 @@
 package me.myogoo.extendedmolecularassembler.data;
 
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
-import me.myogoo.extendedmolecularassembler.init.EMABlocks;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,8 +22,11 @@ public class EMABlockTagDataProvider extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.@NotNull Provider provider) {
         var pickaxe = tag(BlockTags.MINEABLE_WITH_PICKAXE);
-        EMABlocks.BLOCKS.getEntries().stream()
-                .map(RegistryObject::get)
+        BuiltInRegistries.BLOCK.holders()
+                .filter(holder -> ExtendedMolecularAssembler.MODID.equals(holder.key().location().getNamespace()))
+                .filter(holder -> !EMAOptionalContentData.isOptionalBlock(holder.key().location()))
+                .map(holder -> (Block) holder.value())
                 .forEach(pickaxe::add);
+        EMAOptionalContentData.BLOCKS.forEach(pickaxe::addOptional);
     }
 }

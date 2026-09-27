@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "extendedmolecularassembler:item/legendary_wireless_extended_pattern_encoding_terminal"
+  }
+}

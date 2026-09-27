@@ -5,8 +5,13 @@ import net.byAqua3.avaritia.recipe.RecipeExtremeShaped;
 import net.byAqua3.avaritia.recipe.RecipeExtremeShapeless;
 import net.minecraft.world.item.crafting.Recipe;
 
+@me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo
 public final class AvaritiaNeoRecipeAdapters {
     private AvaritiaNeoRecipeAdapters() {
+    }
+
+    public static boolean supports(Recipe<?> recipe) {
+        return recipe instanceof RecipeExtremeShaped || recipe instanceof RecipeExtremeShapeless;
     }
 
     public static IMyotusTableRecipe<?> of(Recipe<?> recipe) {

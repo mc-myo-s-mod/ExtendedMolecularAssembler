@@ -1,15 +1,17 @@
 package me.myogoo.extendedmolecularassembler.adapter.recipe.reavaritia;
 
+import net.minecraft.world.Container;
 import committee.nova.mods.avaritia.common.crafting.recipe.ShapelessTableCraftingRecipe;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.AbstractTableRecipeAdapter;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.RecipeGridHelper;
-import me.myogoo.extendedmolecularassembler.pattern.ExtendedPatternTableTypes;
+import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
 import me.myogoo.myotus.api.recipe.IMyotusShapelessTableRecipe;
-import net.minecraft.world.Container;
+import me.myogoo.extendedmolecularassembler.pattern.ExtendedPatternTableTypes;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
+@me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia
 public class ShapelessTierRecipeAdapter extends AbstractTableRecipeAdapter<Container, ShapelessTableCraftingRecipe>
         implements IMyotusShapelessTableRecipe<Container> {
     public ShapelessTierRecipeAdapter(ShapelessTableCraftingRecipe recipe) {

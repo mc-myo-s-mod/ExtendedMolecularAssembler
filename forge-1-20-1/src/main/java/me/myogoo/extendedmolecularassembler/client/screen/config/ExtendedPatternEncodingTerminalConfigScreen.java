@@ -23,13 +23,7 @@ public class ExtendedPatternEncodingTerminalConfigScreen implements MyoConfigTab
                 "rememberRecipeType",
                 Component.translatable(EMATranslationKey.GUI.EXTENDED_PATTERN_ENCODING_TERMINAL_REMEMBER_RECIPE_TYPE.key()),
                 this::save);
-        updateState();
-    }
-
-    private void updateState() {
-        if (rememberRecipeType != null && menu != null) {
-            rememberRecipeType.setSelected(menu.rememberRecipeType());
-        }
+        this.rememberRecipeType.setSelected(this.menu.rememberRecipeType());
     }
 
     private void save() {

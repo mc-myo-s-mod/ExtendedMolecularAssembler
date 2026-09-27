@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    },
+    {
+      "type": "forge:item_exists",
+      "item": "extendedcrafting:legendary_table"
+    }
+  ],
+  "key": {
+    "C": {
+      "item": "extendedmolecularassembler:epic_me_crafting_provider"
+    },
+    "L": {
+      "item": "myotus:compat_processor"
+    },
+    "P": {
+      "item": "ae2:fluix_smart_dense_cable"
+    },
+    "T": {
+      "item": "extendedcrafting:legendary_table"
+    }
+  },
+  "pattern": [
+    " L ",
+    "PCP",
+    " T "
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:legendary_me_crafting_provider"
+  },
+  "show_notification": true
+}

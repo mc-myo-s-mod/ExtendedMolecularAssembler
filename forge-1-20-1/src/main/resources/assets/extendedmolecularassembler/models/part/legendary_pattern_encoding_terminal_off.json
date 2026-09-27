@@ -1,0 +1,6 @@
+{
+  "parent": "extendedmolecularassembler:part/colored_pattern_encoding_terminal_off",
+  "textures": {
+    "edge": "extendedmolecularassembler:part/legendary_pattern_encoding_terminal_edge"
+  }
+}

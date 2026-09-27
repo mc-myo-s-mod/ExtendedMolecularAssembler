@@ -8,23 +8,29 @@
     }
   ],
   "key": {
-    "B": {
-      "item": "ae2:blank_pattern"
+    "A": {
+      "item": "ae2:purple_lumen_paint_ball"
     },
-    "E": {
-      "item": "ae2:engineering_processor"
+    "B": {
+      "item": "ae2:magenta_lumen_paint_ball"
+    },
+    "C": {
+      "item": "ae2:pink_lumen_paint_ball"
+    },
+    "F": {
+      "item": "expatternprovider:assembler_matrix_wall"
     },
     "M": {
-      "item": "expatternprovider:assembler_matrix_pattern"
+      "item": "extendedmolecularassembler:ex_extended_molecular_assembler"
     },
     "P": {
-      "item": "expatternprovider:ex_pattern_provider"
+      "item": "myotus:compat_processor"
     }
   },
   "pattern": [
-    "BEB",
-    "PMP",
-    "BEB"
+    "ABC",
+    "FMP",
+    "ABC"
   ],
   "result": {
     "count": 1,

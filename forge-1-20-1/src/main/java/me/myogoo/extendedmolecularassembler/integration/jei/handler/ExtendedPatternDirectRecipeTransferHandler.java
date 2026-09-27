@@ -1,5 +1,6 @@
 package me.myogoo.extendedmolecularassembler.integration.jei.handler;
 
+import me.myogoo.extendedmolecularassembler.integration.itemlist.ExtendedPatternRecipeTransfer;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -21,6 +22,10 @@ public class ExtendedPatternDirectRecipeTransferHandler<R extends Recipe<?>>
     private final RecipeProvider transferredRecipeProvider;
     private final int transferredRecipeTier;
     private final int transferredRecipeSide;
+
+    public ExtendedPatternDirectRecipeTransferHandler(RecipeType<R> recipeType) {
+        this(recipeType, null, 0, 0);
+    }
 
     public ExtendedPatternDirectRecipeTransferHandler(RecipeType<R> recipeType,
             @Nullable RecipeProvider transferredRecipeProvider, int transferredRecipeTier, int transferredRecipeSide) {
@@ -48,7 +53,7 @@ public class ExtendedPatternDirectRecipeTransferHandler<R extends Recipe<?>>
     @Override
     public @Nullable IRecipeTransferError transferRecipe(ExtendedPatternEncodingTermMenu menu, R recipe,
             IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
-        if (!ExtendedPatternRecipeTransfer.canTransfer(recipe)) {
+        if (!ExtendedPatternRecipeTransfer.canTransfer(recipe, menu.getGridSide())) {
             return null;
         }
 

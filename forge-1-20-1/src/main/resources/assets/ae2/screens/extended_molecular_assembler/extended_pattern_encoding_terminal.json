@@ -6,29 +6,29 @@
   "slots": {
     "EXTENDED_PATTERN_CRAFTING_GRID": {
       "left": 8,
-      "bottom": 292,
+      "bottom": 287,
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_PATTERN_CRAFTING_RESULT": {
-      "left": 8,
-      "bottom": 123
+      "left": 178,
+      "bottom": 197
     },
     "BLANK_PATTERN": {
-      "left": 35,
-      "bottom": 123
+      "left": 178,
+      "bottom": 285
     },
     "ENCODED_PATTERN": {
-      "left": 103,
-      "bottom": 123
+      "left": 178,
+      "bottom": 150
     },
     "PLAYER_INVENTORY": {
       "left": 8,
-      "bottom": 84,
+      "bottom": 82,
       "grid": "BREAK_AFTER_9COLS"
     },
     "PLAYER_HOTBAR": {
       "left": 8,
-      "bottom": 26,
+      "bottom": 24,
       "grid": "HORIZONTAL"
     }
   },
@@ -48,7 +48,7 @@
       },
       "position": {
         "left": 8,
-        "bottom": 304
+        "bottom": 298
       }
     }
   },
@@ -57,74 +57,61 @@
       "texture": "guis/extended_pattern_terminal.png",
       "textureWidth": 512,
       "textureHeight": 512,
-      "srcRect": [
-        0,
-        0,
-        195,
-        17
-      ]
+      "srcRect": [0, 0, 204, 17]
     },
     "firstRow": {
       "texture": "guis/extended_pattern_terminal.png",
       "textureWidth": 512,
       "textureHeight": 512,
-      "srcRect": [
-        0,
-        17,
-        195,
-        18
-      ]
+      "srcRect": [0, 17, 204, 18]
     },
     "row": {
       "texture": "guis/extended_pattern_terminal.png",
       "textureWidth": 512,
       "textureHeight": 512,
-      "srcRect": [
-        0,
-        35,
-        195,
-        18
-      ]
+      "srcRect": [0, 35, 204, 18]
     },
     "lastRow": {
       "texture": "guis/extended_pattern_terminal.png",
       "textureWidth": 512,
       "textureHeight": 512,
-      "srcRect": [
-        0,
-        53,
-        195,
-        18
-      ]
+      "srcRect": [0, 53, 204, 18]
     },
     "bottom": {
       "texture": "guis/extended_pattern_terminal.png",
       "textureWidth": 512,
       "textureHeight": 512,
-      "srcRect": [
-        0,
-        71,
-        195,
-        308
-      ]
+      "srcRect": [0, 71, 204, 300]
     }
   },
   "widgets": {
+    "scrollingUpgrades": {
+      "right": -6,
+      "top": 0
+    },
+    "upgradeScrollbar": {
+      "right": -25,
+      "top": 6
+    },
     "encodePattern": {
-      "left": 68,
-      "bottom": 123
+      "left": 178,
+      "bottom": 176
     },
     "clearPattern": {
-      "left": 147,
-      "bottom": 129
+      "left": 160,
+      "bottom": 95
     },
     "recipeCycle": {
-      "left": 135,
-      "bottom": 123
+      "left": 178,
+      "bottom": 247
     },
     "substitutions": {
-      "left": 157,
-      "bottom": 129
+      "left": 187,
+      "bottom": 261
+    },
+    "canSubstituteFluids": {
+      "left": 177,
+      "bottom": 261
     }
   }
 }

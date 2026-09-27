@@ -1,0 +1,35 @@
+{
+  "type": "avaritia:shaped_table",
+  "conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "key": {
+    "E": {
+      "item": "minecraft:ender_pearl"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "OOOOO",
+    "ORRRO",
+    "ORERO",
+    "ORRRO",
+    "OOOOO"
+  ],
+  "result": {
+    "count": 1,
+    "item": "minecraft:quartz"
+  },
+  "tier": 2
+}

@@ -27,7 +27,7 @@ public class ExtendedMolecularAssemblerOutputSlot extends OutputSlot implements 
 
     @Override
     public boolean isRenderDisabled() {
-        return true;
+        return false;
     }
 
     @Override

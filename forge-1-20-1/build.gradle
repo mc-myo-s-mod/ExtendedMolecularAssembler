@@ -13,6 +13,8 @@ plugins {
     id 'maven-publish'
 }
 
+apply plugin: 'org.spongepowered.mixin'
+
 version = mod_version
 group = mod_group_id
 
@@ -26,6 +28,7 @@ base {
 
 minecraft {
     mappings channel: mapping_channel, version: mapping_version
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     copyIdeResources = true
 
     runs {
@@ -44,7 +47,8 @@ minecraft {
 
         client {
             property 'forge.enabledGameTestNamespaces', mod_id
-            property 'guideme.ae2.guide.sources', "${file('../common/src/main/resources').absolutePath}/assets/${mod_id}/ae2guide"
+            property 'ema.checkClientStyles', 'true'
+            property 'guideme.ae2.guide.sources', "${sourceSets.main.output.resourcesDir}/assets/${mod_id}/ae2guide"
             property 'guideme.ae2.guide.sourcesNamespace', mod_id
         }
 
@@ -54,6 +58,7 @@ minecraft {
         }
 
         gameTestServer {
+            workingDirectory project.file('run-gametest')
             property 'forge.enabledGameTestNamespaces', mod_id
         }
 
@@ -66,6 +71,11 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
@@ -77,32 +87,51 @@ dependencies {
     runtimeOnly fg.deobf("me.myogoo:myotus:${myotus_version}")
     runtimeOnly fg.deobf("appeng:appliedenergistics2-forge:${AE2_version}")
     runtimeOnly fg.deobf("org.appliedenergistics:guideme:${guideME_version}")
-    runtimeOnly fg.deobf("maven.modrinth:applied-energistics-2-wireless-terminals:${AE2WTLib_version}")
-    runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
-    runtimeOnly fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
-    runtimeOnly fg.deobf("me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}")
 
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${JEI_version}")
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${JEI_version}")
+    compileOnly fg.deobf("dev.emi:emi-forge:${EMI_version}")
     compileOnly fg.deobf("maven.modrinth:extended-crafting:${ExtendedCrafting_version}")
     compileOnly fg.deobf("maven.modrinth:cucumber:${Cucumber_version}")
     compileOnly fg.deobf("maven.modrinth:extended-ae:${ExtendedAE_version}")
+    compileOnly fg.deobf("maven.modrinth:advancedae:${AdvancedAE_version}")
+    compileOnly fg.deobf("io.github.pedroksl:ae2addonlib:${AE2AddonLib_version}-${minecraft_version}")
     compileOnly fg.deobf("maven.modrinth:glodium:${Glodium_version}")
     compileOnly fg.deobf("maven.modrinth:avaritianeo:${AvaritiaNeo_version}")
     compileOnly fg.deobf("maven.modrinth:re-avaritia:${ReAvaritia_version}")
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     if (project.itemListMod == 'jei') {
         runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${JEI_version}")
     }
+    if (project.itemListMod == 'emi' || project.itemListMod == 'jemi') {
+        runtimeOnly fg.deobf("dev.emi:emi-forge:${EMI_version}")
+    }
+    if (project.itemListMod == 'jemi') {
+        runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${JEI_version}")
+    }
 
     if (project.enable_excrafting == 'true') {
-        runtimeOnly fg.deobf("maven.modrinth:extended-crafting:${ExtendedCrafting_version}")
+        runtimeOnly fg.deobf(project.findProperty('extendedCraftingRuntime')
+                ?: "maven.modrinth:extended-crafting:${ExtendedCrafting_version}")
         runtimeOnly fg.deobf("maven.modrinth:cucumber:${Cucumber_version}")
+    }
+
+    if (project.enable_ae2wtlib == 'true') {
+        runtimeOnly fg.deobf("maven.modrinth:applied-energistics-2-wireless-terminals:${AE2WTLib_version}")
+        runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
+        runtimeOnly fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
+        runtimeOnly fg.deobf("me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}")
     }
 
     if (project.enable_extendedae == 'true') {
         runtimeOnly fg.deobf("maven.modrinth:extended-ae:${ExtendedAE_version}")
         runtimeOnly fg.deobf("maven.modrinth:glodium:${Glodium_version}")
+    }
+
+    if (project.enable_advancedae == 'true') {
+        runtimeOnly fg.deobf("maven.modrinth:advancedae:${AdvancedAE_version}")
+        runtimeOnly fg.deobf("curse.maven:geckolib-388172:6920925")
     }
 
     switch (project.enable_avaritia) {
@@ -120,6 +149,11 @@ dependencies {
 }
 
 tasks.named('processResources', ProcessResources).configure {
+    filteringCharset = 'UTF-8'
+    inputs.property 'guideExtendedAEId', 'expatternprovider'
+    filesMatching('assets/extendedmolecularassembler/ae2guide/**/*.md') {
+        filter { line -> line.replace('load="extendedae"', 'load="expatternprovider"') }
+    }
     def replaceProperties = [
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
@@ -146,6 +180,7 @@ tasks.named('jar', Jar).configure {
     finalizedBy 'reobfJar'
     manifest {
         attributes([
+                'MixinConfigs'            : "${mod_id}.mixins.json",
                 'Specification-Title'     : mod_id,
                 'Specification-Vendor'    : mod_authors,
                 'Specification-Version'   : '1',

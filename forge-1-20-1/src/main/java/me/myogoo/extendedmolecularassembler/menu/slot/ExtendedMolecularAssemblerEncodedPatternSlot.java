@@ -13,7 +13,7 @@ public class ExtendedMolecularAssemblerEncodedPatternSlot extends RestrictedInpu
 
     @Override
     public boolean isRenderDisabled() {
-        return true;
+        return false;
     }
 
     @Override

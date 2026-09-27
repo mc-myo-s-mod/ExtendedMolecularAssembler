@@ -10,8 +10,9 @@
       ],
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "extendedmolecularassembler:ex_extended_molecular_assembler"
+          "type": "minecraft:tag",
+          "expand": true,
+          "name": "extendedmolecularassembler:optional_block_drops/ex_extended_molecular_assembler"
         }
       ],
       "rolls": 1.0

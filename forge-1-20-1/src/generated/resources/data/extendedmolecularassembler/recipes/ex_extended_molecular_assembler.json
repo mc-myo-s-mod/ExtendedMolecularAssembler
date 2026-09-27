@@ -1,34 +1,39 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "redstone",
+  "type": "minecraft:crafting_shapeless",
   "conditions": [
     {
       "type": "myotus:mod_condition",
       "active_mod": "expatternprovider"
     }
   ],
-  "key": {
-    "C": {
-      "item": "myotus:compat_processor"
-    },
-    "M": {
+  "ingredients": [
+    {
       "item": "extendedmolecularassembler:extended_molecular_assembler"
     },
-    "S": {
-      "item": "ae2:speed_card"
+    {
+      "item": "extendedmolecularassembler:extended_molecular_assembler"
     },
-    "X": {
-      "item": "expatternprovider:ex_molecular_assembler"
+    {
+      "item": "extendedmolecularassembler:extended_molecular_assembler"
+    },
+    {
+      "item": "extendedmolecularassembler:extended_molecular_assembler"
+    },
+    {
+      "item": "myotus:compat_processor"
+    },
+    {
+      "item": "ae2:engineering_processor"
+    },
+    {
+      "tag": "forge:dusts/ender_pearl"
+    },
+    {
+      "item": "ae2:speed_card"
     }
-  },
-  "pattern": [
-    "CXC",
-    "SMS",
-    "CXC"
   ],
   "result": {
     "count": 1,
     "item": "extendedmolecularassembler:ex_extended_molecular_assembler"
-  },
-  "show_notification": true
+  }
 }

@@ -10,9 +10,9 @@ public final class ExtendedPatternDetailsHelper {
     }
 
     public static ItemStack encodeExtendedCraftingPattern(Recipe<?> recipe, ItemStack[] inputs, ItemStack output,
-            boolean allowSubstitutes) {
+            boolean allowSubstitutes, boolean allowFluidSubstitutes) {
         var stack = new ItemStack(EMAItems.EXTENDED_CRAFTING_PATTERN.get());
-        ExtendedTableCraftingPattern.encode(stack, recipe, inputs, output, allowSubstitutes);
+        ExtendedTableCraftingPattern.encode(stack, recipe, inputs, output, allowSubstitutes, allowFluidSubstitutes);
         return stack;
     }
 }

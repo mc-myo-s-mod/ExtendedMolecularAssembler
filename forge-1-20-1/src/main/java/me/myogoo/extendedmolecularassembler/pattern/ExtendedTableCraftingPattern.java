@@ -1,16 +1,26 @@
 package me.myogoo.extendedmolecularassembler.pattern;
 
+import appeng.api.behaviors.ContainerItemStrategies;
 import appeng.api.crafting.IPatternDetails;
+import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
+import appeng.core.localization.ButtonToolTips;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
 import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.MilkBucketItem;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
@@ -24,19 +34,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntFunction;
+import java.util.stream.Stream;
 
 public class ExtendedTableCraftingPattern implements IPatternDetails {
     public static final int MACHINE_GRID_SIDE = 9;
     public static final int MACHINE_GRID_SIZE = MACHINE_GRID_SIDE * MACHINE_GRID_SIDE;
+    public static final int MAX_GRID_SIDE = 13;
+    public static final int MAX_GRID_SIZE = MAX_GRID_SIDE * MAX_GRID_SIDE;
 
     private final AEItemKey definition;
     private final boolean canSubstitute;
-    private final Recipe<?> recipe;
+    private final boolean canSubstituteFluids;
+    private final Recipe<?> recipeHolder;
     private final IMyotusTableRecipe<?> adapter;
     private final NonNullList<Ingredient> slotIngredients;
     private final ResourceLocation tableType;
     private final int tableTier;
     private final int tableSideLength;
+    private final int machineGridSide;
     private final List<GenericStack> sparseInputs;
     private final int[] patternToMachineSlot;
     private final int[] machineToPatternSlot;
@@ -45,9 +60,9 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
     private final ItemStack output;
     private final GenericStack[] outputsArray;
     @SuppressWarnings("unchecked")
-    private final Map<Item, Boolean>[] isValidCache = new Map[MACHINE_GRID_SIZE];
+    private final Map<Item, Boolean>[] isValidCache = new Map[MAX_GRID_SIZE];
     @SuppressWarnings("unchecked")
-    private final Map<Item, ItemStack>[] remainderCache = new Map[MACHINE_GRID_SIZE];
+    private final Map<Item, ItemStack>[] remainderCache = new Map[MAX_GRID_SIZE];
 
     public ExtendedTableCraftingPattern(AEItemKey definition, Level level) {
         this.definition = definition;
@@ -60,11 +75,12 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         }
 
         this.canSubstitute = encodedPattern.canSubstitute();
-        this.recipe = level.getRecipeManager().byKey(encodedPattern.recipeId()).orElse(null);
-        if (recipe == null) {
+        this.canSubstituteFluids = encodedPattern.canSubstituteFluids();
+        this.recipeHolder = level.getRecipeManager().byKey(encodedPattern.recipeId()).orElse(null);
+        if (recipeHolder == null) {
             throw new IllegalArgumentException("Pattern references unknown recipe " + encodedPattern.recipeId());
         }
-        this.adapter = TableRecipeAdapters.of(recipe);
+        this.adapter = TableRecipeAdapters.of(recipeHolder);
         this.slotIngredients = adapter.slotIngredients();
         if (encodedPattern.hasTableMetadata()
                 && (!encodedPattern.tableType().equals(adapter.tableType())
@@ -79,21 +95,24 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         }
         this.tableType = encodedPattern.hasTableMetadata() ? encodedPattern.tableType() : adapter.tableType();
         this.tableTier = encodedPattern.hasTableMetadata() ? encodedPattern.tableTier() : adapter.tier();
-        this.tableSideLength = encodedPattern.hasTableMetadata() ? encodedPattern.tableSideLength() : adapter.sideLength();
-        this.patternToMachineSlot = createPatternToMachineSlots(this.tableSideLength);
+        this.tableSideLength = encodedPattern.hasTableMetadata()
+                ? encodedPattern.tableSideLength()
+                : adapter.sideLength();
+        this.machineGridSide = Math.max(MACHINE_GRID_SIDE, this.tableSideLength);
+        this.patternToMachineSlot = createPatternToMachineSlots(this.tableSideLength, this.machineGridSide);
         this.machineToPatternSlot = createMachineToPatternSlots(this.patternToMachineSlot);
-        this.sparseInputs = getCraftingInputs(encodedPattern.inputs(), adapter.gridSize());
-        this.sparseToCompressed = new int[MACHINE_GRID_SIZE];
+        this.sparseInputs = getCraftingContainers(encodedPattern.inputs(), adapter.gridSize());
+        this.sparseToCompressed = new int[MAX_GRID_SIZE];
         Arrays.fill(this.sparseToCompressed, -1);
 
         var items = makeAdapterInputItemsFromSparse();
         if (!adapter.matches(items, level)) {
-            throw new IllegalStateException("The recipe " + recipe.getId() + " no longer matches the encoded input.");
+            throw new IllegalStateException("The recipe " + recipeHolder.getId() + " no longer matches the encoded input.");
         }
 
         this.output = adapter.assemble(items, level);
         if (output.isEmpty()) {
-            throw new IllegalStateException("The recipe " + recipe.getId() + " produced an empty item stack result.");
+            throw new IllegalStateException("The recipe " + recipeHolder.getId() + " produced an empty item stack result.");
         }
         this.outputsArray = new GenericStack[] { Objects.requireNonNull(GenericStack.fromItemStack(output)) };
 
@@ -126,55 +145,134 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
                 && ((ExtendedTableCraftingPattern) obj).definition.equals(this.definition);
     }
 
-    @Override public AEItemKey getDefinition() { return definition; }
-    @Override public IInput[] getInputs() { return inputs; }
-    @Override public GenericStack[] getOutputs() { return outputsArray; }
+    @Override
+    public AEItemKey getDefinition() {
+        return definition;
+    }
+
+    @Override
+    public IInput[] getInputs() {
+        return inputs;
+    }
+
+    @Override
+    public GenericStack[] getOutputs() {
+        return outputsArray;
+    }
 
     public ItemStack assembleFromMachineGrid(IntFunction<ItemStack> machineInput, Level level) {
-        var items = cropMachineInput(machineInput);
+        return assembleFromMachineGrid(machineInput, level, machineGridSide);
+    }
+
+    public ItemStack assembleFromMachineGrid(IntFunction<ItemStack> machineInput, Level level, int targetSide) {
+        if (!isValidTargetSide(targetSide)) {
+            return ItemStack.EMPTY;
+        }
+        var items = makeAdapterInputItemsFromMachineGrid(machineInput, targetSide);
         if (!adapter.matches(items, level)) {
             return ItemStack.EMPTY;
         }
         var assembled = adapter.assemble(items, level);
-        return ItemStack.matches(output, assembled) ? assembled : ItemStack.EMPTY;
+        if (ItemStack.matches(output, assembled)) {
+            return assembled;
+        }
+
+        return ItemStack.EMPTY;
     }
 
     public NonNullList<ItemStack> getRemainingItemsFromMachineGrid(IntFunction<ItemStack> machineInput) {
-        var cropped = cropMachineInput(machineInput);
+        return getRemainingItemsFromMachineGrid(machineInput, machineGridSide);
+    }
+
+    public NonNullList<ItemStack> getRemainingItemsFromMachineGrid(IntFunction<ItemStack> machineInput, int targetSide) {
+        if (!isValidTargetSide(targetSide)) {
+            return NonNullList.withSize(MACHINE_GRID_SIZE, ItemStack.EMPTY);
+        }
+        var cropped = makeAdapterInputItemsFromMachineGrid(machineInput, targetSide);
         var croppedRemainders = adapter.getRemainingItems(cropped);
-        var result = NonNullList.withSize(MACHINE_GRID_SIZE, ItemStack.EMPTY);
+        var result = NonNullList.withSize(targetSide * targetSide, ItemStack.EMPTY);
         var count = Math.min(croppedRemainders.size(), adapter.gridSize());
         for (int patternSlot = 0; patternSlot < count; patternSlot++) {
-            result.set(toMachineSlot(patternSlot), croppedRemainders.get(patternSlot));
+            var machineSlot = toMachineGridIndex(patternSlot, targetSide);
+            var remainder = croppedRemainders.get(patternSlot);
+            if (GenericStack.unwrapItemStack(machineInput.apply(machineSlot)) != null) {
+                remainder = ItemStack.EMPTY;
+            }
+            result.set(machineSlot, remainder);
         }
         return result;
     }
 
     public boolean isItemValid(int slot, AEItemKey key, Level level) {
-        var patternSlot = toPatternSlot(slot);
-        if (patternSlot < 0) return key == null;
+        return isItemValid(slot, key, level, machineGridSide);
+    }
+
+    public boolean isItemValid(int slot, AEItemKey key, Level level, int targetSide) {
+        var patternSlot = patternSlotForMachineGridSlot(slot, targetSide);
+        if (patternSlot < 0) {
+            return key == null;
+        }
+
+        var machineSlot = toMachineSlot(patternSlot);
         var template = sparseInputs.get(patternSlot);
-        if (!canSubstitute) return template == null && key == null || template != null && template.what().equals(key);
-        if (key == null) return template == null;
-        var cached = getTestResult(slot, key);
-        if (cached != null) return cached;
+        if (!canSubstitute) {
+            return template == null && key == null || template != null && template.what().equals(key);
+        }
+
+        if (key == null) {
+            return template == null;
+        }
+
+        var cached = getTestResult(machineSlot, key);
+        if (cached != null) {
+            return cached;
+        }
+
         var items = makeAdapterInputItemsFromSparse();
         items.set(patternSlot, key.toStack());
         var valid = adapter.matches(items, level) && ItemStack.matches(output, adapter.assemble(items, level));
-        setTestResult(slot, key, valid);
+        setTestResult(machineSlot, key, valid);
         return valid;
     }
 
     public boolean isSlotEnabled(int slot) {
-        var patternSlot = toPatternSlot(slot);
+        return isSlotEnabled(slot, machineGridSide);
+    }
+
+    public boolean isSlotEnabled(int slot, int targetSide) {
+        var patternSlot = patternSlotForMachineGridSlot(slot, targetSide);
         return patternSlot >= 0 && sparseInputs.get(patternSlot) != null;
     }
 
     public void fillCraftingGrid(KeyCounter[] table, CraftingGridAccessor gridAccessor) {
-        for (int machineSlot = 0; machineSlot < MACHINE_GRID_SIZE; machineSlot++) {
-            int inputId = sparseToCompressed[machineSlot];
-            if (inputId == -1) continue;
+        fillCraftingGrid(table, gridAccessor, machineGridSide);
+    }
+
+    public void fillCraftingGrid(KeyCounter[] table, CraftingGridAccessor gridAccessor, int targetSide) {
+        if (!isValidTargetSide(targetSide)) {
+            return;
+        }
+        for (int patternSlot = 0; patternSlot < adapter.gridSize(); patternSlot++) {
+            var patternMachineSlot = toMachineSlot(patternSlot);
+            var machineSlot = toMachineGridIndex(patternSlot, targetSide);
+            int inputId = sparseToCompressed[patternMachineSlot];
+            if (inputId == -1) {
+                continue;
+            }
+
             var available = table[inputId];
+            var validFluid = getValidFluid(patternMachineSlot);
+            if (validFluid != null) {
+                var validFluidKey = validFluid.what();
+                var amount = available.get(validFluidKey);
+                int requiredAmount = (int) validFluid.amount();
+                if (amount >= requiredAmount) {
+                    gridAccessor.set(machineSlot, GenericStack.wrapInItemStack(validFluidKey, requiredAmount));
+                    available.remove(validFluidKey, requiredAmount);
+                    continue;
+                }
+            }
+
             for (var entry : available) {
                 if (entry.getLongValue() > 0 && entry.getKey() instanceof AEItemKey itemKey) {
                     gridAccessor.set(machineSlot, itemKey.toStack());
@@ -185,32 +283,129 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         }
     }
 
-    public boolean canSubstitute() { return canSubstitute; }
-    public int sideLength() { return adapter.sideLength(); }
-    public ResourceLocation tableType() { return tableType; }
-    public int tableTier() { return tableTier; }
-    public int tableSideLength() { return tableSideLength; }
-    public List<GenericStack> getSparseInputs() { return sparseInputs; }
-    public GenericStack[] getSparseOutputs() { return outputsArray; }
+    @Override
+    public boolean supportsPushInputsToExternalInventory() {
+        return false;
+    }
+
+    public boolean canSubstitute() {
+        return canSubstitute;
+    }
+
+    public boolean canSubstituteFluids() {
+        return canSubstituteFluids;
+    }
+
+    public int sideLength() {
+        return adapter.sideLength();
+    }
+
+    public ResourceLocation tableType() {
+        return tableType;
+    }
+
+    public int tableTier() {
+        return tableTier;
+    }
+
+    public int tableSideLength() {
+        return tableSideLength;
+    }
+
+    public int machineGridSide() {
+        return machineGridSide;
+    }
+
+    public List<GenericStack> getSparseInputs() {
+        return sparseInputs;
+    }
+
+    public GenericStack[] getSparseOutputs() {
+        return outputsArray;
+    }
+
+    public boolean isMachineSlotInTable(int machineSlot) {
+        return isMachineSlotInTable(machineSlot, machineGridSide);
+    }
+
+    public boolean isMachineSlotInTable(int machineSlot, int targetSide) {
+        return patternSlotForMachineGridSlot(machineSlot, targetSide) >= 0;
+    }
+
+    public GenericStack[] getDisplayInputsForMachineSlot(int machineSlot) {
+        return getDisplayInputsForMachineSlot(machineSlot, machineGridSide);
+    }
+
+    public GenericStack[] getDisplayInputsForMachineSlot(int machineSlot, int targetSide) {
+        var patternSlot = patternSlotForMachineGridSlot(machineSlot, targetSide);
+        if (patternSlot < 0) {
+            return new GenericStack[0];
+        }
+
+        var compressed = this.sparseToCompressed[toMachineSlot(patternSlot)];
+        if (compressed == -1) {
+            return new GenericStack[0];
+        }
+
+        var possibleInputs = this.inputs[compressed].getPossibleInputs();
+        return Arrays.copyOf(possibleInputs, possibleInputs.length);
+    }
 
     public static void encode(ItemStack result, Recipe<?> recipe, ItemStack[] sparseInputs, ItemStack output,
-            boolean allowSubstitutes) {
+            boolean allowSubstitutes, boolean allowFluidSubstitutes) {
         Objects.requireNonNull(recipe, "recipe");
         Objects.requireNonNull(sparseInputs, "sparseInputs");
         Objects.requireNonNull(output, "output");
         var adapter = TableRecipeAdapters.of(recipe);
-        EncodedExtendedCraftingPattern.set(result, new EncodedExtendedCraftingPattern(
-                Arrays.stream(sparseInputs).map(ItemStack::copy).toList(),
-                output.copy(),
-                recipe.getId(),
-                adapter.tableType(),
-                adapter.tier(),
-                adapter.sideLength(),
-                allowSubstitutes));
+
+        EncodedExtendedCraftingPattern.set(result,
+                new EncodedExtendedCraftingPattern(
+                        Stream.of(sparseInputs).map(ItemStack::copy).toList(),
+                        output.copy(),
+                        recipe.getId(),
+                        adapter.tableType(),
+                        adapter.tier(),
+                        adapter.sideLength(),
+                        allowSubstitutes,
+                        allowFluidSubstitutes));
     }
 
-    private int toMachineSlot(int patternSlot) { return this.patternToMachineSlot[patternSlot]; }
-    private int toPatternSlot(int machineSlot) { return this.machineToPatternSlot[machineSlot]; }
+    public static void appendTooltip(ItemStack stack, List<Component> tooltip, TooltipFlag flags) {
+        var encodedPattern = EncodedExtendedCraftingPattern.get(stack);
+        if (encodedPattern != null) {
+            for (var input : encodedPattern.inputs()) {
+                if (!input.isEmpty()) {
+                    tooltip.add(Component.literal(input.getCount() + " × ").append(input.getHoverName()));
+                }
+            }
+            tooltip.add(Component.literal("→ " + encodedPattern.result().getCount() + " × ")
+                    .append(encodedPattern.result().getHoverName()));
+            if (encodedPattern.canSubstitute()) {
+                tooltip.add(ButtonToolTips.SubstitutionsOn.text());
+            }
+            if (encodedPattern.canSubstituteFluids()) {
+                tooltip.add(ButtonToolTips.FluidSubstitutions.text());
+            }
+            if (encodedPattern.hasTableMetadata()) {
+                tooltip.add(Component.translatable(EMATranslationKey.TOOLTIP.TABLE.key()).append(": ")
+                        .append(ExtendedPatternTableTypes.displayName(encodedPattern.tableType(), encodedPattern.tableTier(),
+                                encodedPattern.tableSideLength())));
+            }
+            if (flags.isAdvanced()) {
+                tooltip.add(Component.literal("Recipe: " + encodedPattern.recipeId()));
+            }
+        }
+    }
+
+    private int toMachineSlot(int patternSlot) {
+        return patternToMachineSlot[patternSlot];
+    }
+
+    private int toPatternSlot(int machineSlot) {
+        return machineSlot < 0 || machineSlot >= this.machineToPatternSlot.length
+                ? -1
+                : this.machineToPatternSlot[machineSlot];
+    }
 
     private List<ItemStack> cropMachineInput(IntFunction<ItemStack> machineInput) {
         var result = NonNullList.withSize(adapter.gridSize(), ItemStack.EMPTY);
@@ -231,14 +426,80 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         return items;
     }
 
+    private List<ItemStack> makeAdapterInputItemsFromMachineGrid(IntFunction<ItemStack> machineInput) {
+        return makeAdapterInputItemsFromMachineGrid(machineInput, machineGridSide);
+    }
+
+    private List<ItemStack> makeAdapterInputItemsFromMachineGrid(IntFunction<ItemStack> machineInput, int targetSide) {
+        var items = NonNullList.withSize(adapter.gridSize(), ItemStack.EMPTY);
+        for (int patternSlot = 0; patternSlot < items.size(); patternSlot++) {
+            var machineSlot = toMachineGridIndex(patternSlot, targetSide);
+            items.set(patternSlot,
+                    substituteFluidInput(toMachineSlot(patternSlot), machineInput.apply(machineSlot)));
+        }
+        return items;
+    }
+
+    private ItemStack substituteFluidInput(int machineSlot, ItemStack item) {
+        var stack = GenericStack.unwrapItemStack(item);
+        if (stack != null) {
+            var validFluid = getValidFluid(machineSlot);
+            if (validFluid != null && validFluid.equals(stack)) {
+                var patternSlot = toPatternSlot(machineSlot);
+                if (patternSlot >= 0 && patternSlot < sparseInputs.size()
+                        && sparseInputs.get(patternSlot).what() instanceof AEItemKey itemKey) {
+                    return itemKey.toStack();
+                }
+            }
+        }
+        return item.copy();
+    }
+
+    private GenericStack getItemOrFluidInput(int machineSlot, GenericStack item) {
+        if (!(item.what() instanceof AEItemKey itemKey)) {
+            return item;
+        }
+
+        var containedFluid = ContainerItemStrategies.getContainedStack(itemKey.toStack(), AEKeyType.fluids());
+        var isBucket = itemKey.getItem() instanceof BucketItem || itemKey.getItem() instanceof MilkBucketItem;
+        if (canSubstituteFluids && containedFluid != null && isBucket) {
+            var remainder = calculateRecipeRemainder(machineSlot, itemKey);
+            if (remainder.getCount() == 1 && remainder.is(Items.BUCKET)) {
+                return new GenericStack(containedFluid.what(), containedFluid.amount());
+            }
+        }
+
+        return item;
+    }
+
+    @Nullable
+    public GenericStack getValidFluid(int machineSlot) {
+        var compressed = sparseToCompressed[machineSlot];
+        if (compressed != -1) {
+            var itemOrFluid = inputs[compressed].possibleInputs[0];
+            if (itemOrFluid.what() instanceof AEFluidKey) {
+                return itemOrFluid;
+            }
+        }
+        return null;
+    }
+
     private Ingredient getRecipeIngredient(int machineSlot) {
         var patternSlot = toPatternSlot(machineSlot);
-        if (patternSlot < 0 || patternSlot >= this.slotIngredients.size()) return Ingredient.EMPTY;
+        if (patternSlot < 0) {
+            return Ingredient.EMPTY;
+        }
+        if (patternSlot >= this.slotIngredients.size()) {
+            return Ingredient.EMPTY;
+        }
         return this.slotIngredients.get(patternSlot);
     }
 
-    @Nullable private Boolean getTestResult(int slot, AEItemKey key) {
-        if (key == null || key.hasTag()) return null;
+    @Nullable
+    private Boolean getTestResult(int slot, AEItemKey key) {
+        if (key == null || key.hasTag()) {
+            return null;
+        }
         var cache = isValidCache[slot];
         return cache == null ? null : cache.get(key.getItem());
     }
@@ -246,7 +507,9 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
     private void setTestResult(int slot, AEItemKey key, boolean result) {
         if (key != null && !key.hasTag()) {
             var cache = isValidCache[slot];
-            if (cache == null) cache = isValidCache[slot] = new IdentityHashMap<>();
+            if (cache == null) {
+                cache = isValidCache[slot] = new IdentityHashMap<>();
+            }
             cache.put(key.getItem(), result);
         }
     }
@@ -255,37 +518,78 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         if (!key.hasTag()) {
             var cache = this.remainderCache[machineSlot];
             var item = key.getItem();
-            if (cache != null && cache.containsKey(item)) return cache.get(item);
+            if (cache != null && cache.containsKey(item)) {
+                return cache.get(item);
+            }
+
             var remainder = calculateRecipeRemainder(machineSlot, key);
-            if (cache == null) cache = this.remainderCache[machineSlot] = new IdentityHashMap<>();
+            if (cache == null) {
+                cache = this.remainderCache[machineSlot] = new IdentityHashMap<>();
+            }
             cache.put(item, remainder);
             return remainder;
         }
+
         return calculateRecipeRemainder(machineSlot, key);
     }
 
     private ItemStack calculateRecipeRemainder(int machineSlot, AEItemKey key) {
         var patternSlot = toPatternSlot(machineSlot);
-        if (patternSlot < 0) return ItemStack.EMPTY;
+        if (patternSlot < 0) {
+            return ItemStack.EMPTY;
+        }
         var items = makeAdapterInputItemsFromSparse();
         items.set(patternSlot, key.toStack());
         var remainingItems = adapter.getRemainingItems(items);
         return patternSlot < remainingItems.size() ? remainingItems.get(patternSlot) : ItemStack.EMPTY;
     }
 
-    private static int[] createPatternToMachineSlots(int side) {
+    public int toMachineGridIndex(int slot, int targetSide) {
+        return toMachineGridIndex(slot, tableSideLength, targetSide);
+    }
+
+    public static int toMachineGridIndex(int slot, int tableSide, int targetSide) {
+        if (tableSide < 1 || tableSide > MAX_GRID_SIDE || (tableSide & 1) == 0
+                || targetSide < Math.max(MACHINE_GRID_SIDE, tableSide) || targetSide > MAX_GRID_SIDE
+                || (targetSide & 1) == 0 || slot < 0 || slot >= tableSide * tableSide) {
+            return -1;
+        }
+        var offset = Math.floorDiv(targetSide - tableSide, 2);
+        var x = slot % tableSide;
+        var y = slot / tableSide;
+        return x + offset + (y + offset) * targetSide;
+    }
+
+    private int patternSlotForMachineGridSlot(int machineSlot, int targetSide) {
+        if (!isValidTargetSide(targetSide) || machineSlot < 0 || machineSlot >= targetSide * targetSide) {
+            return -1;
+        }
+        var offset = Math.floorDiv(targetSide - tableSideLength, 2);
+        var x = machineSlot % targetSide - offset;
+        var y = machineSlot / targetSide - offset;
+        if (x < 0 || x >= tableSideLength || y < 0 || y >= tableSideLength) {
+            return -1;
+        }
+        return x + y * tableSideLength;
+    }
+
+    private boolean isValidTargetSide(int targetSide) {
+        return targetSide >= machineGridSide && targetSide <= MAX_GRID_SIDE && (targetSide & 1) == 1;
+    }
+
+    private static int[] createPatternToMachineSlots(int side, int targetSide) {
         var result = new int[side * side];
-        var offset = Math.floorDiv(MACHINE_GRID_SIDE - side, 2);
+        var offset = Math.floorDiv(targetSide - side, 2);
         for (int patternSlot = 0; patternSlot < result.length; patternSlot++) {
             var x = patternSlot % side;
             var y = patternSlot / side;
-            result[patternSlot] = (x + offset) + (y + offset) * MACHINE_GRID_SIDE;
+            result[patternSlot] = (x + offset) + (y + offset) * targetSide;
         }
         return result;
     }
 
     private static int[] createMachineToPatternSlots(int[] patternToMachineSlot) {
-        var result = new int[MACHINE_GRID_SIZE];
+        var result = new int[MAX_GRID_SIZE];
         Arrays.fill(result, -1);
         for (int patternSlot = 0; patternSlot < patternToMachineSlot.length; patternSlot++) {
             result[patternToMachineSlot[patternSlot]] = patternSlot;
@@ -293,12 +597,14 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         return result;
     }
 
-    private static List<GenericStack> getCraftingInputs(List<ItemStack> stacks, int size) {
+    private static List<GenericStack> getCraftingContainers(List<ItemStack> stacks, int size) {
         var result = new GenericStack[size];
         var count = Math.min(stacks.size(), size);
         for (int i = 0; i < count; i++) {
             var stack = stacks.get(i);
-            if (!stack.isEmpty()) result[i] = GenericStack.fromItemStack(stack);
+            if (!stack.isEmpty()) {
+                result[i] = GenericStack.fromItemStack(stack);
+            }
         }
         return Arrays.asList(result);
     }
@@ -306,11 +612,18 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
     private static List<GenericStack> condenseStacks(List<GenericStack> sparseInput) {
         var map = new LinkedHashMap<AEKey, Long>();
         for (var input : sparseInput) {
-            if (input != null) map.merge(input.what(), input.amount(), Long::sum);
+            if (input != null) {
+                map.merge(input.what(), input.amount(), Long::sum);
+            }
         }
-        if (map.isEmpty()) throw new IllegalStateException("No pattern here!");
+        if (map.isEmpty()) {
+            throw new IllegalStateException("No pattern here!");
+        }
+
         var result = new ArrayList<GenericStack>(map.size());
-        for (var entry : map.entrySet()) result.add(new GenericStack(entry.getKey(), entry.getValue()));
+        for (var entry : map.entrySet()) {
+            result.add(new GenericStack(entry.getKey(), entry.getValue()));
+        }
         return result;
     }
 
@@ -322,29 +635,44 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         private Input(int machineSlot, GenericStack slotInput, long multiplier) {
             this.machineSlot = machineSlot;
             this.multiplier = multiplier;
+
+            var itemOrFluidInput = getItemOrFluidInput(machineSlot, slotInput);
             if (!canSubstitute) {
-                this.possibleInputs = new GenericStack[] { slotInput };
+                this.possibleInputs = new GenericStack[] { itemOrFluidInput };
             } else {
                 var matchingStacks = getRecipeIngredient(machineSlot).getItems();
                 this.possibleInputs = new GenericStack[matchingStacks.length + 1];
-                this.possibleInputs[0] = slotInput;
+                this.possibleInputs[0] = itemOrFluidInput;
                 for (int i = 0; i < matchingStacks.length; i++) {
                     this.possibleInputs[i + 1] = GenericStack.fromItemStack(matchingStacks[i]);
                 }
             }
         }
 
-        @Override public GenericStack[] getPossibleInputs() { return possibleInputs; }
-        @Override public long getMultiplier() { return multiplier; }
-        @Override public boolean isValid(AEKey input, Level level) {
-            if (input.matches(possibleInputs[0])) return true;
+        @Override
+        public GenericStack[] getPossibleInputs() {
+            return possibleInputs;
+        }
+
+        @Override
+        public long getMultiplier() {
+            return multiplier;
+        }
+
+        @Override
+        public boolean isValid(AEKey input, Level level) {
+            if (input.matches(possibleInputs[0])) {
+                return true;
+            }
             return canSubstitute() && input instanceof AEItemKey itemKey
                     && ExtendedTableCraftingPattern.this.isItemValid(machineSlot, itemKey, level);
         }
-        @Nullable @Override public AEKey getRemainingKey(AEKey template) {
+
+        @Nullable
+        @Override
+        public AEKey getRemainingKey(AEKey template) {
             if (template instanceof AEItemKey itemKey) {
-                var remainder = getRecipeRemainder(machineSlot, itemKey);
-                return remainder.isEmpty() ? null : AEItemKey.of(remainder);
+                return AEItemKey.of(getRecipeRemainder(machineSlot, itemKey));
             }
             return null;
         }

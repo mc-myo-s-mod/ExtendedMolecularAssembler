@@ -24,20 +24,28 @@ public final class TableRecipeAdapters {
             return new ShapelessCraftingRecipeAdapter(craftingRecipe);
         }
 
-        var className = recipe.getClass().getName();
         if (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)
-                && className.startsWith("com.blakebr0.extendedcrafting.")) {
+                && ExtendedCraftingRecipeAdapters.supports(recipe)) {
             return ExtendedCraftingRecipeAdapters.of(recipe);
         }
         if (MyotusAPI.integrations().isLoaded(ReAvaritia.class)
-                && className.startsWith("committee.nova.mods.avaritia.")) {
+                && ReAvaritiaRecipeAdapters.supports(recipe)) {
             return ReAvaritiaRecipeAdapters.of(recipe);
         }
         if (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)
-                && className.startsWith("net.byAqua3.avaritia.")) {
+                && AvaritiaNeoRecipeAdapters.supports(recipe)) {
             return AvaritiaNeoRecipeAdapters.of(recipe);
         }
 
-        throw new IllegalArgumentException("Unsupported table recipe implementation: " + className);
+        throw new IllegalArgumentException("Unsupported table recipe implementation: " + recipe.getClass().getName());
+    }
+
+    public static boolean isExtended(Recipe<?> recipe) {
+        return (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)
+                && ExtendedCraftingRecipeAdapters.supports(recipe))
+                || (MyotusAPI.integrations().isLoaded(ReAvaritia.class)
+                        && ReAvaritiaRecipeAdapters.supports(recipe))
+                || (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)
+                        && AvaritiaNeoRecipeAdapters.supports(recipe));
     }
 }

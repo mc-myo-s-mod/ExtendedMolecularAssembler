@@ -1,29 +1,29 @@
 package me.myogoo.extendedmolecularassembler.menu.pattern;
 
+import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
 import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
 import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
-import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
+import me.myogoo.extendedmolecularassembler.menu.pattern.integration.avaritianeo.AvaritiaNeoPatternRecipeFinder;
+import me.myogoo.extendedmolecularassembler.menu.pattern.integration.extendedcrafting.ExtendedCraftingPatternRecipeFinder;
+import me.myogoo.extendedmolecularassembler.menu.pattern.integration.reavaritia.ReAvaritiaPatternRecipeFinder;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import me.myogoo.myotus.api.MyotusAPI;
-import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public final class ExtendedPatternRecipeFinder {
     private static final int[] TABLE_SIDES = { 3, 5, 7, 9 };
+    private static final int[] EXTENDED_CRAFTING_TABLE_SIDES = { 3, 5, 7, 9, 11, 13 };
+    private static final int[] EXTREME_TABLE_SIDES = { 9 };
 
     private ExtendedPatternRecipeFinder() {
     }
@@ -34,26 +34,106 @@ public final class ExtendedPatternRecipeFinder {
 
     public static List<ExtendedPatternRecipeMatch> findAll(List<ItemStack> machineGrid, Level level) {
         var matches = new ArrayList<ExtendedPatternRecipeMatch>();
-        if (machineGrid.size() != ExtendedTableCraftingPattern.MACHINE_GRID_SIZE || isEmpty(machineGrid)) {
-            return matches;
+
+        if (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            matches.addAll(findAllWithLookup(machineGrid, level, EXTENDED_CRAFTING_TABLE_SIDES,
+                    ExtendedCraftingPatternRecipeFinder::findAll));
         }
 
-        var matchedRecipeIds = new HashSet<ResourceLocation>();
-        var candidatesBySide = candidatesBySide(level.getRecipeManager());
+        if (MyotusAPI.integrations().isLoaded(ReAvaritia.class)) {
+            matches.addAll(findAllWithLookup(machineGrid, level, TABLE_SIDES, ReAvaritiaPatternRecipeFinder::findAll));
+        }
 
-        for (var side : TABLE_SIDES) {
-            for (var offsetY : orderedOffsets(side)) {
-                for (var offsetX : orderedOffsets(side)) {
-                    if (!isOutsideWindowEmpty(machineGrid, side, offsetX, offsetY)) {
+        if (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)) {
+            matches.addAll(findAllWithLookup(machineGrid, level, EXTREME_TABLE_SIDES,
+                    AvaritiaNeoPatternRecipeFinder::findAll));
+        }
+
+        return matches;
+    }
+
+    private static Optional<ExtendedPatternRecipeMatch> findWithLookup(List<ItemStack> machineGrid, Level level,
+            int[] sides, RecipeLookup lookup) {
+        var machineSide = getMachineSide(machineGrid);
+        if (machineSide < 0 || isEmpty(machineGrid)) {
+            return Optional.empty();
+        }
+
+        for (var side : sides) {
+            if (side > machineSide) {
+                continue;
+            }
+            for (var offsetY : orderedOffsets(side, machineSide)) {
+                for (var offsetX : orderedOffsets(side, machineSide)) {
+                    if (!isOutsideWindowEmpty(machineGrid, side, offsetX, offsetY, machineSide)) {
                         continue;
                     }
 
-                    var input = copyWindow(machineGrid, side, offsetX, offsetY);
+                    var input = copyWindow(machineGrid, side, offsetX, offsetY, machineSide);
                     if (isEmpty(input)) {
                         continue;
                     }
 
-                    findMatchesForInput(input, side, level, candidatesBySide, matches, matchedRecipeIds);
+                    var holder = lookup.find(side, input, level).orElse(null);
+                    if (holder == null) {
+                        continue;
+                    }
+
+                    var adapter = TableRecipeAdapters.of(holder);
+                    if (adapter.sideLength() != side) {
+                        continue;
+                    }
+
+                    var result = adapter.assemble(input, level);
+                    if (!result.isEmpty()) {
+                        return Optional.of(new ExtendedPatternRecipeMatch(holder, toArray(input), result));
+                    }
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private static List<ExtendedPatternRecipeMatch> findAllWithLookup(List<ItemStack> machineGrid, Level level,
+            int[] sides, RecipeLookupAll lookup) {
+        var matches = new ArrayList<ExtendedPatternRecipeMatch>();
+        var machineSide = getMachineSide(machineGrid);
+        if (machineSide < 0 || isEmpty(machineGrid)) {
+            return matches;
+        }
+
+        var matchedRecipeIds = new HashSet<ResourceLocation>();
+        for (var side : sides) {
+            if (side > machineSide) {
+                continue;
+            }
+            for (var offsetY : orderedOffsets(side, machineSide)) {
+                for (var offsetX : orderedOffsets(side, machineSide)) {
+                    if (!isOutsideWindowEmpty(machineGrid, side, offsetX, offsetY, machineSide)) {
+                        continue;
+                    }
+
+                    var input = copyWindow(machineGrid, side, offsetX, offsetY, machineSide);
+                    if (isEmpty(input)) {
+                        continue;
+                    }
+
+                    for (var holder : lookup.findAll(side, input, level)) {
+                        if (matchedRecipeIds.contains(holder.getId())) {
+                            continue;
+                        }
+                        var adapter = TableRecipeAdapters.of(holder);
+                        if (adapter.sideLength() != side) {
+                            continue;
+                        }
+
+                        var result = adapter.assemble(input, level);
+                        if (!result.isEmpty()) {
+                            matchedRecipeIds.add(holder.getId());
+                            matches.add(new ExtendedPatternRecipeMatch(holder, toArray(input), result));
+                        }
+                    }
                 }
             }
         }
@@ -61,75 +141,24 @@ public final class ExtendedPatternRecipeFinder {
         return matches;
     }
 
-    private static void findMatchesForInput(List<ItemStack> input, int side, Level level,
-            Map<Integer, List<RecipeCandidate>> candidatesBySide,
-            List<ExtendedPatternRecipeMatch> matches, Set<ResourceLocation> matchedRecipeIds) {
-        for (var candidate : candidatesBySide.getOrDefault(side, List.of())) {
-            if (matchedRecipeIds.contains(candidate.recipe().getId()) || !candidate.adapter().matches(input, level)) {
-                continue;
-            }
-
-            var result = candidate.adapter().assemble(input, level);
-            if (!result.isEmpty()) {
-                matchedRecipeIds.add(candidate.recipe().getId());
-                matches.add(new ExtendedPatternRecipeMatch(candidate.recipe(), toArray(input), result));
-            }
-        }
-    }
-
-    private static Map<Integer, List<RecipeCandidate>> candidatesBySide(RecipeManager recipeManager) {
-        var recipes = recipeManager.getRecipes();
-        var candidatesBySide = new HashMap<Integer, List<RecipeCandidate>>();
-        for (Recipe<?> recipe : recipes) {
-            var adapter = tryCreateAdapter(recipe);
-            if (adapter == null) {
-                continue;
-            }
-            candidatesBySide.computeIfAbsent(adapter.sideLength(), ignored -> new ArrayList<>())
-                    .add(new RecipeCandidate(recipe, adapter));
-        }
-
-        return Map.copyOf(candidatesBySide);
-    }
-
-    private static IMyotusTableRecipe<?> tryCreateAdapter(Recipe<?> recipe) {
-        var className = recipe.getClass().getName();
-        var supported = (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)
-                && className.startsWith("com.blakebr0.extendedcrafting."))
-                || (MyotusAPI.integrations().isLoaded(ReAvaritia.class)
-                && className.startsWith("committee.nova.mods.avaritia."))
-                || (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)
-                && className.startsWith("net.byAqua3.avaritia."));
-        if (!supported) {
-            return null;
-        }
-
-        try {
-            return TableRecipeAdapters.of(recipe);
-        } catch (RuntimeException ignored) {
-            return null;
-        }
-    }
-
-    private record RecipeCandidate(Recipe<?> recipe, IMyotusTableRecipe<?> adapter) {
-    }
-
-    private static List<ItemStack> copyWindow(List<ItemStack> machineGrid, int side, int offsetX, int offsetY) {
+    private static List<ItemStack> copyWindow(List<ItemStack> machineGrid, int side, int offsetX, int offsetY,
+            int machineSide) {
         var result = NonNullList.withSize(side * side, ItemStack.EMPTY);
         for (int y = 0; y < side; y++) {
             for (int x = 0; x < side; x++) {
                 result.set(x + y * side, machineGrid.get((x + offsetX)
-                        + (y + offsetY) * ExtendedTableCraftingPattern.MACHINE_GRID_SIDE).copy());
+                        + (y + offsetY) * machineSide).copy());
             }
         }
         return result;
     }
 
-    private static boolean isOutsideWindowEmpty(List<ItemStack> machineGrid, int side, int offsetX, int offsetY) {
-        for (int y = 0; y < ExtendedTableCraftingPattern.MACHINE_GRID_SIDE; y++) {
-            for (int x = 0; x < ExtendedTableCraftingPattern.MACHINE_GRID_SIDE; x++) {
+    private static boolean isOutsideWindowEmpty(List<ItemStack> machineGrid, int side, int offsetX, int offsetY,
+            int machineSide) {
+        for (int y = 0; y < machineSide; y++) {
+            for (int x = 0; x < machineSide; x++) {
                 var inside = x >= offsetX && x < offsetX + side && y >= offsetY && y < offsetY + side;
-                if (!inside && !machineGrid.get(x + y * ExtendedTableCraftingPattern.MACHINE_GRID_SIDE).isEmpty()) {
+                if (!inside && !machineGrid.get(x + y * machineSide).isEmpty()) {
                     return false;
                 }
             }
@@ -146,17 +175,31 @@ public final class ExtendedPatternRecipeFinder {
         return true;
     }
 
-    private static List<Integer> orderedOffsets(int side) {
-        var maxOffset = ExtendedTableCraftingPattern.MACHINE_GRID_SIDE - side;
+    private static int[] orderedOffsets(int side, int machineSide) {
+        if (side < 1 || side > machineSide) {
+            return new int[0];
+        }
+        var maxOffset = machineSide - side;
         var center = Math.floorDiv(maxOffset, 2);
-        var result = new ArrayList<Integer>(maxOffset + 1);
-        result.add(center);
+        var result = new int[maxOffset + 1];
+        result[0] = center;
+        var index = 1;
         for (int offset = 0; offset <= maxOffset; offset++) {
             if (offset != center) {
-                result.add(offset);
+                result[index++] = offset;
             }
         }
         return result;
+    }
+
+    private static int getMachineSide(List<ItemStack> machineGrid) {
+        var side = (int) Math.sqrt(machineGrid.size());
+        if (side < ExtendedTableCraftingPattern.MACHINE_GRID_SIDE || side > ExtendedTableCraftingPattern.MAX_GRID_SIDE
+                || (side & 1) == 0
+                || side * side != machineGrid.size()) {
+            return -1;
+        }
+        return side;
     }
 
     private static ItemStack[] toArray(List<ItemStack> input) {
@@ -165,5 +208,15 @@ public final class ExtendedPatternRecipeFinder {
             result[i] = input.get(i).copy();
         }
         return result;
+    }
+
+    @FunctionalInterface
+    public interface RecipeLookup {
+        Optional<Recipe<?>> find(int side, List<ItemStack> input, Level level);
+    }
+
+    @FunctionalInterface
+    public interface RecipeLookupAll {
+        List<Recipe<?>> findAll(int side, List<ItemStack> input, Level level);
     }
 }

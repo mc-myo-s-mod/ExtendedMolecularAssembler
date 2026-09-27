@@ -1,16 +1,16 @@
 package me.myogoo.extendedmolecularassembler.adapter.recipe;
 
-import me.myogoo.myotus.api.recipe.IMyotusShapedTableRecipe;
 import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
+import me.myogoo.myotus.api.recipe.IMyotusShapedTableRecipe;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.Container;
 
 public abstract class AbstractTableRecipeAdapter<I extends Container, R extends Recipe<I>>
         implements IMyotusTableRecipe<I> {
-    public static final int MAX_SIDE_LENGTH = 9;
+    public static final int MAX_SIDE_LENGTH = 13;
 
     private final R recipe;
     private final ResourceLocation tableType;
@@ -28,15 +28,31 @@ public abstract class AbstractTableRecipeAdapter<I extends Container, R extends 
         this.sideLength = sideLength;
     }
 
-    @Override public ResourceLocation tableType() { return tableType; }
-    @Override public int tier() { return tier; }
-    @Override public int sideLength() { return sideLength; }
-    @Override public R recipe() { return recipe; }
+    @Override
+    public ResourceLocation tableType() {
+        return tableType;
+    }
+
+    @Override
+    public int tier() {
+        return tier;
+    }
+
+    @Override
+    public int sideLength() {
+        return sideLength;
+    }
+
+    @Override
+    public R recipe() {
+        return recipe;
+    }
 
     @Override
     public NonNullList<Ingredient> slotIngredients() {
         var ingredients = recipe.getIngredients();
         var result = NonNullList.withSize(gridSize(), Ingredient.EMPTY);
+
         if (this instanceof IMyotusShapedTableRecipe<?> shaped) {
             var offsetX = Math.floorDiv(sideLength - shaped.width(), 2);
             var offsetY = Math.floorDiv(sideLength - shaped.height(), 2);
@@ -54,6 +70,7 @@ public abstract class AbstractTableRecipeAdapter<I extends Container, R extends 
                 result.set(i, ingredients.get(i));
             }
         }
+
         return result;
     }
 

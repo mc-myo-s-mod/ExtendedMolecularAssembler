@@ -1,30 +1,73 @@
 package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
 import com.glodblock.github.extendedae.common.blocks.matrix.BlockAssemblerMatrixBase;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.phys.BlockHitResult;
+
+import java.util.function.Supplier;
 
 public class ExtendedAssemblerMatrixPatternUploaderBlock
         extends BlockAssemblerMatrixBase<ExtendedAssemblerMatrixPatternUploaderBlockEntity> {
+    private final Supplier<Item> presentItem;
+
     public ExtendedAssemblerMatrixPatternUploaderBlock() {
+        this(() -> EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ITEM.get());
+    }
+
+    public ExtendedAssemblerMatrixPatternUploaderBlock(Supplier<Item> presentItem) {
         super(BlockBehaviour.Properties.of()
                 .mapColor(MapColor.METAL)
                 .strength(3.5F)
                 .sound(SoundType.METAL)
                 .requiresCorrectToolForDrops()
                 .noOcclusion());
+        this.presentItem = presentItem;
     }
 
     @Override
     public void openGui(ExtendedAssemblerMatrixPatternUploaderBlockEntity tile, Player player) {
-        // Automation-facing matrix function block. Item insertion uploads extended encoded patterns.
+        // This is an automation-facing matrix function block. Item insertion through
+        // the exposed item handler uploads extended encoded patterns into nearby or
+        // same-cluster Extended Pattern Cores.
+    }
+
+    @Override
+    public InteractionResult check(ExtendedAssemblerMatrixPatternUploaderBlockEntity tile, ItemStack stack,
+            Level level, BlockPos pos, BlockHitResult hit, Player player) {
+        if (stack.isEmpty()) {
+            return InteractionResult.PASS;
+        }
+
+        var handler = tile.getPatternInv(hit.getDirection());
+        if (handler == null || !handler.isItemValid(0, stack)) {
+            return InteractionResult.PASS;
+        }
+
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+
+        var remainder = handler.insertItem(0, stack.copy(), false);
+        if (remainder.getCount() == stack.getCount()) {
+            return InteractionResult.PASS;
+        }
+
+        if (!player.getAbilities().instabuild) {
+            stack.setCount(remainder.getCount());
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
     public Item getPresentItem() {
-        return EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ITEM.get();
+        return this.presentItem.get();
     }
 }

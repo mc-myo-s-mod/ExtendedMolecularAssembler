@@ -1,0 +1,33 @@
+{
+  "type": "avaritia:shaped_table",
+  "conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:bone"
+    },
+    "S": {
+      "item": "minecraft:stone"
+    },
+    "T": {
+      "item": "minecraft:stick"
+    }
+  },
+  "pattern": [
+    "STS",
+    "TBT",
+    "STS"
+  ],
+  "result": {
+    "count": 1,
+    "item": "minecraft:amethyst_shard"
+  },
+  "tier": 1
+}

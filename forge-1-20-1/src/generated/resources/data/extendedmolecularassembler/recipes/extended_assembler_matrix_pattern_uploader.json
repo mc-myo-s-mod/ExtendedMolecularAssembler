@@ -1,37 +1,25 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "redstone",
+  "type": "minecraft:crafting_shapeless",
   "conditions": [
     {
       "type": "myotus:mod_condition",
       "active_mod": "expatternprovider"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae-plus"
     }
   ],
-  "key": {
-    "C": {
-      "item": "ae2:calculation_processor"
+  "ingredients": [
+    {
+      "item": "extendedae_plus:assembler_matrix_upload_core"
     },
-    "H": {
-      "item": "minecraft:hopper"
-    },
-    "S": {
-      "item": "ae2:formation_core"
-    },
-    "T": {
-      "item": "ae2:pattern_encoding_terminal"
-    },
-    "U": {
-      "item": "expatternprovider:assembler_matrix_pattern"
+    {
+      "item": "myotus:compat_processor"
     }
-  },
-  "pattern": [
-    "HTH",
-    "CUC",
-    "HSH"
   ],
   "result": {
     "count": 1,
     "item": "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader"
-  },
-  "show_notification": true
+  }
 }

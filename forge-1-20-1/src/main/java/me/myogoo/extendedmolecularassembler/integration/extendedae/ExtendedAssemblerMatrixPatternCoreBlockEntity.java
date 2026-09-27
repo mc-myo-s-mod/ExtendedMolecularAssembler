@@ -1,46 +1,105 @@
 package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
+import appeng.api.config.Settings;
+import appeng.api.config.YesNo;
+import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
+import appeng.api.implementations.blockentities.PatternContainerGroup;
 import appeng.api.inventories.InternalInventory;
+import appeng.api.networking.IGrid;
+import appeng.api.networking.IGridNodeListener;
+import appeng.api.networking.crafting.ICraftingProvider;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.KeyCounter;
 import appeng.crafting.pattern.EncodedPatternItem;
+import appeng.helpers.patternprovider.PatternContainer;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.InternalInventoryHost;
 import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixFunction;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.blockentity.ExportMECraftingProviderBlockEntity;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssemblerMatrixFunction
-        implements InternalInventoryHost {
-    public static final int INV_SIZE = 36;
+        implements InternalInventoryHost, ICraftingProvider, PatternContainer {
+    public static final int DEFAULT_INV_SIZE = 36;
+    public static final int PLUS_INV_SIZE = 72;
 
-    private final AppEngInternalInventory patternInventory = new AppEngInternalInventory(this, INV_SIZE, 1);
-    private final LazyOptional<IItemHandler> patternHandler = LazyOptional.of(() -> this.patternInventory.toItemHandler());
+    private final AppEngInternalInventory patternInventory;
+    private final int patternSideLength;
+    private LazyOptional<IItemHandler> patternHandler = LazyOptional.empty();
+    private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final Set<IPatternDetails> patternSet = new HashSet<>();
+    private long patternRevision;
 
     public ExtendedAssemblerMatrixPatternCoreBlockEntity(BlockEntityType<?> type, BlockPos pos,
             BlockState blockState) {
+        this(type, pos, blockState, DEFAULT_INV_SIZE);
+    }
+
+    public ExtendedAssemblerMatrixPatternCoreBlockEntity(BlockEntityType<?> type, BlockPos pos,
+            BlockState blockState, int patternSlotCount) {
+        this(type, pos, blockState, patternSlotCount, ExtendedTableCraftingPattern.MACHINE_GRID_SIDE);
+    }
+
+    public ExtendedAssemblerMatrixPatternCoreBlockEntity(BlockEntityType<?> type, BlockPos pos,
+            BlockState blockState, int patternSlotCount, int patternSideLength) {
         super(type, pos, blockState);
-        this.patternInventory.setFilter(new ExtendedPatternFilter(this::getLevel));
+        if (patternSideLength != 9 && patternSideLength != 11 && patternSideLength != 13) {
+            throw new IllegalArgumentException("Unsupported ExtendedAE pattern core side " + patternSideLength);
+        }
+        this.patternSideLength = patternSideLength;
+        this.patternInventory = new AppEngInternalInventory(this, patternSlotCount, 1);
+        this.patternInventory.setFilter(new ExtendedPatternFilter(this::getLevel, patternSideLength));
+        this.patternHandler = LazyOptional.of(this.patternInventory::toItemHandler);
+        this.getMainNode()
+                .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixPatternCoreIdlePowerUsage(
+                        patternSlotCount > DEFAULT_INV_SIZE))
+                .addService(ICraftingProvider.class, this);
     }
 
     public AppEngInternalInventory getPatternInventory() {
+        return this.patternInventory;
+    }
+
+    public int getPatternSideLength() {
+        return this.patternSideLength;
+    }
+
+    public boolean acceptsPatternSideLength(int sideLength) {
+        return acceptsPatternSideLength(this.patternSideLength, sideLength);
+    }
+
+    public static boolean acceptsPatternSideLength(int coreSideLength, int patternSideLength) {
+        return coreSideLength == ExtendedTableCraftingPattern.MACHINE_GRID_SIDE
+                ? patternSideLength <= coreSideLength
+                : patternSideLength == coreSideLength;
+    }
+
+    public InternalInventory getExposedInventory() {
         return this.patternInventory;
     }
 
@@ -49,9 +108,33 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         return this.patternInventory.toItemHandler();
     }
 
+    public long getLocateID() {
+        return this.worldPosition.asLong();
+    }
+
+    /**
+     * Returns a process-local revision for the pattern inventory and its decoded pattern view.
+     */
+    public long getPatternRevision() {
+        return this.patternRevision;
+    }
+
     @Override
     public void add(ClusterAssemblerMatrix cluster) {
-        // Function block only. The Forge 1.20.1 port currently stores matrix extended patterns.
+        // This block participates in the matrix as a function block. Its extended patterns are exposed via its own
+        // ICraftingProvider because ExtendedAE's cluster pattern list is typed to TileAssemblerMatrixPattern.
+    }
+
+    @Override
+    public void updateStatus(ClusterAssemblerMatrix c) {
+        super.updateStatus(c);
+        this.updatePatterns();
+    }
+
+    @Override
+    public void onMainNodeStateChanged(IGridNodeListener.State reason) {
+        super.onMainNodeStateChanged(reason);
+        this.updatePatterns();
     }
 
     @Override
@@ -64,15 +147,44 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     public void loadTag(CompoundTag data) {
         super.loadTag(data);
         this.patternInventory.readFromNBT(data, "pattern");
+        // AppEngInternalInventory deliberately loads NBT without firing inventory callbacks.
+        this.patternRevision++;
+    }
+
+    @Override
+    public void onReady() {
+        super.onReady();
+        this.updatePatterns();
+    }
+
+    @Override
+    public void onChangeInventory(InternalInventory inv, int slot) {
+        this.saveChanges();
+        this.updatePatterns();
+    }
+
+    public void updatePatterns() {
+        this.patternRevision++;
+        this.patterns.clear();
+        this.patternSet.clear();
+        var level = getLevel();
+        for (var stack : this.patternInventory) {
+            if (PatternDetailsHelper.decodePattern(stack, level) instanceof ExtendedTableCraftingPattern pattern
+                    && this.acceptsPatternSideLength(pattern.tableSideLength())) {
+                this.patterns.add(pattern);
+                this.patternSet.add(pattern);
+            }
+        }
+        if (this.getMainNode().getNode() != null) {
+            ICraftingProvider.requestUpdate(this.getMainNode());
+        }
     }
 
     @Override
     public void addAdditionalDrops(Level level, BlockPos pos, List<ItemStack> drops) {
         super.addAdditionalDrops(level, pos, drops);
         for (var pattern : this.patternInventory) {
-            if (!pattern.isEmpty()) {
-                drops.add(pattern);
-            }
+            drops.add(pattern);
         }
     }
 
@@ -83,33 +195,110 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     }
 
     @Override
-    public void saveChanges() {
-        super.saveChanges();
+    public List<IPatternDetails> getAvailablePatterns() {
+        return this.patterns;
     }
 
     @Override
-    public void onChangeInventory(InternalInventory inv, int slot) {
-        this.saveChanges();
+    public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
+        var formed = isFormed();
+        var active = this.getMainNode().isActive();
+        var knownPattern = this.patternSet.contains(patternDetails);
+        if (!formed || !active || !knownPattern) {
+            return false;
+        }
+        if (EMAConfig.exportMode() && patternDetails instanceof ExtendedTableCraftingPattern pattern
+                && !hasMatchingProvider(pattern)) {
+            return false;
+        }
+        return this.cluster != null && this.cluster.pushCraftingJob(patternDetails, inputHolder);
+    }
+
+    private boolean hasMatchingProvider(ExtendedTableCraftingPattern pattern) {
+        try {
+            ExportMECraftingProviderTier.requiredFor(pattern.tableType(), pattern.tableTier());
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+
+        var grid = this.getMainNode().getGrid();
+        if (grid == null) {
+            return false;
+        }
+
+        for (var provider : grid.getActiveMachines(ExportMECraftingProviderBlockEntity.class)) {
+            if (provider.getTier().provides(pattern.tableType(), pattern.tableTier()) && provider.isOnline()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
-    public boolean isClientSide() {
-        return this.level != null && this.level.isClientSide();
+    public boolean isBusy() {
+        // Keep the AE2 crafting provider selectable. Actual slot/worker availability is
+        // checked in pushPattern()/ClusterAssemblerMatrixMixin. Returning busy here makes
+        // AE2 skip pushPattern entirely.
+        return this.cluster == null;
     }
 
     @Override
-    public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> capability, @Nullable Direction facing) {
+    public @Nullable IGrid getGrid() {
+        return this.getMainNode().getGrid();
+    }
+
+    @Override
+    public boolean isVisibleInTerminal() {
+        return this.manager.getSetting(Settings.PATTERN_ACCESS_TERMINAL) == YesNo.YES;
+    }
+
+    @Override
+    public InternalInventory getTerminalPatternInventory() {
+        return this.patternInventory;
+    }
+
+    @Override
+    public long getTerminalSortOrder() {
+        return this.getLocateID();
+    }
+
+    @Override
+    public PatternContainerGroup getTerminalGroup() {
+        var coreBlock = EMAExtendedAEIntegration.patternCoreBlock(this.patternSideLength);
+        var icon = AEItemKey.of(coreBlock);
+        var name = this.hasCustomName()
+                ? this.getCustomName()
+                : EMAExtendedAEIntegration.patternCoreItem(this.patternSideLength).getDescription();
+        return new PatternContainerGroup(icon, name,
+                List.of(Component.translatable(EMATranslationKey.GUI.MATRIX_PATTERN_CORE.key())));
+    }
+
+    @Override
+    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
         if (capability == ForgeCapabilities.ITEM_HANDLER) {
-            return ForgeCapabilities.ITEM_HANDLER.orEmpty(capability, this.patternHandler);
+            return this.patternHandler.cast();
         }
         return super.getCapability(capability, facing);
     }
 
-    public record ExtendedPatternFilter(Supplier<Level> world) implements IAEItemFilter {
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        this.patternHandler.invalidate();
+    }
+
+    @Override
+    public void reviveCaps() {
+        super.reviveCaps();
+        this.patternHandler = LazyOptional.of(this.patternInventory::toItemHandler);
+    }
+
+    public record ExtendedPatternFilter(Supplier<Level> world, int patternSideLength) implements IAEItemFilter {
         @Override
         public boolean allowInsert(InternalInventory inv, int slot, ItemStack stack) {
             return stack.getItem() instanceof EncodedPatternItem
-                    && PatternDetailsHelper.decodePattern(stack, world.get()) instanceof ExtendedTableCraftingPattern;
+                    && PatternDetailsHelper.decodePattern(stack, world.get()) instanceof ExtendedTableCraftingPattern pattern
+                    && acceptsPatternSideLength(this.patternSideLength, pattern.tableSideLength());
         }
     }
 }

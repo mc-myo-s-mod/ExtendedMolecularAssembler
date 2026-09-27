@@ -1,25 +1,32 @@
 package me.myogoo.extendedmolecularassembler.menu.pattern;
 
-import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.inventories.InternalInventory;
+import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.stacks.AEItemKey;
 import appeng.core.definitions.AEItems;
-import appeng.helpers.IMenuCraftingPacket;
+import appeng.menu.SlotSemantic;
 import appeng.menu.guisync.GuiSync;
-import appeng.menu.implementations.MenuTypeBuilder;
+import me.myogoo.extendedmolecularassembler.menu.ForgeMenuTypes;
 import appeng.menu.me.common.MEStorageMenu;
 import appeng.menu.slot.FakeSlot;
-import appeng.menu.slot.PatternTermSlot;
+import appeng.menu.slot.DisabledSlot;
 import appeng.menu.slot.RestrictedInputSlot;
+import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.adapter.recipe.avaritianeo.AvaritiaNeoRecipeAdapters;
+import me.myogoo.extendedmolecularassembler.adapter.recipe.reavaritia.ReAvaritiaRecipeAdapters;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
 import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExPatternProvider;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
 import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
+import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
 import me.myogoo.extendedmolecularassembler.menu.EMASlotSemantics;
-import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
 import me.myogoo.myotus.api.MyotusAPI;
-import net.minecraft.core.NonNullList;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
@@ -28,27 +35,34 @@ import net.minecraft.world.item.crafting.Recipe;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
-public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IMenuCraftingPacket {
+public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
     private static final String ACTION_ENCODE = "encode";
     private static final String ACTION_CLEAR = "clear";
     private static final String ACTION_SET_SUBSTITUTION = "setSubstitution";
+    private static final String ACTION_SET_FLUID_SUBSTITUTION = "setFluidSubstitution";
     private static final String ACTION_CYCLE_RECIPE = "cycleRecipe";
     private static final String ACTION_CYCLE_RECIPE_TABLE = "cycleRecipeTable";
     private static final String ACTION_SELECT_RECIPE = "selectRecipe";
     private static final String ACTION_REMEMBER_RECIPE_TYPE = "rememberRecipeType";
+    private static final String ACTION_UPLOAD_TO_MATRIX = "uploadToMatrix";
+    private static final String ENCODE_PLAYER_TAG = "encodePlayer";
+    private static final int MATRIX_UPLOADER_SYNC_INTERVAL = 20;
 
-    public static final MenuType<ExtendedPatternEncodingTermMenu> TYPE = MenuTypeBuilder
-            .create(ExtendedPatternEncodingTermMenu::new, IExtendedPatternEncodingTerminalHost.class)
-            .build("extended_pattern_encoding_terminal");
+    public static final MenuType<ExtendedPatternEncodingTermMenu> TYPE = ForgeMenuTypes.create(
+            ExtendedMolecularAssembler.makeId("extended_pattern_encoding_terminal"),
+            IExtendedPatternEncodingTerminalHost.class, ExtendedPatternEncodingTermMenu::new);
 
     private final ExtendedPatternEncodingLogic encodingLogic;
-    private final FakeSlot[] craftingGridSlots = new FakeSlot[ExtendedTableCraftingPattern.MACHINE_GRID_SIZE];
-    private final PatternTermSlot craftOutputSlot;
+    private final FakeSlot[] craftingGridSlots;
+    private final DisabledSlot craftOutputSlot;
     private final RestrictedInputSlot blankPatternSlot;
     private final RestrictedInputSlot encodedPatternSlot;
     private final IExtendedPatternEncodingTerminalHost host;
+    private final EnumSet<RecipeProvider> activeRecipeProviders;
+    private final List<RecipeDisplay> supportedRecipeDisplays;
 
     @Nullable
     private ExtendedPatternRecipeMatch currentMatch;
@@ -57,23 +71,47 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
     private int currentRecipeIndex;
     @Nullable
     private ResourceLocation selectedRecipeId;
+    private long matchedEncodedInputRevision = Long.MIN_VALUE;
 
     @GuiSync(97)
     public boolean substitute;
     @GuiSync(96)
-    public int recipeMatchCount;
+    public boolean substituteFluids;
     @GuiSync(95)
-    public int selectedRecipeProvider;
+    public int recipeMatchCount;
     @GuiSync(94)
-    public int selectedRecipeTableSide;
+    public int selectedRecipeProvider;
     @GuiSync(93)
+    public int selectedRecipeTableSide;
+    @GuiSync(92)
+    public boolean matrixUploaderAvailable;
+    @GuiSync(91)
     public int selectedRecipeTableTier;
+    private int matrixUploaderSyncDelay;
+
+    public ExtendedPatternEncodingTermMenu(int id, Inventory playerInventory,
+            IExtendedPatternEncodingTerminalHost host) {
+        this(TYPE, id, playerInventory, host);
+    }
 
     public ExtendedPatternEncodingTermMenu(MenuType<?> menuType, int id, Inventory playerInventory,
             IExtendedPatternEncodingTerminalHost host) {
         super(menuType, id, playerInventory, host);
         this.host = host;
         this.encodingLogic = host.getExtendedPatternEncodingLogic();
+        this.craftingGridSlots = new FakeSlot[host.getGridSide() * host.getGridSide()];
+        var activeRecipeProviders = EnumSet.noneOf(RecipeProvider.class);
+        if (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            activeRecipeProviders.add(RecipeProvider.EXTENDED_CRAFTING);
+        }
+        if (MyotusAPI.integrations().isLoaded(AvaritiaNeo.class)) {
+            activeRecipeProviders.add(RecipeProvider.AVARITIA_NEO);
+        }
+        if (MyotusAPI.integrations().isLoaded(ReAvaritia.class)) {
+            activeRecipeProviders.add(RecipeProvider.RE_AVARITIA);
+        }
+        this.activeRecipeProviders = activeRecipeProviders;
+        this.supportedRecipeDisplays = createSupportedRecipeDisplays(this.activeRecipeProviders, host.getGridSide());
 
         var encodedInputs = encodingLogic.getEncodedInputInv().createMenuWrapper();
         for (int i = 0; i < craftingGridSlots.length; i++) {
@@ -82,10 +120,8 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
             addSlot(craftingGridSlots[i] = slot, EMASlotSemantics.EXTENDED_PATTERN_CRAFTING_GRID);
         }
 
-        addSlot(this.craftOutputSlot = new PatternTermSlot(playerInventory.player, this.getActionSource(),
-                this.powerSource, host.getInventory(), encodedInputs, this),
+        addSlot(this.craftOutputSlot = new DisabledSlot(new SimpleContainer(1), 0),
                 EMASlotSemantics.EXTENDED_PATTERN_CRAFTING_RESULT);
-        this.craftOutputSlot.setIcon(null);
 
         addSlot(this.blankPatternSlot = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.BLANK_PATTERN,
                 encodingLogic.getBlankPatternInv(), 0), appeng.menu.SlotSemantics.BLANK_PATTERN);
@@ -93,15 +129,20 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
                 encodingLogic.getEncodedPatternInv(), 0), appeng.menu.SlotSemantics.ENCODED_PATTERN);
         this.encodedPatternSlot.setStackLimit(1);
 
-        registerClientAction(ACTION_ENCODE, this::encode);
+        EMAOptionalIntegrations.addAE2WTLibSingularitySlot(this, host);
+
+        registerClientAction(ACTION_ENCODE, Boolean.class, this::encode);
         registerClientAction(ACTION_CLEAR, this::clear);
         registerClientAction(ACTION_SET_SUBSTITUTION, Boolean.class, encodingLogic::setSubstitution);
+        registerClientAction(ACTION_SET_FLUID_SUBSTITUTION, Boolean.class, encodingLogic::setFluidSubstitution);
         registerClientAction(ACTION_CYCLE_RECIPE, this::cycleRecipe);
         registerClientAction(ACTION_CYCLE_RECIPE_TABLE, Boolean.class, this::cycleRecipeTable);
         registerClientAction(ACTION_SELECT_RECIPE, String.class, this::selectRecipeById);
         registerClientAction(ACTION_REMEMBER_RECIPE_TYPE, Boolean.class, this::setRememberRecipeType);
+        registerClientAction(ACTION_UPLOAD_TO_MATRIX, this::uploadToMatrix);
 
         this.substitute = encodingLogic.isSubstitution();
+        this.substituteFluids = encodingLogic.isFluidSubstitution();
         if (!loadRememberedRecipeType()) {
             setSelectedRecipeDisplay(null);
         }
@@ -133,6 +174,11 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         super.broadcastChanges();
         if (isServerSide()) {
             this.substitute = encodingLogic.isSubstitution();
+            this.substituteFluids = encodingLogic.isFluidSubstitution();
+            if (this.matrixUploaderSyncDelay-- <= 0) {
+                this.matrixUploaderSyncDelay = MATRIX_UPLOADER_SYNC_INTERVAL;
+                this.matrixUploaderAvailable = EMAOptionalIntegrations.hasEligibleExtendedAEPatternUploader(this);
+            }
         }
     }
 
@@ -141,14 +187,14 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         if (blankPatternSlot.mayPlace(input)) {
             input = blankPatternSlot.safeInsert(input);
             if (input.isEmpty()) {
-                return ItemStack.EMPTY;
+                return input;
             }
         }
 
         if (encodedPatternSlot.mayPlace(input)) {
             input = encodedPatternSlot.safeInsert(input);
             if (input.isEmpty()) {
-                return ItemStack.EMPTY;
+                return input;
             }
         }
 
@@ -156,8 +202,12 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
     }
 
     public void encode() {
+        encode(false);
+    }
+
+    public void encode(boolean skipAutoUpload) {
         if (isClientSide()) {
-            sendClientAction(ACTION_ENCODE);
+            sendClientAction(ACTION_ENCODE, skipAutoUpload);
             return;
         }
 
@@ -185,6 +235,29 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         }
 
         encodedPatternSlot.set(encodedPattern);
+        if (!skipAutoUpload) {
+            autoUploadToMatrixIfAvailable();
+        }
+    }
+
+    private void autoUploadToMatrixIfAvailable() {
+        if (!MyotusAPI.integrations().isLoaded(ExPatternProvider.class)
+                || !EMAOptionalIntegrations.isExtendedAEPlusStyleContentEnabled()) {
+            return;
+        }
+        var player = getPlayerInventory().player;
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        var encodedPattern = encodedPatternSlot.getItem();
+        if (EMAOptionalIntegrations.canUploadToExtendedAEAssemblerMatrix(serverPlayer, this, encodedPattern)) {
+            uploadToMatrix();
+        } else if (EMAOptionalIntegrations.extendedAEAssemblerMatrixContainsPattern(
+                serverPlayer,
+                this,
+                encodedPattern)) {
+            serverPlayer.sendSystemMessage(Component.translatable(EMATranslationKey.MESSAGE.MATRIX_UPLOAD_DUPLICATE.key()));
+        }
     }
 
     public void clear() {
@@ -201,8 +274,35 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         selectedRecipeId = null;
         recipeMatchCount = 0;
         setSelectedRecipeDisplay(null);
-        craftOutputSlot.setDisplayedCraftingOutput(ItemStack.EMPTY);
+        craftOutputSlot.set(ItemStack.EMPTY);
         broadcastChanges();
+    }
+
+    public void uploadToMatrix() {
+        if (isClientSide()) {
+            sendClientAction(ACTION_UPLOAD_TO_MATRIX);
+            return;
+        }
+
+        var player = getPlayerInventory().player;
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        if (!MyotusAPI.integrations().isLoaded(ExPatternProvider.class)) {
+            serverPlayer.sendSystemMessage(Component.translatable(EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_EXTENDEDAE.key()));
+            return;
+        }
+        if (!EMAOptionalIntegrations.isExtendedAEPlusStyleContentEnabled()) {
+            serverPlayer.sendSystemMessage(Component.translatable(EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_EXTENDEDAE_PLUS.key()));
+            return;
+        }
+
+        var stack = encodedPatternSlot.getItem();
+        var remainder = EMAOptionalIntegrations.uploadToExtendedAEAssemblerMatrix(serverPlayer, this, stack);
+        if (remainder != stack) {
+            encodedPatternSlot.set(remainder);
+            broadcastChanges();
+        }
     }
 
     public void cycleRecipe() {
@@ -211,29 +311,23 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
             return;
         }
 
-        var items = getEncodedGridItems();
-        if (items == null) {
+        invalidateRecipeMatches();
+        getAndUpdateOutput();
+        if (currentMatches.size() <= 1) {
             return;
         }
 
-        var matches = ExtendedPatternRecipeFinder.findAll(items, getPlayerInventory().player.level());
-        if (matches.size() <= 1) {
-            return;
-        }
-
-        currentMatches = matches;
-        currentRecipeDisplayIndexes = findRecipeDisplayIndexes(matches);
         currentRecipeIndex = nextRecipeIndex(currentRecipeIndex);
         currentMatch = currentMatches.get(currentRecipeIndex);
         selectedRecipeId = currentMatch.recipe().getId();
         setSelectedRecipeDisplay(currentMatch);
         recipeMatchCount = currentMatches.size();
-        craftOutputSlot.setDisplayedCraftingOutput(currentMatch.result());
+        craftOutputSlot.set(currentMatch.result());
         broadcastChanges();
     }
 
     public boolean canCycleRecipes() {
-        return supportedRecipeDisplays().size() > 1;
+        return supportedRecipeDisplays.size() > 1;
     }
 
     public void cycleRecipeTable() {
@@ -250,7 +344,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
             return;
         }
 
-        var displays = supportedRecipeDisplays();
+        var displays = supportedRecipeDisplays;
         if (displays.size() <= 1) {
             return;
         }
@@ -272,8 +366,13 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         this.selectedRecipeTableSide = display.tableSide();
         this.selectedRecipeId = null;
         saveRememberedRecipeType(display);
+        invalidateRecipeMatches();
         getAndUpdateOutput();
         broadcastChanges();
+    }
+
+    public boolean isMatrixUploaderAvailable() {
+        return matrixUploaderAvailable;
     }
 
     public void selectTransferredRecipe(ResourceLocation recipeId) {
@@ -313,16 +412,21 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
 
     private void selectRecipe(ResourceLocation recipeId) {
         selectedRecipeId = recipeId;
+        invalidateRecipeMatches();
         getAndUpdateOutput();
         broadcastChanges();
     }
 
     private void selectRecipe(ResourceLocation recipeId, RecipeProvider provider, int tableTier, int tableSide) {
+        if (!supportedRecipeDisplays.contains(new RecipeDisplay(provider, tableTier, tableSide))) {
+            return;
+        }
         this.selectedRecipeProvider = provider.ordinal();
         this.selectedRecipeTableTier = tableTier;
         this.selectedRecipeTableSide = tableSide;
         this.selectedRecipeId = recipeId;
         saveRememberedRecipeType(new RecipeDisplay(provider, tableTier, tableSide));
+        invalidateRecipeMatches();
         getAndUpdateOutput();
         broadcastChanges();
     }
@@ -348,19 +452,19 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         var providers = RecipeProvider.values();
         if (selectedRecipeProvider >= 0 && selectedRecipeProvider < providers.length) {
             var provider = providers[selectedRecipeProvider];
-            if (provider.isActive()) {
+            if (activeRecipeProviders.contains(provider)) {
                 return provider;
             }
         }
-        return RecipeProvider.firstActive();
+        return firstActiveRecipeProvider();
     }
 
     public int getSelectedRecipeTableSide() {
-        return selectedRecipeTableSide <= 0 ? 9 : selectedRecipeTableSide;
+        return selectedRecipeTableSide <= 0 ? getGridSide() : selectedRecipeTableSide;
     }
 
     public int getSelectedRecipeTableTier() {
-        return selectedRecipeTableTier <= 0 ? 4 : selectedRecipeTableTier;
+        return selectedRecipeTableTier <= 0 ? (getGridSide() - 1) / 2 : selectedRecipeTableTier;
     }
 
     private RecipeDisplay getSelectedRecipeDisplay() {
@@ -373,12 +477,13 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         }
 
         var remembered = host.getRememberedRecipeType();
-        if (remembered == null || !remembered.isActive()) {
+        if (remembered == null || !activeRecipeProviders.contains(remembered.provider())
+                || remembered.tableTier() <= 0 || remembered.tableSide() <= 0) {
             return false;
         }
 
         var display = new RecipeDisplay(remembered.provider(), remembered.tableTier(), remembered.tableSide());
-        if (!supportedRecipeDisplays().contains(display)) {
+        if (!supportedRecipeDisplays.contains(display)) {
             return false;
         }
 
@@ -413,6 +518,10 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         }
     }
 
+    public boolean isSubstituteFluids() {
+        return substituteFluids;
+    }
+
     public boolean isSubstitute() {
         return substitute;
     }
@@ -426,33 +535,69 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         }
     }
 
+    public void setSubstituteFluids(boolean substituteFluids) {
+        if (isClientSide()) {
+            sendClientAction(ACTION_SET_FLUID_SUBSTITUTION, substituteFluids);
+        } else {
+            encodingLogic.setFluidSubstitution(substituteFluids);
+            this.substituteFluids = substituteFluids;
+        }
+    }
+
     public FakeSlot[] getCraftingGridSlots() {
         return craftingGridSlots;
     }
 
+    public int getGridSide() {
+        return host.getGridSide();
+    }
+
+    public void addSingularitySlot(InternalInventory singularityInventory, SlotSemantic semantic) {
+        addSlot(new RestrictedInputSlot(
+                RestrictedInputSlot.PlacableItemType.QE_SINGULARITY,
+                singularityInventory,
+                0), semantic);
+    }
+
     @Nullable
     private ItemStack encodePattern() {
+        invalidateRecipeMatches();
         var match = getAndUpdateOutput();
         if (match == null || match.result().isEmpty()) {
             return null;
         }
 
-        return ExtendedPatternDetailsHelper.encodeExtendedCraftingPattern(match.recipe(), match.inputs(),
-                match.result(), encodingLogic.isSubstitution());
+        var encodedPattern = ExtendedPatternDetailsHelper.encodeExtendedCraftingPattern(match.recipe(), match.inputs(),
+                match.result(), encodingLogic.isSubstitution(), encodingLogic.isFluidSubstitution());
+        var playerName = getPlayerInventory().player.getGameProfile().getName();
+        encodedPattern.getOrCreateTag().putString(ENCODE_PLAYER_TAG, playerName);
+        return encodedPattern;
     }
 
     @Nullable
     private ExtendedPatternRecipeMatch getAndUpdateOutput() {
-        var items = getEncodedGridItems();
-        if (items == null) {
+        if (isClientSide()) {
+            return null;
+        }
+        var encodedInputRevision = encodingLogic.getEncodedInputRevision();
+        if (this.matchedEncodedInputRevision != encodedInputRevision) {
+            this.matchedEncodedInputRevision = encodedInputRevision;
+            var items = getEncodedGridItems();
+            if (items == null) {
+                currentMatches = List.of();
+                currentRecipeDisplayIndexes = List.of();
+            } else {
+                currentMatches = ExtendedPatternRecipeFinder.findAll(items, getPlayerInventory().player.level()).stream()
+                        .filter(match -> supportedRecipeDisplays.contains(RecipeDisplay.of(match))).toList();
+                currentRecipeDisplayIndexes = findRecipeDisplayIndexes(currentMatches);
+            }
+        }
+
+        if (currentMatches.isEmpty()) {
             currentMatch = null;
-            currentMatches = List.of();
-            currentRecipeDisplayIndexes = List.of();
             currentRecipeIndex = 0;
         } else {
             var previousRecipe = currentMatch == null ? null : currentMatch.recipe().getId();
-            currentMatches = ExtendedPatternRecipeFinder.findAll(items, getPlayerInventory().player.level());
-            currentRecipeDisplayIndexes = findRecipeDisplayIndexes(currentMatches);
             var preferredRecipe = selectedRecipeId != null ? selectedRecipeId : previousRecipe;
             currentRecipeIndex = selectedRecipeId != null
                     ? findRecipeIndex(preferredRecipe)
@@ -468,8 +613,12 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
             setSelectedRecipeDisplay(currentMatch);
         }
         recipeMatchCount = currentMatches.size();
-        craftOutputSlot.setDisplayedCraftingOutput(currentMatch == null ? ItemStack.EMPTY : currentMatch.result());
+        craftOutputSlot.set(currentMatch == null ? ItemStack.EMPTY : currentMatch.result());
         return currentMatch;
+    }
+
+    private void invalidateRecipeMatches() {
+        this.matchedEncodedInputRevision = Long.MIN_VALUE;
     }
 
     private int nextRecipeIndex(int currentIndex) {
@@ -550,21 +699,26 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         return -1;
     }
 
-    private static List<RecipeDisplay> supportedRecipeDisplays() {
+    private static List<RecipeDisplay> createSupportedRecipeDisplays(EnumSet<RecipeProvider> activeProviders, int gridSide) {
+        if (gridSide > 9) {
+            return activeProviders.contains(RecipeProvider.EXTENDED_CRAFTING)
+                    ? List.of(new RecipeDisplay(RecipeProvider.EXTENDED_CRAFTING, (gridSide - 1) / 2, gridSide))
+                    : List.of();
+        }
         var displays = new ArrayList<RecipeDisplay>();
-        if (RecipeProvider.EXTENDED_CRAFTING.isActive()) {
+        if (activeProviders.contains(RecipeProvider.EXTENDED_CRAFTING)) {
             displays.add(new RecipeDisplay(RecipeProvider.EXTENDED_CRAFTING, 1, 3));
             displays.add(new RecipeDisplay(RecipeProvider.EXTENDED_CRAFTING, 2, 5));
             displays.add(new RecipeDisplay(RecipeProvider.EXTENDED_CRAFTING, 3, 7));
             displays.add(new RecipeDisplay(RecipeProvider.EXTENDED_CRAFTING, 4, 9));
         }
-        if (RecipeProvider.RE_AVARITIA.isActive()) {
+        if (activeProviders.contains(RecipeProvider.RE_AVARITIA)) {
             displays.add(new RecipeDisplay(RecipeProvider.RE_AVARITIA, 1, 3));
             displays.add(new RecipeDisplay(RecipeProvider.RE_AVARITIA, 2, 5));
             displays.add(new RecipeDisplay(RecipeProvider.RE_AVARITIA, 3, 7));
             displays.add(new RecipeDisplay(RecipeProvider.RE_AVARITIA, 4, 9));
         }
-        if (RecipeProvider.AVARITIA_NEO.isActive()) {
+        if (activeProviders.contains(RecipeProvider.AVARITIA_NEO)) {
             displays.add(new RecipeDisplay(RecipeProvider.AVARITIA_NEO, 4, 9));
         }
         return List.copyOf(displays);
@@ -578,6 +732,8 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
             case 3 -> 1;
             case 5 -> 2;
             case 7 -> 3;
+            case 11 -> 5;
+            case 13 -> 6;
             default -> 4;
         };
     }
@@ -585,7 +741,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
     @Nullable
     private List<ItemStack> getEncodedGridItems() {
         var inputInv = encodingLogic.getEncodedInputInv();
-        var items = NonNullList.withSize(inputInv.size(), ItemStack.EMPTY);
+        var items = net.minecraft.core.NonNullList.withSize(inputInv.size(), ItemStack.EMPTY);
         for (int slot = 0; slot < inputInv.size(); slot++) {
             var stack = getEncodedCraftingIngredient(slot);
             if (stack == null) {
@@ -616,8 +772,8 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
     }
 
     private void setSelectedRecipeDisplay(@Nullable ExtendedPatternRecipeMatch match) {
-        var provider = match == null ? RecipeProvider.firstActive() : RecipeProvider.of(match.recipe());
-        var side = match == null ? 9 : (int) Math.sqrt(match.inputs().length);
+        var provider = match == null ? firstActiveRecipeProvider() : RecipeProvider.of(match.recipe());
+        var side = match == null ? getGridSide() : (int) Math.sqrt(match.inputs().length);
         this.selectedRecipeProvider = provider.ordinal();
         this.selectedRecipeTableTier = tierForDisplay(provider, side);
         this.selectedRecipeTableSide = side;
@@ -626,15 +782,8 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         }
     }
 
-    @Override
-    public InternalInventory getCraftingMatrix() {
-        return encodingLogic.getEncodedInputInv().createMenuWrapper()
-                .getSubInventory(0, ExtendedTableCraftingPattern.MACHINE_GRID_SIZE);
-    }
-
-    @Override
-    public boolean useRealItems() {
-        return false;
+    private RecipeProvider firstActiveRecipeProvider() {
+        return this.activeRecipeProviders.stream().findFirst().orElse(RecipeProvider.EXTENDED_CRAFTING);
     }
 
     public enum RecipeProvider {
@@ -664,11 +813,10 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu implements IM
         }
 
         public static RecipeProvider of(Recipe<?> recipe) {
-            var className = recipe.getClass().getName();
-            if (className.startsWith("net.byAqua3.avaritia.")) {
+            if (AVARITIA_NEO.isActive() && AvaritiaNeoRecipeAdapters.supports(recipe)) {
                 return AVARITIA_NEO;
             }
-            if (className.startsWith("committee.nova.mods.avaritia.")) {
+            if (RE_AVARITIA.isActive() && ReAvaritiaRecipeAdapters.supports(recipe)) {
                 return RE_AVARITIA;
             }
             return EXTENDED_CRAFTING;

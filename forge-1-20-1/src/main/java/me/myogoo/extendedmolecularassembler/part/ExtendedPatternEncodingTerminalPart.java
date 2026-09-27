@@ -2,12 +2,13 @@ package me.myogoo.extendedmolecularassembler.part;
 
 import appeng.api.parts.IPartItem;
 import appeng.api.parts.IPartModel;
+import appeng.items.parts.PartModels;
 import appeng.parts.PartModel;
 import appeng.parts.reporting.AbstractTerminalPart;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingLogic;
-import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeType;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
 import me.myogoo.extendedmolecularassembler.menu.pattern.IExtendedPatternEncodingTerminalHost;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -25,8 +26,10 @@ public class ExtendedPatternEncodingTerminalPart extends AbstractTerminalPart
     private static final String SELECTED_RECIPE_TABLE_TIER = "selectedExtendedPatternRecipeTableTier";
     private static final String SELECTED_RECIPE_TABLE_SIDE = "selectedExtendedPatternRecipeTableSide";
 
+    @PartModels
     public static final ResourceLocation MODEL_OFF =
             ExtendedMolecularAssembler.makeId("part/extended_pattern_encoding_terminal_off");
+    @PartModels
     public static final ResourceLocation MODEL_ON =
             ExtendedMolecularAssembler.makeId("part/extended_pattern_encoding_terminal_on");
 
@@ -34,12 +37,24 @@ public class ExtendedPatternEncodingTerminalPart extends AbstractTerminalPart
     public static final IPartModel MODELS_ON = new PartModel(MODEL_BASE, MODEL_ON, MODEL_STATUS_ON);
     public static final IPartModel MODELS_HAS_CHANNEL = new PartModel(MODEL_BASE, MODEL_ON, MODEL_STATUS_HAS_CHANNEL);
 
-    private final ExtendedPatternEncodingLogic logic = new ExtendedPatternEncodingLogic(this);
+    private final int gridSide;
+    private final ExtendedPatternEncodingLogic logic;
     private boolean rememberRecipeType = true;
     private ExtendedPatternRecipeType rememberedRecipeType;
 
     public ExtendedPatternEncodingTerminalPart(IPartItem<?> partItem) {
+        this(partItem, 9);
+    }
+
+    protected ExtendedPatternEncodingTerminalPart(IPartItem<?> partItem, int gridSide) {
         super(partItem);
+        this.gridSide = gridSide;
+        this.logic = new ExtendedPatternEncodingLogic(this);
+    }
+
+    @Override
+    public int getGridSide() {
+        return gridSide;
     }
 
     @Override

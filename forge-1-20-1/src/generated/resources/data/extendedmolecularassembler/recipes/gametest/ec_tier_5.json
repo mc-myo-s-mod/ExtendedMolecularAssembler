@@ -1,0 +1,42 @@
+{
+  "type": "extendedcrafting:shaped_table",
+  "conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    },
+    {
+      "type": "forge:item_exists",
+      "item": "extendedcrafting:epic_table"
+    }
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "pattern": [
+    "CCCCCCCCCCC",
+    "CCCCCCCCCCC",
+    "CCCCCCCCCCC",
+    "CCCCCCCCCCC",
+    "CCCCCCCCCCC",
+    "CCCCCNCCCCC",
+    "CCCCCCCCCCC",
+    "CCCCCCCCCCC",
+    "CCCCCCCCCCC",
+    "CCCCCCCCCCC",
+    "CCCCCCCCCCC"
+  ],
+  "result": {
+    "count": 1,
+    "item": "minecraft:diamond_block"
+  },
+  "tier": 5
+}

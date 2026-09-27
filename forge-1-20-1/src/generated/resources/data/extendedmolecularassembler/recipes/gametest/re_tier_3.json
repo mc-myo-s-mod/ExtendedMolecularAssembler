@@ -1,0 +1,40 @@
+{
+  "type": "avaritia:shaped_table",
+  "conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:blackstone"
+    },
+    "E": {
+      "item": "minecraft:ender_pearl"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "Q": {
+      "item": "minecraft:quartz"
+    }
+  },
+  "pattern": [
+    "BBBBBBB",
+    "BQQQQQB",
+    "BQEEEQB",
+    "BQENEQB",
+    "BQEEEQB",
+    "BQQQQQB",
+    "BBBBBBB"
+  ],
+  "result": {
+    "count": 1,
+    "item": "minecraft:diamond_block"
+  },
+  "tier": 3
+}

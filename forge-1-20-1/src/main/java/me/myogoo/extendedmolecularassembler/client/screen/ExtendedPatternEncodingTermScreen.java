@@ -4,6 +4,7 @@ import appeng.api.config.ActionItems;
 import appeng.client.gui.Icon;
 import appeng.client.gui.me.common.MEStorageScreen;
 import appeng.client.gui.style.ScreenStyle;
+import appeng.client.gui.style.StyleManager;
 import appeng.client.gui.widgets.ActionButton;
 import appeng.client.gui.widgets.ToggleButton;
 import appeng.core.AEConfig;
@@ -11,6 +12,7 @@ import appeng.core.localization.ButtonToolTips;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
 import me.myogoo.myotus.client.gui.widgets.button.MyoCycleButton;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -20,15 +22,26 @@ import net.minecraft.world.item.Items;
 import java.util.List;
 
 public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedPatternEncodingTermMenu> {
+    private final ActionButton encodeBtn;
     private final ActionButton clearBtn;
     private final MyoCycleButton recipeCycleBtn;
     private final ToggleButton substitutionsBtn;
+    private final ToggleButton fluidSubstitutionsBtn;
 
     public ExtendedPatternEncodingTermScreen(ExtendedPatternEncodingTermMenu menu, Inventory playerInventory,
             Component title, ScreenStyle style) {
-        super(menu, playerInventory, title, style);
+        this(menu, playerInventory, title, style, true);
+    }
 
-        widgets.add("encodePattern", new ActionButton(ActionItems.ENCODE, action -> menu.encode()));
+    protected ExtendedPatternEncodingTermScreen(ExtendedPatternEncodingTermMenu menu, Inventory playerInventory,
+            Component title, ScreenStyle style, boolean useGridSideStyle) {
+        super(menu, playerInventory, title, useGridSideStyle && menu.getGridSide() > 9
+                ? StyleManager.loadStyleDoc("/screens/extended_molecular_assembler/"
+                        + (menu.getGridSide() == 11 ? "epic" : "legendary") + "_pattern_encoding_terminal.json")
+                : style);
+
+        this.encodeBtn = new ActionButton(ActionItems.ENCODE, action -> menu.encode(Screen.hasShiftDown()));
+        widgets.add("encodePattern", encodeBtn);
 
         this.clearBtn = new ActionButton(ActionItems.CLOSE, action -> menu.clear());
         clearBtn.setHalfSize(true);
@@ -37,9 +50,9 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
 
         this.recipeCycleBtn = new MyoCycleButton(
                 () -> Icon.ARROW_RIGHT,
-                (Runnable) menu::cycleRecipeTable,
-                (Runnable) menu::cycleRecipeTableBackwards,
-                this::selectedRecipeProviderItem,
+                menu::cycleRecipeTable,
+                menu::cycleRecipeTableBackwards,
+                this::tableIcon,
                 this::recipeCycleTooltip);
         widgets.add("recipeCycle", recipeCycleBtn);
 
@@ -56,6 +69,35 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
                 ButtonToolTips.SubstitutionsOff.text(),
                 ButtonToolTips.SubstitutionsDescDisabled.text()));
         widgets.add("substitutions", substitutionsBtn);
+
+        this.fluidSubstitutionsBtn = new ToggleButton(
+                Icon.FLUID_SUBSTITUTION_ENABLED,
+                Icon.FLUID_SUBSTITUTION_DISABLED,
+                menu::setSubstituteFluids);
+        fluidSubstitutionsBtn.setHalfSize(true);
+        fluidSubstitutionsBtn.setDisableBackground(true);
+        fluidSubstitutionsBtn.setTooltipOn(List.of(
+                ButtonToolTips.FluidSubstitutions.text(),
+                ButtonToolTips.FluidSubstitutionsDescEnabled.text()));
+        fluidSubstitutionsBtn.setTooltipOff(List.of(
+                ButtonToolTips.FluidSubstitutions.text(),
+                ButtonToolTips.FluidSubstitutionsDescDisabled.text()));
+        widgets.add("canSubstituteFluids", fluidSubstitutionsBtn);
+    }
+
+    @Override
+    public void init() {
+        super.init();
+        if (getMenu().getGridSide() > 9) {
+            var slots = getMenu().getCraftingGridSlots();
+            int x = slots[0].x;
+            int y = slots[0].y;
+            int side = getMenu().getGridSide();
+            for (int i = 0; i < slots.length; i++) {
+                slots[i].x = x + i % side * 18;
+                slots[i].y = y + i / side * 18;
+            }
+        }
     }
 
     @Override
@@ -64,6 +106,7 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
         recipeCycleBtn.setVisibility(true);
         recipeCycleBtn.active = getMenu().canCycleRecipes();
         substitutionsBtn.setState(getMenu().isSubstitute());
+        fluidSubstitutionsBtn.setState(getMenu().isSubstituteFluids());
     }
 
     @Override
@@ -74,9 +117,9 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
         super.onClose();
     }
 
-    private Component selectedRecipeProviderTooltip() {
+    private Component tableTooltip() {
         return Component.literal("Recipe Table: ")
-                .append(selectedRecipeProviderLabel())
+                .append(tableLabel())
                 .append(Component.literal(" "))
                 .append(Component.literal(getMenu().getSelectedRecipeTableSide() + "x"
                         + getMenu().getSelectedRecipeTableSide()));
@@ -84,12 +127,12 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
 
     private List<Component> recipeCycleTooltip() {
         return List.of(
-                selectedRecipeProviderTooltip(),
+                tableTooltip(),
                 Component.literal("Left-click: Next table"),
                 Component.literal("Right-click: Previous table"));
     }
 
-    private Component selectedRecipeProviderLabel() {
+    private Component tableLabel() {
         var tier = getMenu().getSelectedRecipeTableTier();
         return switch (getMenu().getSelectedRecipeProvider()) {
             case EXTENDED_CRAFTING -> Component.literal("Extended Crafting");
@@ -98,9 +141,9 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
         };
     }
 
-    private Item selectedRecipeProviderItem() {
+    private Item tableIcon() {
         return switch (getMenu().getSelectedRecipeProvider()) {
-            case EXTENDED_CRAFTING -> extendedCraftingTableIcon(getMenu().getSelectedRecipeTableSide());
+            case EXTENDED_CRAFTING -> extendedTableIcon(getMenu().getSelectedRecipeTableSide());
             case RE_AVARITIA -> reAvaritiaTableIcon(getMenu().getSelectedRecipeTableTier());
             case AVARITIA_NEO -> icon("avaritia", "extreme_crafting_table");
         };
@@ -124,11 +167,13 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
         });
     }
 
-    private Item extendedCraftingTableIcon(int side) {
+    private Item extendedTableIcon(int side) {
         return icon("extendedcrafting", switch (side) {
             case 3 -> "basic_table";
             case 5 -> "advanced_table";
             case 7 -> "elite_table";
+            case 11 -> "epic_table";
+            case 13 -> "legendary_table";
             default -> "ultimate_table";
         });
     }

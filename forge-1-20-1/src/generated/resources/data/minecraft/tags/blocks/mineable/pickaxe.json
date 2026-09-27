@@ -1,7 +1,8 @@
 {
   "values": [
     "extendedmolecularassembler:extended_molecular_assembler",
-    "extendedmolecularassembler:ex_extended_molecular_assembler",
+    "extendedmolecularassembler:epic_molecular_assembler",
+    "extendedmolecularassembler:legendary_molecular_assembler",
     "extendedmolecularassembler:basic_me_crafting_provider",
     "extendedmolecularassembler:advanced_me_crafting_provider",
     "extendedmolecularassembler:elite_me_crafting_provider",
@@ -9,6 +10,60 @@
     "extendedmolecularassembler:re_avaritia_sculk_me_crafting_provider",
     "extendedmolecularassembler:re_avaritia_nether_me_crafting_provider",
     "extendedmolecularassembler:re_avaritia_end_me_crafting_provider",
-    "extendedmolecularassembler:xtreme_me_crafting_provider"
+    "extendedmolecularassembler:xtreme_me_crafting_provider",
+    "extendedmolecularassembler:epic_me_crafting_provider",
+    "extendedmolecularassembler:legendary_me_crafting_provider",
+    {
+      "id": "extendedmolecularassembler:ex_extended_molecular_assembler",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:ex_epic_molecular_assembler",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:ex_legendary_molecular_assembler",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:extended_assembler_matrix_pattern_core",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:extended_assembler_matrix_crafting_core",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:epic_assembler_matrix_crafting_core",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:epic_assembler_matrix_pattern_core",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:legendary_assembler_matrix_crafting_core",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:legendary_assembler_matrix_pattern_core",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:extended_quantum_crafter",
+      "required": false
+    }
   ]
 }

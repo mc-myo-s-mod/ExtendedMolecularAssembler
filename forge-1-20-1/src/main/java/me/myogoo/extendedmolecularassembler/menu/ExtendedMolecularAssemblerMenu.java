@@ -5,7 +5,6 @@ import appeng.api.stacks.AEItemKey;
 import appeng.menu.SlotSemantics;
 import appeng.menu.guisync.GuiSync;
 import appeng.menu.guisync.PacketWritable;
-import appeng.menu.implementations.MenuTypeBuilder;
 import appeng.menu.implementations.UpgradeableMenu;
 import appeng.menu.interfaces.IProgressProvider;
 import appeng.menu.slot.AppEngSlot;
@@ -28,22 +27,23 @@ import java.util.List;
 
 public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMolecularAssemblerBlockEntity>
         implements IProgressProvider {
-    public static final MenuType<ExtendedMolecularAssemblerMenu> TYPE = MenuTypeBuilder
-            .create(ExtendedMolecularAssemblerMenu::new, ExtendedMolecularAssemblerBlockEntity.class)
-            .build("extended_molecular_assembler");
+    public static final MenuType<ExtendedMolecularAssemblerMenu> TYPE = ForgeMenuTypes.create(
+            ExtendedMolecularAssembler.makeId("extended_molecular_assembler"),
+            ExtendedMolecularAssemblerBlockEntity.class, ExtendedMolecularAssemblerMenu::new);
 
     private static final String ACTION_SET_PAGE = "setPage";
     private static final int MAX_CRAFT_PROGRESS = 100;
+    private static final short PAGE_SYNC_ID = 7;
 
     @GuiSync(4)
     public int craftProgress = 0;
-    @GuiSync(7)
+    @GuiSync(PAGE_SYNC_ID)
     public int page = 0;
     @GuiSync(8)
     public LanePatternSync lanePatterns = LanePatternSync.empty();
 
-    private final ExtendedMolecularAssemblerBlockEntity assembler;
     private Slot encodedPatternSlot;
+    private int shownPage = -1;
     private LanePatternSync decodedPatternSource = LanePatternSync.empty();
     private final boolean[] decodedPatternLoaded = new boolean[ExtendedMolecularAssemblerBlockEntity.PARALLEL_LANE_COUNT];
     private final ExtendedTableCraftingPattern[] decodedPatterns =
@@ -51,7 +51,6 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
 
     public ExtendedMolecularAssemblerMenu(int id, Inventory playerInv, ExtendedMolecularAssemblerBlockEntity be) {
         super(TYPE, id, playerInv, be);
-        this.assembler = be;
         registerClientAction(ACTION_SET_PAGE, Integer.class, this::setPage);
         this.showPage();
     }
@@ -62,13 +61,19 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
 
     public boolean isValidItemForSlot(int laneIndex, int slotIndex, ItemStack stack) {
         var details = this.getCurrentPattern(laneIndex);
-        return details != null && details.isItemValid(slotIndex, AEItemKey.of(stack), getHost().getLevel());
+        return details != null
+                && this.getHost().canUsePattern(details)
+                && slotIndex >= 0
+                && slotIndex < this.getHost().getGridSize()
+                && details.isItemValid(slotIndex, AEItemKey.of(stack), getHost().getLevel(), this.getGridSide());
     }
 
     @Override
     public boolean isValidForSlot(Slot slot, ItemStack stack) {
         if (slot == this.encodedPatternSlot) {
-            return PatternDetailsHelper.decodePattern(stack, getPlayer().level(), false) instanceof ExtendedTableCraftingPattern;
+            var pattern = PatternDetailsHelper.decodePattern(stack, getPlayer().level());
+            return pattern instanceof ExtendedTableCraftingPattern extendedPattern
+                    && this.getHost().canUsePattern(extendedPattern);
         }
 
         return super.isValidForSlot(slot, stack);
@@ -80,27 +85,36 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
             var inventory = this.getHost().getCraftInventory(lane);
             var gridSemantic = EMASlotSemantics.EXTENDED_MOLECULAR_ASSEMBLER_GRID[lane];
 
-            for (int i = 0; i < ExtendedMolecularAssemblerBlockEntity.GRID_SIZE; i++) {
+            for (int i = 0; i < this.getGridSize(); i++) {
                 this.addSlot(new ExtendedMolecularAssemblerPatternSlot(this, inventory, i, lane),
                         gridSemantic);
             }
 
             this.addSlot(new ExtendedMolecularAssemblerOutputSlot(this, inventory,
-                            ExtendedMolecularAssemblerBlockEntity.OUTPUT_SLOT, lane),
+                            this.getHost().getOutputSlot(), lane),
                     EMASlotSemantics.EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT[lane]);
         }
 
-        this.encodedPatternSlot = this.addSlot(
-                new ExtendedMolecularAssemblerEncodedPatternSlot(this.getHost().getPatternInventory(), 0),
-                SlotSemantics.ENCODED_PATTERN);
+        if (this.getHost().getLaneCount() == 1) {
+            this.encodedPatternSlot = this.addSlot(
+                    new ExtendedMolecularAssemblerEncodedPatternSlot(this.getHost().getPatternInventory(), 0),
+                    SlotSemantics.ENCODED_PATTERN);
+        }
     }
 
     @Override
     public void broadcastChanges() {
-        this.setPage(this.page);
-        this.lanePatterns = LanePatternSync.from(this.assembler);
-        this.craftProgress = this.assembler.getCraftingProgress(this.page);
+        if (!this.lanePatterns.matchesCurrentPatterns(this.getHost())) {
+            this.lanePatterns = LanePatternSync.from(this.getHost());
+        }
+        this.craftProgress = this.getHost().getCraftingProgress(this.page);
         this.standardDetectAndSendChanges();
+    }
+
+    @Override
+    public void onServerDataSync() {
+        super.onServerDataSync();
+        this.showPage();
     }
 
     @Override
@@ -132,13 +146,30 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
         return this.getHost().getLaneCount();
     }
 
+    public int getGridSide() {
+        return this.getHost().getGridSide();
+    }
+
+    public int getGridSize() {
+        return this.getHost().getGridSize();
+    }
+
     public void showPage() {
+        if (this.shownPage == this.page) {
+            return;
+        }
+        this.shownPage = this.page;
+
         for (Slot slot : this.slots) {
             if (slot instanceof ExtendedMolecularAssemblerPatternSlot patternSlot) {
-                patternSlot.setSlotEnabled(patternSlot.getLaneIndex() == this.page);
+                var active = patternSlot.getLaneIndex() == this.page;
+                patternSlot.setActive(active);
+                patternSlot.setSlotEnabled(active);
                 patternSlot.resetCachedValidation();
             } else if (slot instanceof ExtendedMolecularAssemblerOutputSlot outputSlot) {
-                outputSlot.setSlotEnabled(outputSlot.getLaneIndex() == this.page);
+                var active = outputSlot.getLaneIndex() == this.page;
+                outputSlot.setActive(active);
+                outputSlot.setSlotEnabled(active);
             }
         }
     }
@@ -157,7 +188,7 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
         if (!this.decodedPatternLoaded[laneIndex]) {
             this.decodedPatternLoaded[laneIndex] = true;
             var patternStack = this.lanePatterns.patternAt(laneIndex);
-            var pattern = PatternDetailsHelper.decodePattern(patternStack, this.getPlayer().level(), false);
+            var pattern = PatternDetailsHelper.decodePattern(patternStack, this.getPlayer().level());
             if (pattern instanceof ExtendedTableCraftingPattern extendedPattern) {
                 this.decodedPatterns[laneIndex] = extendedPattern;
             }
@@ -174,7 +205,11 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
 
     private void setPage(Integer page) {
         var maxPage = Math.max(0, this.getPageCount() - 1);
-        this.page = Mth.clamp(page, 0, maxPage);
+        var newPage = Mth.clamp(page, 0, maxPage);
+        if (this.page == newPage) {
+            return;
+        }
+        this.page = newPage;
         this.showPage();
     }
 
@@ -207,6 +242,29 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
                 patterns.add(assembler.getCurrentPatternStack(lane));
             }
             return new LanePatternSync(patterns);
+        }
+
+        public boolean matchesCurrentPatterns(ExtendedMolecularAssemblerBlockEntity assembler) {
+            if (this.patterns.size() != assembler.getLaneCount()) {
+                return false;
+            }
+
+            for (int lane = 0; lane < assembler.getLaneCount(); lane++) {
+                var pattern = assembler.getCurrentPattern(lane);
+                var syncedStack = this.patterns.get(lane);
+                if (pattern != null) {
+                    if (syncedStack.getCount() != 1
+                            || !ItemStack.isSameItemSameTags(
+                                    syncedStack, pattern.getDefinition().getReadOnlyStack())) {
+                        return false;
+                    }
+                } else if (!ItemStack.matches(
+                        syncedStack,
+                        lane == 0 ? assembler.getPatternInventory().getStackInSlot(0) : ItemStack.EMPTY)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public ItemStack patternAt(int laneIndex) {
@@ -244,22 +302,18 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
         public int hashCode() {
             var result = 1;
             for (var pattern : this.patterns) {
-                result = 31 * result + hashStack(pattern);
+                result = 31 * result + pattern.getItem().hashCode();
+                result = 31 * result + java.util.Objects.hashCode(pattern.getTag());
                 result = 31 * result + pattern.getCount();
             }
             return result;
         }
 
-        private static int hashStack(ItemStack stack) {
-            var result = stack.getItem().hashCode();
-            result = 31 * result + stack.getCount();
-            var tag = stack.getTag();
-            result = 31 * result + (tag == null ? 0 : tag.hashCode());
-            return result;
-        }
-
         private static List<ItemStack> readPatterns(FriendlyByteBuf data) {
             var count = data.readVarInt();
+            if (count < 0 || count > ExtendedMolecularAssemblerBlockEntity.PARALLEL_LANE_COUNT) {
+                throw new IllegalArgumentException("Invalid assembler lane count " + count);
+            }
             var patterns = new ArrayList<ItemStack>(count);
             for (int i = 0; i < count; i++) {
                 patterns.add(data.readItem());

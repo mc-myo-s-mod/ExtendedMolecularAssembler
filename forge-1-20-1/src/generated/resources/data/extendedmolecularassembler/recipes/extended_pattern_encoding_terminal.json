@@ -1,17 +1,31 @@
 {
   "type": "minecraft:crafting_shapeless",
+  "conditions": [
+    {
+      "type": "forge:not",
+      "value": {
+        "type": "myotus:mod_condition",
+        "active_mod": "Re-Avaritia"
+      }
+    },
+    {
+      "type": "forge:not",
+      "value": {
+        "type": "myotus:mod_condition",
+        "active_mod": "Avaritia"
+      }
+    },
+    {
+      "type": "forge:not",
+      "value": {
+        "type": "myotus:mod_condition",
+        "active_mod": "extendedcrafting"
+      }
+    }
+  ],
   "ingredients": [
     {
-      "item": "myotus:compat_processor"
-    },
-    {
       "item": "ae2:pattern_encoding_terminal"
-    },
-    {
-      "item": "ae2:annihilation_core"
-    },
-    {
-      "item": "ae2:formation_core"
     }
   ],
   "result": {

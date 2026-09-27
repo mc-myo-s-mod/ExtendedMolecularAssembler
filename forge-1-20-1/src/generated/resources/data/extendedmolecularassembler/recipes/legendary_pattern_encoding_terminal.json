@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    },
+    {
+      "type": "forge:item_exists",
+      "item": "extendedcrafting:legendary_table"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "extendedmolecularassembler:epic_pattern_encoding_terminal"
+    },
+    {
+      "item": "extendedcrafting:legendary_table"
+    },
+    {
+      "item": "myotus:compat_processor"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:legendary_pattern_encoding_terminal"
+  }
+}

@@ -1,27 +1,18 @@
 package me.myogoo.extendedmolecularassembler.integration.jei.extendedcrafting;
 
+import com.blakebr0.extendedcrafting.api.crafting.ITableRecipe;
 import com.blakebr0.extendedcrafting.compat.jei.category.table.AdvancedTableCategory;
 import com.blakebr0.extendedcrafting.compat.jei.category.table.BasicTableCategory;
 import com.blakebr0.extendedcrafting.compat.jei.category.table.EliteTableCategory;
 import com.blakebr0.extendedcrafting.compat.jei.category.table.UltimateTableCategory;
-import com.blakebr0.extendedcrafting.api.crafting.ITableRecipe;
-import me.myogoo.extendedmolecularassembler.init.EMAItems;
 import me.myogoo.extendedmolecularassembler.integration.jei.handler.ExtendedPatternDirectRecipeTransferHandler;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
-import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
-import net.minecraft.world.item.ItemStack;
+import mezz.jei.api.recipe.RecipeType;
 
+@me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting
 public final class ExtendedCraftingJeiIntegration {
     private ExtendedCraftingJeiIntegration() {
-    }
-
-    public static void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        var assembler = new ItemStack(EMAItems.EXTENDED_MOLECULAR_ASSEMBLER.get());
-        var exAssembler = new ItemStack(EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
-
-        addTableCatalysts(registration, assembler);
-        addTableCatalysts(registration, exAssembler);
     }
 
     public static void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
@@ -41,12 +32,15 @@ public final class ExtendedCraftingJeiIntegration {
                 new ExtendedPatternDirectRecipeTransferHandler<ITableRecipe>(UltimateTableCategory.RECIPE_TYPE,
                         RecipeProvider.EXTENDED_CRAFTING, 4, 9),
                 UltimateTableCategory.RECIPE_TYPE);
-    }
-
-    private static void addTableCatalysts(IRecipeCatalystRegistration registration, ItemStack catalyst) {
-        registration.addRecipeCatalyst(catalyst, BasicTableCategory.RECIPE_TYPE);
-        registration.addRecipeCatalyst(catalyst, AdvancedTableCategory.RECIPE_TYPE);
-        registration.addRecipeCatalyst(catalyst, EliteTableCategory.RECIPE_TYPE);
-        registration.addRecipeCatalyst(catalyst, UltimateTableCategory.RECIPE_TYPE);
+        var epicRecipeType = RecipeType.create("extendedcrafting", "epic_crafting", ITableRecipe.class);
+        registration.addRecipeTransferHandler(
+                new ExtendedPatternDirectRecipeTransferHandler<ITableRecipe>(epicRecipeType,
+                        RecipeProvider.EXTENDED_CRAFTING, 5, 11),
+                epicRecipeType);
+        var legendaryRecipeType = RecipeType.create("extendedcrafting", "legendary_crafting", ITableRecipe.class);
+        registration.addRecipeTransferHandler(
+                new ExtendedPatternDirectRecipeTransferHandler<ITableRecipe>(legendaryRecipeType,
+                        RecipeProvider.EXTENDED_CRAFTING, 6, 13),
+                legendaryRecipeType);
     }
 }
