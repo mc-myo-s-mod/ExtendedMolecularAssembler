@@ -1,0 +1,26 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "extendedmolecularassembler:re_avaritia_end_me_crafting_provider",
+    "L": "myotus:compat_processor",
+    "P": "ae2:fluix_smart_dense_cable",
+    "T": "avaritia:extreme_crafting_table"
+  },
+  "pattern": [
+    " L ",
+    "PCP",
+    " T "
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:xtreme_me_crafting_provider"
+  },
+  "show_notification": true
+}

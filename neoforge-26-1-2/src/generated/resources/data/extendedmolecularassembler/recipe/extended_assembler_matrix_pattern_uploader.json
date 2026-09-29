@@ -1,0 +1,21 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae_plus"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "extendedae_plus:assembler_matrix_upload_core",
+    "myotus:compat_processor"
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader"
+  }
+}

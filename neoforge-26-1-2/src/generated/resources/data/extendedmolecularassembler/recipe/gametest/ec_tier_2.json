@@ -1,0 +1,29 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    }
+  ],
+  "type": "extendedcrafting:shaped_table",
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "L": "minecraft:lapis_lazuli",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "GGGGG",
+    "GLLLG",
+    "GLRLG",
+    "GLLLG",
+    "GGGGG"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:emerald"
+  },
+  "tier": 2
+}

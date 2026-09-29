@@ -1,0 +1,37 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae"
+    },
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "myotus:mod_condition",
+          "active_mod": "extendedae_plus"
+        },
+        {
+          "type": "extendedmolecularassembler:extendedae_plus_standalone"
+        }
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "extendedmolecularassembler:extended_assembler_matrix_pattern_core",
+    "N": "minecraft:nether_star",
+    "P": "myotus:compat_processor"
+  },
+  "pattern": [
+    "PCP",
+    "CNC",
+    "PCP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus"
+  },
+  "show_notification": true
+}

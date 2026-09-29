@@ -23,6 +23,7 @@
 |----------|-----------|--------------------|--------|
 | NeoForge | 1.21.1    | `neoforge-1-21-1`  | ✔️     |
 | Forge    | 1.20.1    | `forge-1-20-1`     | ✔️     |
+| NeoForge | 26.1.2    | `neoforge-26-1-2`  | Beta   |
 
 
 ## Support Recipe Table
@@ -40,6 +41,9 @@
 | [Myotus](https://modrinth.com/mod/myotus)                           | 1.21.1, 1.20.1 | ✔️       | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/myotus-lib), [Modrinth](https://modrinth.com/mod/myotus)                      |
 | [Extended Terminal](https://modrinth.com/mod/extended-terminal)      | 1.21.1, 1.20.1 | ❌         | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/extended-terminal), [Modrinth](https://modrinth.com/mod/extended-terminal) |
 ## Build
+
+The 26.1.2 module uses Java 25 and its own Gradle 9 wrapper; see
+[26.1.2 development notes](neoforge-26-1-2/README.md).
 
 Run from the repository root:
 

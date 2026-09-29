@@ -74,7 +74,7 @@ allprojects {
     }
 }
 
-subprojects {
+configure(subprojects.findAll { it.name != 'neoforge-26-1-2' }) {
     apply plugin: 'java'
     apply plugin: 'idea'
 
@@ -130,6 +130,7 @@ tasks.register('compileAllJava') {
     description = 'Compiles all EMA version modules.'
     dependsOn ':neoforge-1-21-1:compileJava'
     dependsOn ':forge-1-20-1:compileJava'
+    dependsOn ':neoforge-26-1-2:compileJava'
 }
 
 tasks.register('syncIntellij') {
@@ -137,4 +138,5 @@ tasks.register('syncIntellij') {
     description = 'Prepares IntelliJ metadata and run configurations for all EMA modules.'
     dependsOn ':forge-1-20-1:genIntellijRuns'
     dependsOn ':neoforge-1-21-1:neoForgeIdeSync'
+    dependsOn ':neoforge-26-1-2:neoForgeIdeSync'
 }

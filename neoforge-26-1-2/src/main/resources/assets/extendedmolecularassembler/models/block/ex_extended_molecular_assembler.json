@@ -1,0 +1,7 @@
+{
+  "parent": "ae2:block/molecular_assembler",
+  "textures": {
+    "particle": "extendedmolecularassembler:block/ex_extended_molecular_assembler",
+    "base": "extendedmolecularassembler:block/ex_extended_molecular_assembler"
+  }
+}

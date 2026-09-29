@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "neoforge:conditions": [
+        {
+          "type": "myotus:mod_condition",
+          "active_mod": "extendedae"
+        }
+      ],
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "extendedmolecularassembler:blocks/extended_assembler_matrix_pattern_core_plus"
+}

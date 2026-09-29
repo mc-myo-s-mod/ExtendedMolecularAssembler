@@ -1,0 +1,11 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "ae2wtlib"
+    }
+  ],
+  "type": "ae2wtlib:upgrade",
+  "terminal": "extendedmolecularassembler:wireless_extended_pattern_encoding_terminal",
+  "terminalName": "extended_pattern_encoding"
+}

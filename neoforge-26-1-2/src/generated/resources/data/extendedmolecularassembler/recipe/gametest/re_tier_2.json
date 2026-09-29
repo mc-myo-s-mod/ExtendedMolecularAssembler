@@ -1,0 +1,29 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "type": "avaritia:shaped_table",
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "O": "minecraft:obsidian",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "OOOOO",
+    "ORRRO",
+    "ORERO",
+    "ORRRO",
+    "OOOOO"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:quartz"
+  },
+  "tier": 2
+}

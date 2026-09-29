@@ -1,0 +1,35 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "type": "avaritia:shaped_table",
+  "key": {
+    "A": "minecraft:amethyst_shard",
+    "D": "minecraft:diamond",
+    "N": "minecraft:nether_star",
+    "Q": "minecraft:quartz",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "AAAAAAAAA",
+    "AQQQQQQQA",
+    "AQRRRRRQA",
+    "AQRDDDRQA",
+    "AQRDNDRQA",
+    "AQRDDDRQA",
+    "AQRRRRRQA",
+    "AQQQQQQQA",
+    "AAAAAAAAA"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:netherite_ingot"
+  },
+  "tier": 4
+}

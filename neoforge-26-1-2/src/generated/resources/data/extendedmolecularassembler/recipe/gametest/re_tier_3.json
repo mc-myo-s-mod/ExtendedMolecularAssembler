@@ -1,0 +1,32 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "type": "avaritia:shaped_table",
+  "key": {
+    "B": "minecraft:blackstone",
+    "E": "minecraft:ender_pearl",
+    "N": "minecraft:nether_star",
+    "Q": "minecraft:quartz"
+  },
+  "pattern": [
+    "BBBBBBB",
+    "BQQQQQB",
+    "BQEEEQB",
+    "BQENEQB",
+    "BQEEEQB",
+    "BQQQQQB",
+    "BBBBBBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:diamond_block"
+  },
+  "tier": 3
+}

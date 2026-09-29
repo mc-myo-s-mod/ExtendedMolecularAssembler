@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.myogoo.extendedmolecularassembler.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "plugin": "me.myogoo.extendedmolecularassembler.mixin.Plugin",
+  "mixins": [
+    "ae2.CraftingBlockEntityMixin",
+    "ae2.CraftConfirmMenuMixin",
+    "advancedae.QuantumCrafterEntityMixin",
+    "advancedae.QuantumCrafterMenuMixin",
+    "extendedae.CalculatorAssemblerMatrixMixin",
+    "extendedae.ClusterAssemblerMatrixMixin"
+  ],
+  "client": [
+    "ae2.AbstractTableRendererMixin",
+    "ae2.CraftConfirmScreenMixin",
+    "extendedae.GuiAssemblerMatrixMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

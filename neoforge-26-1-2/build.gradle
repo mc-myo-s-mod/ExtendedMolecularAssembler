@@ -1,0 +1,149 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.141'
+}
+
+group = mod_group_id
+version = mod_version
+base.archivesName = "ExtendedMolecularAssembler-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(Integer.parseInt(java_version))
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.blamejared.com/' }
+    maven { url = 'https://maven.blakesmods.com/' }
+    maven { url = 'https://api.modrinth.com/maven' }
+    maven {
+        url = 'https://cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
+    maven {
+        url = 'https://modmaven.dev'
+        content {
+            includeGroup 'appeng'
+            includeGroup 'de.mari_023'
+        }
+    }
+}
+
+apply from: file('../gradle/ema-common-sources.gradle')
+sourceSets.main.resources.srcDir 'src/generated/resources'
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xmaxerrs', '1000']
+}
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+neoForge {
+    version = project.neo_version
+    runs {
+        client {
+            client()
+            gameDirectory = project.file('run-client')
+            systemProperty 'guideme.ae2.guide.sources', file('../common/src/main/resources/assets/extendedmolecularassembler/ae2guide').absolutePath
+            systemProperty 'guideme.ae2.guide.sourcesNamespace', mod_id
+        }
+        server {
+            server()
+            gameDirectory = project.file('run-server')
+            programArgument '--nogui'
+        }
+        gameTestServer {
+            type = 'gameTestServer'
+            gameDirectory = project.file('run-gametest')
+            programArguments.addAll '--tests', "${mod_id}:*"
+        }
+        data {
+            serverData()
+            gameDirectory = project.file('run-data')
+            programArguments.addAll '--mod', project.mod_id, '--all',
+                    '--output', file('src/generated/resources').absolutePath,
+                    '--existing', file('src/main/resources').absolutePath,
+                    '--existing', file('../common/src/main/resources').absolutePath
+        }
+        configureEach {
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+dependencies {
+    implementation("me.myogoo:myotus:${myotus_version}") {
+        exclude group: 'de.mari_023', module: 'ae2wtlib'
+        exclude group: 'de.mari_023', module: 'ae2wtlib_api'
+    }
+    implementation "org.appliedenergistics:appliedenergistics2:${AE2_version}"
+    compileOnly "org.appliedenergistics:guideme:${guideme_version}:api"
+    runtimeOnly "org.appliedenergistics:guideme:${guideme_version}"
+    compileOnly "de.mari_023:ae2wtlib_api:${AE2WTLib_version}"
+    compileOnly "de.mari_023:ae2wtlib:${AE2WTLib_version}"
+    compileOnly "com.blakebr0.cucumber:Cucumber:${Cucumber_version}"
+    compileOnly "com.blakebr0.extendedcrafting:ExtendedCrafting:${ExtendedCrafting_version}"
+    compileOnly "maven.modrinth:re-avaritia:${ReAvaritia_version}"
+    compileOnly "curse.maven:ex-pattern-provider-892005:${ExtendedAE_file}"
+    compileOnly "maven.modrinth:glodium:${Glodium_version}"
+    compileOnly "maven.modrinth:advancedae:${AdvancedAE_version}"
+    compileOnly "io.github.pedroksl:ae2addonlib:26.1.3-alpha"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${JEI_version}"
+
+    if (enable_ae2wtlib == 'true') {
+        runtimeOnly "de.mari_023:ae2wtlib:${AE2WTLib_version}"
+    }
+    if (enable_excrafting == 'true') {
+        runtimeOnly "com.blakebr0.cucumber:Cucumber:${Cucumber_version}"
+        runtimeOnly "com.blakebr0.extendedcrafting:ExtendedCrafting:${ExtendedCrafting_version}"
+    }
+    if (enable_avaritia == 're') {
+        runtimeOnly "maven.modrinth:re-avaritia:${ReAvaritia_version}"
+    } else if (enable_avaritia != 'none') {
+        throw new GradleException('26.1.2 supports enable_avaritia=re or none')
+    }
+    if (enable_extendedae == 'true') {
+        runtimeOnly "de.mari_023:ae2wtlib_api:${AE2WTLib_version}"
+        runtimeOnly "maven.modrinth:glodium:${Glodium_version}"
+        runtimeOnly "curse.maven:ex-pattern-provider-892005:${ExtendedAE_file}"
+    }
+    if (enable_advancedae == 'true') {
+        runtimeOnly "maven.modrinth:advancedae:${AdvancedAE_version}"
+        runtimeOnly "curse.maven:geckolib-388172:8327201"
+    }
+    if (itemListMod == 'jei') {
+        runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${JEI_version}"
+    }
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    def properties = ['minecraft_version', 'minecraft_version_range', 'neo_version_range',
+                      'loader_version_range', 'mod_id', 'mod_name', 'mod_license', 'mod_version',
+                      'mod_authors', 'mod_description', 'myotus_version', 'AE2_version',
+                      'AE2WTLib_version', 'ExtendedCrafting_version', 'ExtendedAE_version',
+                      'AdvancedAE_version'].collectEntries { [(it): project.property(it)] }
+    inputs.properties properties
+    expand properties
+    from 'src/main/templates'
+    into layout.buildDirectory.dir('generated/sources/modMetadata')
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = mod_id
+            from components.java
+        }
+    }
+}

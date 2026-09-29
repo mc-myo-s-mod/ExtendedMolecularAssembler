@@ -1,0 +1,121 @@
+package me.myogoo.extendedmolecularassembler.integration.itemlist;
+
+import appeng.api.stacks.AEItemKey;
+import appeng.core.network.ServerboundPacket;
+import appeng.core.network.serverbound.InventoryActionPacket;
+import appeng.helpers.InventoryAction;
+import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
+import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.myotus.api.recipe.IMyotusTableRecipe;
+import net.minecraft.core.Holder;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Comparator;
+import java.util.Optional;
+
+public final class ExtendedPatternRecipeTransfer {
+    private ExtendedPatternRecipeTransfer() {
+    }
+
+    public static boolean canTransfer(Recipe<?> recipe) {
+        if (!TableRecipeAdapters.isExtended(recipe)) {
+            return false;
+        }
+
+        try {
+            var adapter = TableRecipeAdapters.of(recipe);
+            var side = adapter.sideLength();
+            var ingredients = adapter.slotIngredients();
+            return side > 0
+                    && side <= ExtendedTableCraftingPattern.MACHINE_GRID_SIDE
+                    && !ingredients.isEmpty()
+                    && ingredients.size() <= side * side;
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+    }
+
+    public static void transfer(ExtendedPatternEncodingTermMenu menu, Recipe<?> recipe) {
+        var adapter = TableRecipeAdapters.of(recipe);
+        var encodedInputs = buildMachineInputs(menu, adapter);
+        var slots = menu.getCraftingGridSlots();
+        for (int i = 0; i < slots.length; i++) {
+            ServerboundPacket message = new InventoryActionPacket(
+                    InventoryAction.SET_FILTER, slots[i].index, encodedInputs.get(i));
+            ClientPacketDistributor.sendToServer(message);
+        }
+    }
+
+    public static void transfer(ExtendedPatternEncodingTermMenu menu, RecipeHolder<?> recipe) {
+        transfer(menu, recipe.value());
+        menu.selectTransferredRecipe(recipe.id().identifier());
+    }
+
+    public static void transfer(ExtendedPatternEncodingTermMenu menu, RecipeHolder<?> recipe,
+            @Nullable RecipeProvider recipeProvider, int tableTier, int tableSide) {
+        transfer(menu, recipe.value());
+        if (recipeProvider == null) {
+            menu.selectTransferredRecipe(recipe.id().identifier());
+        } else {
+            menu.selectTransferredRecipe(recipe.id().identifier(), recipeProvider, tableTier, tableSide);
+        }
+    }
+
+    private static NonNullList<ItemStack> buildMachineInputs(ExtendedPatternEncodingTermMenu menu,
+            IMyotusTableRecipe<?> adapter) {
+        var result = NonNullList.withSize(ExtendedTableCraftingPattern.MACHINE_GRID_SIZE, ItemStack.EMPTY);
+        var side = adapter.sideLength();
+        var offset = Math.floorDiv(ExtendedTableCraftingPattern.MACHINE_GRID_SIDE - side, 2);
+        var ingredients = adapter.slotIngredients();
+
+        for (int patternSlot = 0; patternSlot < ingredients.size(); patternSlot++) {
+            var ingredient = ingredients.get(patternSlot);
+            if (ingredient.isEmpty()) {
+                continue;
+            }
+
+            var x = patternSlot % side + offset;
+            var y = patternSlot / side + offset;
+            result.set(x + y * ExtendedTableCraftingPattern.MACHINE_GRID_SIDE,
+                    chooseTemplate(menu, ingredient));
+        }
+        return result;
+    }
+
+    private static ItemStack chooseTemplate(ExtendedPatternEncodingTermMenu menu, Optional<Ingredient> ingredient) {
+        if (ingredient.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        var repo = menu.getClientRepo();
+        if (repo != null) {
+            var bestNetworkStack = repo.getByIngredient(ingredient.get()).stream()
+                    .filter(entry -> entry.getWhat() instanceof AEItemKey)
+                    .max(Comparator
+                            .comparing((appeng.menu.me.common.GridInventoryEntry entry) -> entry.isCraftable())
+                            .thenComparingLong(appeng.menu.me.common.GridInventoryEntry::getStoredAmount))
+                    .map(entry -> ((AEItemKey) entry.getWhat()).toStack());
+            if (bestNetworkStack.isPresent()) {
+                return bestNetworkStack.get();
+            }
+        }
+
+        var stacks = ingredient.get().items()
+                .map(Holder::value)
+                .map(Item::getDefaultInstance)
+                .toArray(ItemStack[]::new);
+        if (stacks.length == 0) {
+            return ItemStack.EMPTY;
+        }
+        return stacks[0].copyWithCount(1);
+    }
+}

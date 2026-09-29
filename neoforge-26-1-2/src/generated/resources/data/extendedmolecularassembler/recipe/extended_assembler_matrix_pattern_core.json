@@ -1,0 +1,44 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae"
+    }
+  ],
+  "type": "extendedae:crystal_assembler",
+  "energy": 2000,
+  "input_items": [
+    {
+      "amount": 1,
+      "ingredient": "extendedae:assembler_matrix_wall"
+    },
+    {
+      "amount": 1,
+      "ingredient": "extendedmolecularassembler:ex_extended_molecular_assembler"
+    },
+    {
+      "amount": 1,
+      "ingredient": "myotus:compat_processor"
+    },
+    {
+      "amount": 1,
+      "ingredient": "extendedae:concurrent_processor"
+    },
+    {
+      "amount": 2,
+      "ingredient": "ae2:purple_lumen_paint_ball"
+    },
+    {
+      "amount": 2,
+      "ingredient": "ae2:magenta_lumen_paint_ball"
+    },
+    {
+      "amount": 2,
+      "ingredient": "ae2:pink_lumen_paint_ball"
+    }
+  ],
+  "output": {
+    "count": 1,
+    "id": "extendedmolecularassembler:extended_assembler_matrix_crafting_core"
+  }
+}

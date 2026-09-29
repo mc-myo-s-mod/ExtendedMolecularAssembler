@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "A": "ae2:annihilation_core",
+    "E": "myotus:compat_processor",
+    "F": "ae2:formation_core",
+    "M": "ae2:molecular_assembler",
+    "Q": "ae2:quartz_vibrant_glass"
+  },
+  "pattern": [
+    "QFQ",
+    "EME",
+    "QAQ"
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:extended_molecular_assembler"
+  },
+  "show_notification": true
+}

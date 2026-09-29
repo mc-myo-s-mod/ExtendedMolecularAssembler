@@ -1,0 +1,840 @@
+package me.myogoo.extendedmolecularassembler.gametest;
+
+import appeng.api.AECapabilities;
+import appeng.api.crafting.IPatternDetails;
+import appeng.api.implementations.blockentities.ICraftingMachine;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.KeyCounter;
+import appeng.api.util.AECableType;
+import appeng.blockentity.crafting.CraftingBlockEntity;
+import appeng.core.definitions.AEBlocks;
+import appeng.menu.me.crafting.CraftConfirmMenu;
+import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
+import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
+import me.myogoo.extendedmolecularassembler.api.annotation.AdvancedAE;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAE;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAEPlus;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedTerminal;
+import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
+import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
+import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
+import me.myogoo.extendedmolecularassembler.block.blockentity.ExportMECraftingProviderBlockEntity;
+import me.myogoo.extendedmolecularassembler.config.EMAConfig;
+import me.myogoo.extendedmolecularassembler.init.EMABlocks;
+import me.myogoo.extendedmolecularassembler.init.EMADataComponents;
+import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
+import me.myogoo.extendedmolecularassembler.integration.advancedae.AdvancedAEGameTestHelper;
+import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAEGameTestHelper;
+import me.myogoo.extendedmolecularassembler.integration.itemlist.ExtendedPatternRecipeTransfer;
+import me.myogoo.extendedmolecularassembler.menu.crafting.CraftConfirmExportPlanGate;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinder;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeMatch;
+import me.myogoo.extendedmolecularassembler.pattern.EncodedExtendedCraftingPattern;
+import me.myogoo.extendedmolecularassembler.pattern.ExtendedPatternTableTypes;
+import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
+import me.myogoo.myotus.api.MyotusAPI;
+import me.myogoo.myotus.api.annotation.mods.AE2WTLib;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.gametest.framework.TestData;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+
+@EventBusSubscriber(modid = ExtendedMolecularAssembler.MODID)
+public final class ExtendedPatternGameTests {
+    private static final List<TestCase> TESTS = List.of(
+            new TestCase("optional_registrations", 20, ExtendedPatternGameTests::optionalRegistrationsFollowMyotusIntegrations),
+            new TestCase("pattern_view_layout", 20, ExtendedPatternGameTests::extendedPatternViewCentersSevenBySevenGrid),
+            new TestCase("wireless_recipes", 20, ExtendedPatternGameTests::wirelessTerminalRecipesFollowAE2WTLib),
+            new TestCase("terminal_recipes", 20, ExtendedPatternGameTests::extendedPatternTerminalRecipesFollowTableMods),
+            new TestCase("matrix_plus_recipes", 20, ExtendedPatternGameTests::extendedAEPlusRecipesFollowModAndConfig),
+            new TestCase("export_gate", 20, ExtendedPatternGameTests::craftConfirmationMenuHasExportModeGate),
+            new TestCase("destroyed_cpu_node", 20, ExtendedPatternGameTests::destroyedCraftingCpuNodeIgnoresLateSideUpdate),
+            new TestCase("assembler_capabilities", 20, ExtendedPatternGameTests::assemblerConnectionCapabilitiesFollowAe2),
+            new TestCase("provider_idle_power", 20, ExtendedPatternGameTests::exportMECraftingProvidersExposeConfiguredIdlePower),
+            new TestCase("assembler_job", 20, ExtendedPatternGameTests::extendedAssemblerAcceptsOnePushedJob),
+            new TestCase("ex_assembler_jobs", 20, ExtendedPatternGameTests::exAssemblerAcceptsOneJobPerLane),
+            new TestCase("quantum_rejects_extended", 40, ExtendedPatternGameTests::advancedAEQuantumCrafterMenuRejectsExtendedPattern),
+            new TestCase("extended_quantum_accepts_extended", 40, ExtendedPatternGameTests::extendedQuantumCrafterMenuAcceptsExtendedPattern),
+            new TestCase("matrix_pattern_filter", 40, ExtendedPatternGameTests::extendedAEPatternCoreAcceptsOnlyExtendedEncodedPatterns),
+            new TestCase("matrix_pattern_upload", 40, ExtendedPatternGameTests::extendedAEPatternUploaderUploadsIntoExtendedPatternCore),
+            new TestCase("matrix_job_cancellation", 40, ExtendedPatternGameTests::extendedAEMatrixCraftingCoreTracksAndCancelsExtendedJobs),
+            new TestCase("matrix_job_dispatch", 40, ExtendedPatternGameTests::extendedAEMatrixClusterDispatchesExtendedJob),
+            new TestCase("matrix_job_drops", 40, ExtendedPatternGameTests::extendedAEMatrixCraftingCoreDropsActiveExtendedJobInputs),
+            new TestCase("extended_crafting_tiers", 400, ExtendedPatternGameTests::extendedCraftingTiersEncodeAndCraft),
+            new TestCase("re_avaritia_tiers", 400, ExtendedPatternGameTests::reAvaritiaTiersEncodeAndCraft),
+            new TestCase("recipe_classification", 20, ExtendedPatternGameTests::extendedRecipeClassificationRejectsVanillaAndSmelting));
+
+    @SubscribeEvent
+    public static void registerFunctions(RegisterEvent event) {
+        if (event.getRegistryKey() == Registries.TEST_FUNCTION) {
+            for (var test : TESTS) {
+                event.register(Registries.TEST_FUNCTION, ExtendedMolecularAssembler.makeId(test.name()), test::action);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void registerTests(RegisterGameTestsEvent event) {
+        var environment = event.registerEnvironment(ExtendedMolecularAssembler.makeId("default"));
+        for (var test : TESTS) {
+            var id = ExtendedMolecularAssembler.makeId(test.name());
+            event.registerTest(id, new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id),
+                    new TestData<>(environment, ExtendedMolecularAssembler.makeId("empty"), test.timeout(), 0, true)));
+        }
+    }
+
+    private record TestCase(String name, int timeout, Consumer<GameTestHelper> action) {
+    }
+
+    private static final List<PatternCase> EXTENDED_CRAFTING_CASES = List.of(
+            new PatternCase("Extended Crafting tier 1", "ec_tier_1", ExtendedPatternTableTypes.extendedCrafting(1), 1,
+                    Items.DIAMOND,
+                    new String[] {
+                            "CIC",
+                            "IRI",
+                            "CIC"
+                    },
+                    Map.of('C', Items.COPPER_INGOT, 'I', Items.IRON_INGOT, 'R', Items.REDSTONE)),
+            new PatternCase("Extended Crafting tier 2", "ec_tier_2", ExtendedPatternTableTypes.extendedCrafting(2), 2,
+                    Items.EMERALD,
+                    new String[] {
+                            "GGGGG",
+                            "GLLLG",
+                            "GLRLG",
+                            "GLLLG",
+                            "GGGGG"
+                    },
+                    Map.of('G', Items.GOLD_INGOT, 'L', Items.LAPIS_LAZULI, 'R', Items.REDSTONE)),
+            new PatternCase("Extended Crafting tier 3", "ec_tier_3", ExtendedPatternTableTypes.extendedCrafting(3), 3,
+                    Items.NETHERITE_SCRAP,
+                    new String[] {
+                            "CCCCCCC",
+                            "CDDDDDC",
+                            "CDGGGDC",
+                            "CDGRGDC",
+                            "CDGGGDC",
+                            "CDDDDDC",
+                            "CCCCCCC"
+                    },
+                    Map.of('C', Items.COBBLESTONE, 'D', Items.DIAMOND, 'G', Items.GOLD_INGOT, 'R', Items.REDSTONE)),
+            new PatternCase("Extended Crafting tier 4", "ec_tier_4", ExtendedPatternTableTypes.extendedCrafting(4), 4,
+                    Items.EMERALD_BLOCK,
+                    new String[] {
+                            "CCCCCCCCC",
+                            "CLLLLLLLC",
+                            "CLRRRRRLC",
+                            "CLRIIIRLC",
+                            "CLRIGIRLC",
+                            "CLRIIIRLC",
+                            "CLRRRRRLC",
+                            "CLLLLLLLC",
+                            "CCCCCCCCC"
+                    },
+                    Map.of('C', Items.COPPER_INGOT, 'L', Items.LAPIS_LAZULI, 'R', Items.REDSTONE,
+                            'I', Items.IRON_INGOT, 'G', Items.GOLD_INGOT)));
+
+    private static final List<PatternCase> RE_AVARITIA_CASES = List.of(
+            new PatternCase("Re:Avaritia tier 1", "re_tier_1", ExtendedPatternTableTypes.reAvaritia(1), 1,
+                    Items.AMETHYST_SHARD,
+                    new String[] {
+                            "STS",
+                            "TBT",
+                            "STS"
+                    },
+                    Map.of('S', Items.STONE, 'T', Items.STICK, 'B', Items.BONE)),
+            new PatternCase("Re:Avaritia tier 2", "re_tier_2", ExtendedPatternTableTypes.reAvaritia(2), 2,
+                    Items.QUARTZ,
+                    new String[] {
+                            "OOOOO",
+                            "ORRRO",
+                            "ORERO",
+                            "ORRRO",
+                            "OOOOO"
+                    },
+                    Map.of('O', Items.OBSIDIAN, 'R', Items.REDSTONE, 'E', Items.ENDER_PEARL)),
+            new PatternCase("Re:Avaritia tier 3", "re_tier_3", ExtendedPatternTableTypes.reAvaritia(3), 3,
+                    Items.DIAMOND_BLOCK,
+                    new String[] {
+                            "BBBBBBB",
+                            "BQQQQQB",
+                            "BQEEEQB",
+                            "BQENEQB",
+                            "BQEEEQB",
+                            "BQQQQQB",
+                            "BBBBBBB"
+                    },
+                    Map.of('B', Items.BLACKSTONE, 'Q', Items.QUARTZ, 'E', Items.ENDER_PEARL, 'N', Items.NETHER_STAR)),
+            new PatternCase("Re:Avaritia tier 4", "re_tier_4", ExtendedPatternTableTypes.reAvaritia(4), 4,
+                    Items.NETHERITE_INGOT,
+                    new String[] {
+                            "AAAAAAAAA",
+                            "AQQQQQQQA",
+                            "AQRRRRRQA",
+                            "AQRDDDRQA",
+                            "AQRDNDRQA",
+                            "AQRDDDRQA",
+                            "AQRRRRRQA",
+                            "AQQQQQQQA",
+                            "AAAAAAAAA"
+                    },
+                    Map.of('A', Items.AMETHYST_SHARD, 'Q', Items.QUARTZ, 'R', Items.REDSTONE,
+                            'D', Items.DIAMOND, 'N', Items.NETHER_STAR)));
+
+    private ExtendedPatternGameTests() {
+    }
+
+    public static void optionalRegistrationsFollowMyotusIntegrations(GameTestHelper helper) {
+        boolean extendedAE = MyotusAPI.integrations().isLoaded(ExtendedAE.class);
+        boolean extendedAEPlusStyleContent = extendedAE
+                && (MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)
+                        || EMAConfig.standaloneExtendedAEPlusContent());
+        boolean advancedAE = MyotusAPI.integrations().isLoaded(AdvancedAE.class);
+        boolean ae2wtlib = MyotusAPI.integrations().isLoaded(AE2WTLib.class);
+
+        assertOptionalBlockRegistration(helper, "ex_extended_molecular_assembler", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_core", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_crafting_core", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_uploader", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_core_plus", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_assembler_matrix_crafting_core_plus", extendedAE);
+        assertOptionalBlockRegistration(helper, "extended_quantum_crafter", advancedAE);
+        assertRecipeRegistration(helper, "ex_extended_molecular_assembler", extendedAE);
+        assertEqual(helper, ae2wtlib,
+                BuiltInRegistries.ITEM.containsKey(
+                        ExtendedMolecularAssembler.makeId("wireless_extended_pattern_encoding_terminal")),
+                "AE2WTLib wireless terminal item registration");
+
+        var matrixMenuId = ExtendedMolecularAssembler.makeId("extended_assembler_matrix_pattern_core");
+        assertEqual(helper, extendedAE, BuiltInRegistries.MENU.containsKey(matrixMenuId),
+                "ExtendedAE matrix pattern core menu registration");
+        var patternViewMenuId = ExtendedMolecularAssembler.makeId("extended_crafting_pattern_view");
+        assertEqual(helper, extendedAE, BuiltInRegistries.MENU.containsKey(patternViewMenuId),
+                "ExtendedAE extended crafting pattern view menu registration");
+        assertEqual(helper, extendedAEPlusStyleContent,
+                EMAOptionalIntegrations.isExtendedAEPlusStyleContentEnabled(),
+                "ExtendedAE Plus-style content availability");
+        helper.succeed();
+    }
+
+    public static void extendedPatternViewCentersSevenBySevenGrid(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var sevenBySeven = EXTENDED_CRAFTING_CASES.get(2);
+        ExtendedAEGameTestHelper.assertExtendedPatternViewLayout(
+                helper,
+                encodePatternStackForCase(helper, sevenBySeven),
+                sevenBySeven.side(),
+                sevenBySeven.tableType());
+        helper.succeed();
+    }
+
+    public static void wirelessTerminalRecipesFollowAE2WTLib(GameTestHelper helper) {
+        boolean ae2wtlib = MyotusAPI.integrations().isLoaded(AE2WTLib.class);
+        assertRecipeRegistration(helper, "wireless_extended_pattern_encoding_terminal", ae2wtlib);
+        assertRecipeRegistration(helper,
+                "wireless_universal_terminal/upgrade_extended_pattern_encoding",
+                ae2wtlib);
+        helper.succeed();
+    }
+
+    public static void extendedPatternTerminalRecipesFollowTableMods(GameTestHelper helper) {
+        boolean extendedCrafting = MyotusAPI.integrations().isLoaded(ExtendedCrafting.class);
+        boolean reAvaritia = MyotusAPI.integrations().isLoaded(ReAvaritia.class);
+
+        assertRecipeRegistration(helper, "extended_pattern_encoding_terminal",
+                !extendedCrafting && !reAvaritia);
+        assertRecipeRegistration(helper, "reavaritia/extended_pattern_encoding_terminal",
+                reAvaritia && !extendedCrafting);
+        assertRecipeRegistration(helper, "extendedcrafting/extended_pattern_encoding_terminal",
+                extendedCrafting && !reAvaritia);
+        assertRecipeRegistration(helper, "reavaritia_extendedcrafting/extended_pattern_encoding_terminal",
+                reAvaritia && extendedCrafting);
+        assertRecipeRegistration(helper, "extendedterminal/extended_pattern_encoding_terminal",
+                MyotusAPI.integrations().isLoaded(ExtendedTerminal.class));
+        helper.succeed();
+    }
+
+    public static void extendedAEPlusRecipesFollowModAndConfig(GameTestHelper helper) {
+        boolean extendedAE = MyotusAPI.integrations().isLoaded(ExtendedAE.class);
+        boolean extendedAEPlus = MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class);
+        boolean plusContent = extendedAE
+                && (extendedAEPlus || EMAConfig.standaloneExtendedAEPlusContent());
+
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_uploader",
+                extendedAE && extendedAEPlus);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_crafting_core_plus",
+                plusContent);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core_plus",
+                plusContent);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_uploader_standalone", false);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_crafting_core_plus_standalone", false);
+        assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core_plus_standalone", false);
+        helper.succeed();
+    }
+
+    public static void craftConfirmationMenuHasExportModeGate(GameTestHelper helper) {
+        helper.assertTrue(CraftConfirmExportPlanGate.class.isAssignableFrom(CraftConfirmMenu.class),
+                "AE2 CraftConfirmMenu is missing EMA's export-mode server gate");
+        helper.succeed();
+    }
+
+    public static void destroyedCraftingCpuNodeIgnoresLateSideUpdate(GameTestHelper helper) {
+        var pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, AEBlocks.CRAFTING_UNIT.block());
+        helper.runAfterDelay(1, () -> {
+            var blockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+            helper.assertTrue(blockEntity instanceof CraftingBlockEntity,
+                    "AE2 crafting unit did not create a CraftingBlockEntity");
+
+            var craftingBlock = (CraftingBlockEntity) blockEntity;
+            helper.assertTrue(craftingBlock.getMainNode().isReady(),
+                    "AE2 crafting unit node was not ready before regression check");
+            craftingBlock.getMainNode().destroy();
+            craftingBlock.updateSubType(true);
+            helper.assertFalse(craftingBlock.getMainNode().isReady(),
+                    "destroyed AE2 crafting unit node unexpectedly became ready again");
+            helper.destroyBlock(pos);
+            helper.succeed();
+        });
+    }
+
+    public static void assemblerConnectionCapabilitiesFollowAe2(GameTestHelper helper) {
+        assertAssemblerConnection(helper, EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get(), new BlockPos(1, 1, 1),
+                "Extended Molecular Assembler");
+        if (MyotusAPI.integrations().isLoaded(ExtendedAE.class)) {
+            assertAssemblerConnection(helper, EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get(), new BlockPos(2, 1, 1),
+                    "Ex Extended Molecular Assembler");
+        }
+        helper.succeed();
+    }
+
+    public static void exportMECraftingProvidersExposeConfiguredIdlePower(GameTestHelper helper) {
+        var tiers = ExportMECraftingProviderTier.values();
+        for (int i = 0; i < tiers.length; i++) {
+            helper.setBlock(providerTestPosition(i), providerBlock(tiers[i]));
+        }
+
+        helper.runAfterDelay(1, () -> {
+            for (int i = 0; i < tiers.length; i++) {
+                var tier = tiers[i];
+                var configPath = List.of("blocks", tier.blockId(), "idlePowerUsage");
+                var configValue = EMAConfig.COMMON.getValues().get(configPath);
+                helper.assertTrue(configValue instanceof ModConfigSpec.DoubleValue,
+                        tier + " is missing its idlePowerUsage config");
+                assertEqual(helper, 1.0, ((ModConfigSpec.DoubleValue) configValue).getDefault(),
+                        tier + " provider default idle AE/t");
+
+                var blockEntity = helper.getBlockEntity(providerTestPosition(i), ExportMECraftingProviderBlockEntity.class);
+                helper.assertTrue(blockEntity instanceof ExportMECraftingProviderBlockEntity,
+                        tier + " did not create an ExportMECraftingProviderBlockEntity");
+
+                var provider = (ExportMECraftingProviderBlockEntity) blockEntity;
+                assertEqual(helper, tier, provider.getTier(), tier + " provider tier");
+
+                var node = provider.getMainNode().getNode();
+                helper.assertTrue(node != null, tier + " provider ME node was not created");
+                assertEqual(helper, EMAConfig.exportMECraftingProviderIdlePowerUsage(tier),
+                        node.getIdlePowerUsage(), tier + " provider idle AE/t");
+            }
+            helper.succeed();
+        });
+    }
+
+    public static void extendedAssemblerAcceptsOnePushedJob(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var testCase = EXTENDED_CRAFTING_CASES.getFirst();
+        var pattern = decodePatternForCase(helper, testCase);
+        var assembler = placeAssembler(helper, EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get(), new BlockPos(1, 1, 1),
+                "Extended Molecular Assembler");
+
+        helper.assertTrue(assembler.acceptsPlans(), "fresh single-lane assembler should accept plans");
+        helper.assertTrue(assembler.pushPattern(pattern, countersForPattern(pattern), Direction.NORTH),
+                "single-lane assembler did not accept a supported extended pattern");
+        assertLaneGrid(helper, assembler, 0, testCase, "single-lane assembler pushed job");
+        helper.assertFalse(assembler.acceptsPlans(), "busy single-lane assembler should not accept another plan");
+        helper.assertFalse(assembler.pushPattern(pattern, countersForPattern(pattern), Direction.NORTH),
+                "busy single-lane assembler accepted a second job");
+        helper.succeed();
+    }
+
+    public static void exAssemblerAcceptsOneJobPerLane(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var testCase = EXTENDED_CRAFTING_CASES.getFirst();
+        var pattern = decodePatternForCase(helper, testCase);
+        var assembler = placeAssembler(helper, EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get(), new BlockPos(1, 1, 1),
+                "Ex Extended Molecular Assembler");
+
+        assertEqual(helper, ExtendedMolecularAssemblerBlockEntity.PARALLEL_LANE_COUNT, assembler.getLaneCount(),
+                "Ex assembler lane count");
+        for (int lane = 0; lane < assembler.getLaneCount(); lane++) {
+            helper.assertTrue(assembler.acceptsPlans(), "Ex assembler should accept lane " + lane);
+            helper.assertTrue(assembler.pushPattern(pattern, countersForPattern(pattern), Direction.NORTH),
+                    "Ex assembler did not accept job for lane " + lane);
+            assertLaneGrid(helper, assembler, lane, testCase, "Ex assembler lane " + lane + " pushed job");
+        }
+
+        helper.assertFalse(assembler.acceptsPlans(), "full Ex assembler should not advertise free lanes");
+        helper.assertFalse(assembler.pushPattern(pattern, countersForPattern(pattern), Direction.NORTH),
+                "full Ex assembler accepted a ninth job");
+        var registry = helper.getLevel().registryAccess();
+        var saved = assembler.saveWithoutMetadata(registry);
+        var restored = (ExtendedMolecularAssemblerBlockEntity) assembler.getType()
+                .create(assembler.getBlockPos(), assembler.getBlockState());
+        restored.setLevel(helper.getLevel());
+        restored.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, registry, saved));
+        for (int lane = 0; lane < restored.getLaneCount(); lane++) {
+            assertLaneGrid(helper, restored, lane, testCase, "restored Ex assembler lane " + lane);
+        }
+        helper.assertFalse(restored.acceptsPlans(), "restored full Ex assembler lost its active jobs");
+        helper.succeed();
+    }
+
+    public static void advancedAEQuantumCrafterMenuRejectsExtendedPattern(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(AdvancedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
+        AdvancedAEGameTestHelper.assertAdvancedQuantumCrafterRejectsExtendedPattern(helper, patternStack);
+        helper.succeed();
+    }
+
+    public static void extendedQuantumCrafterMenuAcceptsExtendedPattern(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(AdvancedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
+        AdvancedAEGameTestHelper.assertExtendedQuantumCrafterAcceptsExtendedPattern(helper, patternStack);
+        helper.succeed();
+    }
+
+    public static void extendedAEPatternCoreAcceptsOnlyExtendedEncodedPatterns(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
+        ExtendedAEGameTestHelper.assertPatternCoreAcceptsOnlyExtendedEncodedPatterns(helper, patternStack);
+        helper.succeed();
+    }
+
+    public static void extendedAEPatternUploaderUploadsIntoExtendedPatternCore(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
+        ExtendedAEGameTestHelper.assertPatternUploaderUploadsIntoExtendedPatternCore(helper, patternStack);
+        helper.succeed();
+    }
+
+    public static void extendedAEMatrixCraftingCoreTracksAndCancelsExtendedJobs(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var pattern = decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
+        ExtendedAEGameTestHelper.assertMatrixCraftingCoreTracksAndCancelsExtendedJobs(helper, pattern);
+        helper.succeed();
+    }
+
+    public static void extendedAEMatrixClusterDispatchesExtendedJob(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var pattern = decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
+        ExtendedAEGameTestHelper.assertClusterDispatchesExtendedJob(helper, pattern);
+        helper.succeed();
+    }
+
+    public static void extendedAEMatrixCraftingCoreDropsActiveExtendedJobInputs(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var pattern = decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
+        ExtendedAEGameTestHelper.assertMatrixCraftingCoreDropsActiveExtendedJobInputs(helper, pattern);
+        helper.succeed();
+    }
+
+    public static void extendedCraftingTiersEncodeAndCraft(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        validateCases(helper, EXTENDED_CRAFTING_CASES, RecipeProvider.EXTENDED_CRAFTING);
+        helper.succeed();
+    }
+
+    public static void reAvaritiaTiersEncodeAndCraft(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ReAvaritia.class)) {
+            helper.succeed();
+            return;
+        }
+
+        validateCases(helper, RE_AVARITIA_CASES, RecipeProvider.RE_AVARITIA);
+        helper.succeed();
+    }
+
+    public static void extendedRecipeClassificationRejectsVanillaAndSmelting(GameTestHelper helper) {
+        var recipes = helper.getLevel().recipeAccess();
+        for (var path : List.of("crafting_table", "oak_planks")) {
+            var crafting = recipes.byKey(recipeKey(Identifier.withDefaultNamespace(path))).orElseThrow();
+            helper.assertFalse(TableRecipeAdapters.isExtended(crafting.value()),
+                    path + " was classified as extended crafting");
+            helper.assertFalse(ExtendedPatternRecipeTransfer.canTransfer(crafting.value()),
+                    path + " was accepted for extended transfer");
+            assertEqual(helper, ExtendedPatternTableTypes.VANILLA_CRAFTING,
+                    TableRecipeAdapters.of(crafting).tableType(), path + " vanilla adapter");
+            assertEqual(helper, RecipeProvider.EXTENDED_CRAFTING,
+                    RecipeProvider.of(crafting), path + " provider fallback");
+        }
+
+        var smelting = recipes.byKey(recipeKey(Identifier.withDefaultNamespace("iron_ingot_from_smelting_iron_ore")))
+                .orElseThrow();
+        helper.assertFalse(TableRecipeAdapters.isExtended(smelting.value()),
+                "Smelting recipe was classified as extended crafting");
+        helper.assertFalse(ExtendedPatternRecipeTransfer.canTransfer(smelting.value()),
+                "Smelting recipe was accepted for extended transfer");
+        boolean rejected = false;
+        try {
+            TableRecipeAdapters.of(smelting);
+        } catch (IllegalArgumentException expected) {
+            rejected = true;
+        }
+        helper.assertTrue(rejected, "Smelting recipe was accepted by a table recipe adapter");
+        helper.succeed();
+    }
+
+    private static void assertAssemblerConnection(GameTestHelper helper, Block block, BlockPos pos, String name) {
+        helper.setBlock(pos, block);
+        var level = helper.getLevel();
+        var absolutePos = helper.absolutePos(pos);
+        var nodeHost = level.getCapability(AECapabilities.IN_WORLD_GRID_NODE_HOST, absolutePos, null);
+        helper.assertTrue(nodeHost != null, name + " does not expose AE2 grid-node host capability");
+        helper.assertTrue(nodeHost.getCableConnectionType(Direction.NORTH) == AECableType.COVERED,
+                name + " must expose covered cable connection type like AE2 Molecular Assembler");
+        helper.assertTrue(ICraftingMachine.of(level, absolutePos, Direction.NORTH) != null,
+                name + " does not expose AE2 crafting-machine capability");
+    }
+
+    private static BlockPos providerTestPosition(int index) {
+        return new BlockPos(index % 3, 1, index / 3);
+    }
+
+    private static Block providerBlock(ExportMECraftingProviderTier tier) {
+        return switch (tier) {
+            case BASIC -> EMABlocks.BASIC_ME_CRAFTING_PROVIDER.get();
+            case ADVANCED -> EMABlocks.ADVANCED_ME_CRAFTING_PROVIDER.get();
+            case ELITE -> EMABlocks.ELITE_ME_CRAFTING_PROVIDER.get();
+            case ULTIMATE -> EMABlocks.ULTIMATE_ME_CRAFTING_PROVIDER.get();
+            case RE_AVARITIA_SCULK -> EMABlocks.RE_AVARITIA_SCULK_ME_CRAFTING_PROVIDER.get();
+            case RE_AVARITIA_NETHER -> EMABlocks.RE_AVARITIA_NETHER_ME_CRAFTING_PROVIDER.get();
+            case RE_AVARITIA_END -> EMABlocks.RE_AVARITIA_END_ME_CRAFTING_PROVIDER.get();
+            case XTREME -> EMABlocks.XTREME_ME_CRAFTING_PROVIDER.get();
+        };
+    }
+
+    private static ExtendedMolecularAssemblerBlockEntity placeAssembler(GameTestHelper helper, Block block, BlockPos pos,
+            String name) {
+        helper.setBlock(pos, block);
+        var blockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(pos));
+        helper.assertTrue(blockEntity instanceof ExtendedMolecularAssemblerBlockEntity,
+                name + " did not create an ExtendedMolecularAssemblerBlockEntity");
+        return (ExtendedMolecularAssemblerBlockEntity) blockEntity;
+    }
+
+    private static void assertOptionalBlockRegistration(GameTestHelper helper, String path, boolean expected) {
+        var id = ExtendedMolecularAssembler.makeId(path);
+        assertEqual(helper, expected, BuiltInRegistries.BLOCK.containsKey(id), path + " block registration");
+        assertEqual(helper, expected, BuiltInRegistries.ITEM.containsKey(id), path + " item registration");
+        assertEqual(helper, expected, BuiltInRegistries.BLOCK_ENTITY_TYPE.containsKey(id),
+                path + " block entity registration");
+    }
+
+    private static void assertRecipeRegistration(GameTestHelper helper, String path, boolean expected) {
+        var id = ExtendedMolecularAssembler.makeId(path);
+        assertEqual(helper, expected, helper.getLevel().recipeAccess().byKey(recipeKey(id)).isPresent(),
+                path + " recipe registration");
+    }
+
+    private static void validateCases(GameTestHelper helper, List<PatternCase> cases, RecipeProvider provider) {
+        for (var testCase : cases) {
+            validateCase(helper, testCase, provider);
+        }
+    }
+
+    private static void validateCase(GameTestHelper helper, PatternCase testCase, RecipeProvider provider) {
+        var level = helper.getLevel();
+        var expectedRecipe = testCase.recipeId();
+        helper.assertTrue(level.recipeAccess().byKey(recipeKey(expectedRecipe)).isPresent(),
+                "Missing test recipe " + expectedRecipe);
+
+        var machineGrid = testCase.machineGrid();
+        var match = requireMatch(helper, ExtendedPatternRecipeFinder.find(machineGrid, level), testCase);
+        assertEqual(helper, expectedRecipe, match.recipe().id().identifier(), testCase.label() + " recipe lookup");
+        helper.assertTrue(TableRecipeAdapters.isExtended(match.recipe().value()),
+                testCase.label() + " was not classified as an extended recipe");
+        helper.assertTrue(ExtendedPatternRecipeTransfer.canTransfer(match.recipe().value()),
+                testCase.label() + " was not accepted for extended transfer");
+        assertEqual(helper, provider, RecipeProvider.of(match.recipe()), testCase.label() + " recipe provider");
+        assertStackMatches(helper, testCase.outputStack(), match.result(), testCase.label() + " lookup output");
+        assertSparseInputs(helper, testCase, match.inputs(), testCase.label() + " lookup inputs");
+
+        var patternStack = ExtendedPatternDetailsHelper.encodeExtendedCraftingPattern(match.recipe(), match.inputs(),
+                match.result(), false, true);
+        var encoded = patternStack.get(EMADataComponents.ENCODED_EXTENDED_CRAFTING_PATTERN);
+        helper.assertTrue(encoded != null, testCase.label() + " did not write encoded pattern data");
+        assertEncoded(helper, testCase, encoded);
+
+        var decoded = appeng.api.crafting.PatternDetailsHelper.decodePattern(patternStack, level);
+        helper.assertTrue(decoded instanceof ExtendedTableCraftingPattern,
+                testCase.label() + " did not decode to ExtendedTableCraftingPattern");
+        var pattern = (ExtendedTableCraftingPattern) decoded;
+        assertPattern(helper, testCase, pattern);
+
+        assertStackMatches(helper, testCase.outputStack(), pattern.assembleFromMachineGrid(machineGrid::get, level),
+                testCase.label() + " assembly from source grid");
+        assertFillCraftingGrid(helper, testCase, pattern);
+    }
+
+    private static ResourceKey<Recipe<?>> recipeKey(Identifier id) {
+        return ResourceKey.create(Registries.RECIPE, id);
+    }
+
+    private static ExtendedTableCraftingPattern decodePatternForCase(GameTestHelper helper, PatternCase testCase) {
+        var level = helper.getLevel();
+        var match = requireMatch(helper, ExtendedPatternRecipeFinder.find(testCase.machineGrid(), level), testCase);
+        var patternStack = ExtendedPatternDetailsHelper.encodeExtendedCraftingPattern(match.recipe(), match.inputs(),
+                match.result(), false, true);
+        var decoded = appeng.api.crafting.PatternDetailsHelper.decodePattern(patternStack, level);
+        helper.assertTrue(decoded instanceof ExtendedTableCraftingPattern,
+                testCase.label() + " did not decode to ExtendedTableCraftingPattern");
+        return (ExtendedTableCraftingPattern) decoded;
+    }
+
+    private static ItemStack encodePatternStackForCase(GameTestHelper helper, PatternCase testCase) {
+        var level = helper.getLevel();
+        var match = requireMatch(helper, ExtendedPatternRecipeFinder.find(testCase.machineGrid(), level), testCase);
+        return ExtendedPatternDetailsHelper.encodeExtendedCraftingPattern(match.recipe(), match.inputs(),
+                match.result(), false, true);
+    }
+
+    private static KeyCounter[] countersForPattern(ExtendedTableCraftingPattern pattern) {
+        var counters = new KeyCounter[pattern.getInputs().length];
+        IPatternDetails.IInput[] inputs = pattern.getInputs();
+        for (int i = 0; i < inputs.length; i++) {
+            counters[i] = new KeyCounter();
+            var primaryInput = inputs[i].getPossibleInputs()[0];
+            counters[i].add(primaryInput.what(), primaryInput.amount() * inputs[i].getMultiplier());
+        }
+        return counters;
+    }
+
+    private static void assertLaneGrid(GameTestHelper helper, ExtendedMolecularAssemblerBlockEntity assembler,
+            int laneIndex, PatternCase testCase, String name) {
+        var expectedGrid = testCase.machineGrid();
+        var laneInventory = assembler.getCraftInventory(laneIndex);
+        for (int slot = 0; slot < ExtendedTableCraftingPattern.MACHINE_GRID_SIZE; slot++) {
+            assertStackMatches(helper, expectedGrid.get(slot), laneInventory.getStackInSlot(slot),
+                    name + " slot " + slot);
+        }
+        assertStackMatches(helper, ItemStack.EMPTY,
+                laneInventory.getStackInSlot(ExtendedMolecularAssemblerBlockEntity.OUTPUT_SLOT),
+                name + " output slot should stay empty before ticking");
+    }
+
+    private static ExtendedPatternRecipeMatch requireMatch(GameTestHelper helper,
+            Optional<ExtendedPatternRecipeMatch> match, PatternCase testCase) {
+        if (match.isEmpty()) {
+            helper.fail(testCase.label() + " was not found from a centered 9x9 machine grid");
+        }
+        return match.orElseThrow();
+    }
+
+    private static void assertEncoded(GameTestHelper helper, PatternCase testCase,
+            EncodedExtendedCraftingPattern encoded) {
+        assertEqual(helper, testCase.recipeId(), encoded.recipeId(), testCase.label() + " encoded recipe id");
+        assertEqual(helper, testCase.tableType(), encoded.tableType(), testCase.label() + " encoded table type");
+        assertEqual(helper, testCase.tier(), encoded.tableTier(), testCase.label() + " encoded table tier");
+        assertEqual(helper, testCase.side(), encoded.tableSideLength(), testCase.label() + " encoded table side");
+        helper.assertFalse(encoded.canSubstitute(), testCase.label() + " unexpectedly allows substitutions");
+        helper.assertTrue(encoded.canSubstituteFluids(), testCase.label() + " did not allow fluid substitutions");
+        assertStackMatches(helper, testCase.outputStack(), encoded.result(), testCase.label() + " encoded output");
+        assertEqual(helper, testCase.side() * testCase.side(), encoded.inputs().size(),
+                testCase.label() + " encoded input size");
+        assertSparseInputs(helper, testCase, encoded.inputs().toArray(ItemStack[]::new),
+                testCase.label() + " encoded inputs");
+    }
+
+    private static void assertPattern(GameTestHelper helper, PatternCase testCase, ExtendedTableCraftingPattern pattern) {
+        assertEqual(helper, testCase.tableType(), pattern.tableType(), testCase.label() + " decoded table type");
+        assertEqual(helper, testCase.tier(), pattern.tableTier(), testCase.label() + " decoded table tier");
+        assertEqual(helper, testCase.side(), pattern.tableSideLength(), testCase.label() + " decoded table side");
+        var output = pattern.getSparseOutputs().getFirst();
+        helper.assertTrue(output.what() instanceof AEItemKey, testCase.label() + " decoded output is not an item");
+        assertStackMatches(helper, testCase.outputStack(),
+                ((AEItemKey) output.what()).toStack(Math.toIntExact(output.amount())),
+                testCase.label() + " decoded output");
+    }
+
+    private static void assertFillCraftingGrid(GameTestHelper helper, PatternCase testCase,
+            ExtendedTableCraftingPattern pattern) {
+        var counters = countersForPattern(pattern);
+
+        var filledGrid = NonNullList.withSize(ExtendedTableCraftingPattern.MACHINE_GRID_SIZE, ItemStack.EMPTY);
+        pattern.fillCraftingGrid(counters, filledGrid::set);
+        assertCountersEmpty(helper, counters, testCase.label() + " fillCraftingGrid");
+        assertStackMatches(helper, testCase.outputStack(),
+                pattern.assembleFromMachineGrid(filledGrid::get, helper.getLevel()),
+                testCase.label() + " assembly from filled AE counters");
+
+        var expectedGrid = testCase.machineGrid();
+        for (int slot = 0; slot < expectedGrid.size(); slot++) {
+            assertStackMatches(helper, expectedGrid.get(slot), filledGrid.get(slot),
+                    testCase.label() + " filled machine slot " + slot);
+        }
+    }
+
+    private static void assertCountersEmpty(GameTestHelper helper, KeyCounter[] counters, String name) {
+        for (int i = 0; i < counters.length; i++) {
+            counters[i].removeZeros();
+            if (!counters[i].isEmpty()) {
+                helper.fail(name + " left over AE input counter " + i + ": " + counters[i].iterator().next());
+            }
+        }
+    }
+
+    private static void assertSparseInputs(GameTestHelper helper, PatternCase testCase, ItemStack[] actual,
+            String name) {
+        var expected = testCase.sparseInputs();
+        assertEqual(helper, expected.length, actual.length, name + " length");
+        for (int slot = 0; slot < expected.length; slot++) {
+            assertStackMatches(helper, expected[slot], actual[slot], name + " slot " + slot);
+        }
+    }
+
+    private static void assertStackMatches(GameTestHelper helper, ItemStack expected, ItemStack actual, String name) {
+        if (!ItemStack.matches(expected, actual)) {
+            helper.fail(name + ": expected " + describe(expected) + ", got " + describe(actual));
+        }
+    }
+
+    private static void assertEqual(GameTestHelper helper, Object expected, Object actual, String name) {
+        if (!Objects.equals(expected, actual)) {
+            helper.fail(name + ": expected " + expected + ", got " + actual);
+        }
+    }
+
+    private static String describe(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return "empty";
+        }
+        return stack.getCount() + "x" + BuiltInRegistries.ITEM.getKey(stack.getItem());
+    }
+
+    private record PatternCase(String label, String recipePath, Identifier tableType, int tier, Item output,
+            String[] pattern, Map<Character, Item> keys) {
+        private Identifier recipeId() {
+            return ExtendedMolecularAssembler.makeId(recipePath.contains("/") ? recipePath : "gametest/" + recipePath);
+        }
+
+        private int side() {
+            return tier * 2 + 1;
+        }
+
+        private ItemStack outputStack() {
+            return new ItemStack(output);
+        }
+
+        private NonNullList<ItemStack> machineGrid() {
+            var result = NonNullList.withSize(ExtendedTableCraftingPattern.MACHINE_GRID_SIZE, ItemStack.EMPTY);
+            var offset = Math.floorDiv(ExtendedTableCraftingPattern.MACHINE_GRID_SIDE - side(), 2);
+            for (int y = 0; y < side(); y++) {
+                for (int x = 0; x < side(); x++) {
+                    result.set(x + offset + (y + offset) * ExtendedTableCraftingPattern.MACHINE_GRID_SIDE,
+                            stackFor(pattern[y].charAt(x)));
+                }
+            }
+            return result;
+        }
+
+        private ItemStack[] sparseInputs() {
+            var result = new ItemStack[side() * side()];
+            for (int y = 0; y < side(); y++) {
+                for (int x = 0; x < side(); x++) {
+                    result[x + y * side()] = stackFor(pattern[y].charAt(x));
+                }
+            }
+            return result;
+        }
+
+        private ItemStack stackFor(char symbol) {
+            if (symbol == ' ') {
+                return ItemStack.EMPTY;
+            }
+            var item = keys.get(symbol);
+            if (item == null) {
+                throw new IllegalArgumentException("No key for symbol " + symbol + " in " + label);
+            }
+            return new ItemStack(item);
+        }
+    }
+}

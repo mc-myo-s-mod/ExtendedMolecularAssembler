@@ -1,0 +1,35 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "type": "avaritia:shaped_table",
+  "key": {
+    "D": "minecraft:diamond",
+    "G": "minecraft:gold_ingot",
+    "I": "minecraft:iron_ingot",
+    "N": "minecraft:nether_star",
+    "O": "minecraft:obsidian"
+  },
+  "pattern": [
+    "OOOOOOOOO",
+    "OIIIIIIIO",
+    "OIGGGGGIO",
+    "OIGDDDGIO",
+    "OIGDNDGIO",
+    "OIGDDDGIO",
+    "OIGGGGGIO",
+    "OIIIIIIIO",
+    "OOOOOOOOO"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:netherite_ingot"
+  },
+  "tier": 4
+}

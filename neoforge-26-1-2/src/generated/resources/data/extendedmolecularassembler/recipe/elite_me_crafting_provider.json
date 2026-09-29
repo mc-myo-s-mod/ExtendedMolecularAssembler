@@ -1,0 +1,26 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "extendedmolecularassembler:advanced_me_crafting_provider",
+    "L": "myotus:compat_processor",
+    "P": "ae2:fluix_smart_cable",
+    "T": "extendedcrafting:elite_table"
+  },
+  "pattern": [
+    " L ",
+    "PCP",
+    " T "
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:elite_me_crafting_provider"
+  },
+  "show_notification": true
+}

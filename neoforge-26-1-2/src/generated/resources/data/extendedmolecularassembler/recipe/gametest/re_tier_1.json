@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:dev"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "Re-Avaritia"
+    }
+  ],
+  "type": "avaritia:shaped_table",
+  "key": {
+    "B": "minecraft:bone",
+    "S": "minecraft:stone",
+    "T": "minecraft:stick"
+  },
+  "pattern": [
+    "STS",
+    "TBT",
+    "STS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:amethyst_shard"
+  },
+  "tier": 1
+}

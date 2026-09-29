@@ -1,0 +1,17 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedterminal"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "ae2:pattern_encoding_terminal",
+    "extendedterminal:united_terminal"
+  ],
+  "result": {
+    "count": 1,
+    "id": "extendedmolecularassembler:extended_pattern_encoding_terminal"
+  }
+}
