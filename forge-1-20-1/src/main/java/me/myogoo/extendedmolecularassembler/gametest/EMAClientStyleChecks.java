@@ -139,10 +139,10 @@ public final class EMAClientStyleChecks {
                 }
                 if (large) {
                     var buttons = Map.of(
-                            "clearPattern", new Point(136, height - 96),
-                            "canSubstituteFluids", new Point(148, height - 96),
-                            "substitutions", new Point(160, height - 96),
-                            "recipeCycle", new Point(112, height - 100),
+                            "clearPattern", new Point(legendary ? width - 36 : 136, height - 96),
+                            "canSubstituteFluids", new Point(legendary ? width - 48 : 148, height - 96),
+                            "substitutions", new Point(legendary ? width - 60 : 160, height - 96),
+                            "recipeCycle", new Point(legendary ? width - 20 : 112, height - 100),
                             "encodePattern", new Point(epic ? 182 : 215, height - 54));
                     for (var entry : buttons.entrySet()) {
                         var actual = style.getWidget(entry.getKey()).resolve(bounds);

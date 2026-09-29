@@ -123,19 +123,19 @@
       "bottom": 54
     },
     "clearPattern": {
-      "left": 136,
+      "right": 36,
       "bottom": 96
     },
     "recipeCycle": {
-      "left": 112,
+      "right": 20,
       "bottom": 100
     },
     "substitutions": {
-      "left": 160,
+      "right": 60,
       "bottom": 96
     },
     "canSubstituteFluids": {
-      "left": 148,
+      "right": 48,
       "bottom": 96
     }
   }

@@ -9,6 +9,8 @@ import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
+import appeng.blockentity.crafting.PatternProviderBlockEntity;
+import appeng.core.definitions.AEBlocks;
 import com.mojang.authlib.GameProfile;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
@@ -244,6 +246,53 @@ public final class LargeAssemblerGameTests {
             }
         }
         helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void patternProviderFillsAllExAssemblerLanes(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var variants = assemblerVariants().stream().filter(variant -> variant.laneCount() > 1).toList();
+        var assemblers = new ArrayList<ExtendedMolecularAssemblerBlockEntity>();
+        var providers = new ArrayList<PatternProviderBlockEntity>();
+        for (int i = 0; i < variants.size(); i++) {
+            var recipe = helper.getLevel().getRecipeManager()
+                    .byKey(ExtendedMolecularAssembler.makeId("gametest/ec_tier_" + variants.get(i).side() / 2))
+                    .orElse(null);
+            var pattern = recipe != null ? makePattern(helper.getLevel(), recipe)
+                    : makeTierFourPattern(helper.getLevel());
+            var pos = new BlockPos(1 + i * 2, 1, 1);
+            assemblers.add(placeAssembler(helper, variants.get(i).block(), pos));
+            helper.setBlock(pos.south(), AEBlocks.CREATIVE_ENERGY_CELL.block());
+            helper.setBlock(pos.north(), AEBlocks.PATTERN_PROVIDER.block());
+            var provider = (PatternProviderBlockEntity) helper.getBlockEntity(pos.north());
+            provider.getLogic().getPatternInv().setItemDirect(0, pattern.getDefinition().toStack());
+            providers.add(provider);
+        }
+
+        helper.runAfterDelay(40, () -> {
+            for (int i = 0; i < assemblers.size(); i++) {
+                var assembler = assemblers.get(i);
+                var provider = providers.get(i);
+                helper.assertTrue(provider.getMainNode().isActive(), "Pattern Provider did not become active");
+                var logic = provider.getLogic();
+                helper.assertTrue(logic.getAvailablePatterns().size() == 1, "Pattern Provider did not decode its pattern");
+                var pattern = (ExtendedTableCraftingPattern) logic.getAvailablePatterns().get(0);
+                for (int lane = 0; lane < assembler.getLaneCount(); lane++) {
+                    helper.assertTrue(logic.pushPattern(pattern, countersForPattern(pattern)),
+                            "Pattern Provider rejected lane " + lane + " on " + assembler.getGridSide() + "x"
+                                    + assembler.getGridSide());
+                    helper.assertTrue(assembler.getCurrentPattern(lane) != null,
+                            "Pattern Provider did not fill lane " + lane);
+                }
+                helper.assertFalse(logic.pushPattern(pattern, countersForPattern(pattern)),
+                        "Pattern Provider pushed another job after all eight lanes were occupied");
+            }
+            helper.succeed();
+        });
     }
 
     private static List<AssemblerVariant> assemblerVariants() {
