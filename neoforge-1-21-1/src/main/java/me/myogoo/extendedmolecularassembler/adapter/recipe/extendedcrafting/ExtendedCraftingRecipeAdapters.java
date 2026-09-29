@@ -9,6 +9,10 @@ public final class ExtendedCraftingRecipeAdapters {
     private ExtendedCraftingRecipeAdapters() {
     }
 
+    public static boolean supports(Recipe<?> recipe) {
+        return recipe instanceof ShapedTableRecipe || recipe instanceof ShapelessTableRecipe;
+    }
+
     public static IMyotusTableRecipe<?> of(Recipe<?> recipe) {
         if (recipe instanceof ShapedTableRecipe shapedRecipe) {
             return new ShapedTableRecipeAdapter(shapedRecipe);

@@ -9,6 +9,10 @@ public final class ReAvaritiaRecipeAdapters {
     private ReAvaritiaRecipeAdapters() {
     }
 
+    public static boolean supports(Recipe<?> recipe) {
+        return recipe instanceof ShapedTableCraftingRecipe || recipe instanceof ShapelessTableCraftingRecipe;
+    }
+
     public static IMyotusTableRecipe<?> of(Recipe<?> recipe) {
         if (recipe instanceof ShapedTableCraftingRecipe shapedRecipe) {
             return new ShapedTierRecipeAdapter(shapedRecipe);

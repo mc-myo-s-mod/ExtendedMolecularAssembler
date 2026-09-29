@@ -10,6 +10,7 @@ import appeng.blockentity.crafting.CraftingBlockEntity;
 import appeng.core.definitions.AEBlocks;
 import appeng.menu.me.crafting.CraftConfirmMenu;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
 import me.myogoo.extendedmolecularassembler.api.annotation.AdvancedAE;
 import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
@@ -27,7 +28,9 @@ import me.myogoo.extendedmolecularassembler.init.EMADataComponents;
 import me.myogoo.extendedmolecularassembler.init.EMAOptionalIntegrations;
 import me.myogoo.extendedmolecularassembler.integration.advancedae.AdvancedAEGameTestHelper;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAEGameTestHelper;
+import me.myogoo.extendedmolecularassembler.integration.itemlist.ExtendedPatternRecipeTransfer;
 import me.myogoo.extendedmolecularassembler.menu.crafting.CraftConfirmExportPlanGate;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinder;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeMatch;
 import me.myogoo.extendedmolecularassembler.pattern.EncodedExtendedCraftingPattern;
@@ -497,7 +500,7 @@ public final class ExtendedPatternGameTests {
             return;
         }
 
-        validateCases(helper, EXTENDED_CRAFTING_CASES);
+        validateCases(helper, EXTENDED_CRAFTING_CASES, RecipeProvider.EXTENDED_CRAFTING);
         helper.succeed();
     }
 
@@ -508,7 +511,7 @@ public final class ExtendedPatternGameTests {
             return;
         }
 
-        validateCases(helper, RE_AVARITIA_CASES);
+        validateCases(helper, RE_AVARITIA_CASES, RecipeProvider.RE_AVARITIA);
         helper.succeed();
     }
 
@@ -519,7 +522,38 @@ public final class ExtendedPatternGameTests {
             return;
         }
 
-        validateCases(helper, AVARITIA_NEO_CASES);
+        validateCases(helper, AVARITIA_NEO_CASES, RecipeProvider.AVARITIA_NEO);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void extendedRecipeClassificationRejectsVanillaAndSmelting(GameTestHelper helper) {
+        var recipes = helper.getLevel().getRecipeManager();
+        for (var path : List.of("crafting_table", "oak_planks")) {
+            var crafting = recipes.byKey(ResourceLocation.withDefaultNamespace(path)).orElseThrow();
+            helper.assertFalse(TableRecipeAdapters.isExtended(crafting.value()),
+                    path + " was classified as extended crafting");
+            helper.assertFalse(ExtendedPatternRecipeTransfer.canTransfer(crafting.value()),
+                    path + " was accepted for extended transfer");
+            assertEqual(helper, ExtendedPatternTableTypes.VANILLA_CRAFTING,
+                    TableRecipeAdapters.of(crafting).tableType(), path + " vanilla adapter");
+            assertEqual(helper, RecipeProvider.EXTENDED_CRAFTING,
+                    RecipeProvider.of(crafting), path + " provider fallback");
+        }
+
+        var smelting = recipes.byKey(ResourceLocation.withDefaultNamespace("iron_ingot_from_smelting_iron_ore"))
+                .orElseThrow();
+        helper.assertFalse(TableRecipeAdapters.isExtended(smelting.value()),
+                "Smelting recipe was classified as extended crafting");
+        helper.assertFalse(ExtendedPatternRecipeTransfer.canTransfer(smelting.value()),
+                "Smelting recipe was accepted for extended transfer");
+        boolean rejected = false;
+        try {
+            TableRecipeAdapters.of(smelting);
+        } catch (IllegalArgumentException expected) {
+            rejected = true;
+        }
+        helper.assertTrue(rejected, "Smelting recipe was accepted by a table recipe adapter");
         helper.succeed();
     }
 
@@ -575,13 +609,13 @@ public final class ExtendedPatternGameTests {
                 path + " recipe registration");
     }
 
-    private static void validateCases(GameTestHelper helper, List<PatternCase> cases) {
+    private static void validateCases(GameTestHelper helper, List<PatternCase> cases, RecipeProvider provider) {
         for (var testCase : cases) {
-            validateCase(helper, testCase);
+            validateCase(helper, testCase, provider);
         }
     }
 
-    private static void validateCase(GameTestHelper helper, PatternCase testCase) {
+    private static void validateCase(GameTestHelper helper, PatternCase testCase, RecipeProvider provider) {
         var level = helper.getLevel();
         var expectedRecipe = testCase.recipeId();
         helper.assertTrue(level.getRecipeManager().byKey(expectedRecipe).isPresent(),
@@ -590,6 +624,11 @@ public final class ExtendedPatternGameTests {
         var machineGrid = testCase.machineGrid();
         var match = requireMatch(helper, ExtendedPatternRecipeFinder.find(machineGrid, level), testCase);
         assertEqual(helper, expectedRecipe, match.recipe().id(), testCase.label() + " recipe lookup");
+        helper.assertTrue(TableRecipeAdapters.isExtended(match.recipe().value()),
+                testCase.label() + " was not classified as an extended recipe");
+        helper.assertTrue(ExtendedPatternRecipeTransfer.canTransfer(match.recipe().value()),
+                testCase.label() + " was not accepted for extended transfer");
+        assertEqual(helper, provider, RecipeProvider.of(match.recipe()), testCase.label() + " recipe provider");
         assertStackMatches(helper, testCase.outputStack(), match.result(), testCase.label() + " lookup output");
         assertSparseInputs(helper, testCase, match.inputs(), testCase.label() + " lookup inputs");
 

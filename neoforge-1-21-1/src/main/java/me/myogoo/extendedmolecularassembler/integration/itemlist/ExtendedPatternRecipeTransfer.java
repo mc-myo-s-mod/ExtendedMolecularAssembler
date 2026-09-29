@@ -24,7 +24,7 @@ public final class ExtendedPatternRecipeTransfer {
     }
 
     public static boolean canTransfer(Recipe<?> recipe) {
-        if (!isExtendedTableRecipe(recipe)) {
+        if (!TableRecipeAdapters.isExtended(recipe)) {
             return false;
         }
 
@@ -39,13 +39,6 @@ public final class ExtendedPatternRecipeTransfer {
         } catch (IllegalArgumentException ignored) {
             return false;
         }
-    }
-
-    private static boolean isExtendedTableRecipe(Recipe<?> recipe) {
-        var className = recipe.getClass().getName();
-        return className.startsWith("com.blakebr0.extendedcrafting.")
-                || className.startsWith("committee.nova.mods.avaritia.")
-                || className.startsWith("net.byAqua3.avaritia.");
     }
 
     public static void transfer(ExtendedPatternEncodingTermMenu menu, Recipe<?> recipe) {

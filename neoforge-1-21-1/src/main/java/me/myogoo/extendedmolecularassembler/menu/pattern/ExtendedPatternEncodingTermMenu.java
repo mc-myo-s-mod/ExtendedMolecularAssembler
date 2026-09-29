@@ -9,9 +9,11 @@ import appeng.menu.guisync.GuiSync;
 import appeng.menu.implementations.MenuTypeBuilder;
 import appeng.menu.me.common.MEStorageMenu;
 import appeng.menu.slot.FakeSlot;
-import appeng.menu.slot.PatternTermSlot;
+import appeng.menu.slot.DisabledSlot;
 import appeng.menu.slot.RestrictedInputSlot;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.adapter.recipe.avaritianeo.AvaritiaNeoRecipeAdapters;
+import me.myogoo.extendedmolecularassembler.adapter.recipe.reavaritia.ReAvaritiaRecipeAdapters;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
 import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
 import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedAE;
@@ -26,6 +28,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
@@ -57,7 +60,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
 
     private final ExtendedPatternEncodingLogic encodingLogic;
     private final FakeSlot[] craftingGridSlots = new FakeSlot[ExtendedTableCraftingPattern.MACHINE_GRID_SIZE];
-    private final PatternTermSlot craftOutputSlot;
+    private final DisabledSlot craftOutputSlot;
     private final RestrictedInputSlot blankPatternSlot;
     private final RestrictedInputSlot encodedPatternSlot;
     private final IExtendedPatternEncodingTerminalHost host;
@@ -114,7 +117,8 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
             addSlot(craftingGridSlots[i] = slot, EMASlotSemantics.EXTENDED_PATTERN_CRAFTING_GRID);
         }
 
-        addSlot(this.craftOutputSlot = new PatternTermSlot(), EMASlotSemantics.EXTENDED_PATTERN_CRAFTING_RESULT);
+        addSlot(this.craftOutputSlot = new DisabledSlot(new SimpleContainer(1), 0),
+                EMASlotSemantics.EXTENDED_PATTERN_CRAFTING_RESULT);
 
         addSlot(this.blankPatternSlot = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.BLANK_PATTERN,
                 encodingLogic.getBlankPatternInv(), 0), appeng.menu.SlotSemantics.BLANK_PATTERN);
@@ -270,7 +274,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
         selectedRecipeId = null;
         recipeMatchCount = 0;
         setSelectedRecipeDisplay(null);
-        craftOutputSlot.setResultItem(ItemStack.EMPTY);
+        craftOutputSlot.set(ItemStack.EMPTY);
         broadcastChanges();
     }
 
@@ -318,7 +322,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
         selectedRecipeId = currentMatch.recipe().id();
         setSelectedRecipeDisplay(currentMatch);
         recipeMatchCount = currentMatches.size();
-        craftOutputSlot.setResultItem(currentMatch.result());
+        craftOutputSlot.set(currentMatch.result());
         broadcastChanges();
     }
 
@@ -566,6 +570,9 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
 
     @Nullable
     private ExtendedPatternRecipeMatch getAndUpdateOutput() {
+        if (isClientSide()) {
+            return null;
+        }
         var encodedInputRevision = encodingLogic.getEncodedInputRevision();
         if (this.matchedEncodedInputRevision != encodedInputRevision) {
             this.matchedEncodedInputRevision = encodedInputRevision;
@@ -599,7 +606,7 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
             setSelectedRecipeDisplay(currentMatch);
         }
         recipeMatchCount = currentMatches.size();
-        craftOutputSlot.setResultItem(currentMatch == null ? ItemStack.EMPTY : currentMatch.result());
+        craftOutputSlot.set(currentMatch == null ? ItemStack.EMPTY : currentMatch.result());
         return currentMatch;
     }
 
@@ -792,11 +799,10 @@ public class ExtendedPatternEncodingTermMenu extends MEStorageMenu {
         }
 
         public static RecipeProvider of(RecipeHolder<?> recipe) {
-            var className = recipe.value().getClass().getName();
-            if (className.startsWith("net.byAqua3.avaritia.")) {
+            if (AVARITIA_NEO.isActive() && AvaritiaNeoRecipeAdapters.supports(recipe.value())) {
                 return AVARITIA_NEO;
             }
-            if (className.startsWith("committee.nova.mods.avaritia.")) {
+            if (RE_AVARITIA.isActive() && ReAvaritiaRecipeAdapters.supports(recipe.value())) {
                 return RE_AVARITIA;
             }
             return EXTENDED_CRAFTING;

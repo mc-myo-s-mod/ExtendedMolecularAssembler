@@ -9,6 +9,10 @@ public final class AvaritiaNeoRecipeAdapters {
     private AvaritiaNeoRecipeAdapters() {
     }
 
+    public static boolean supports(Recipe<?> recipe) {
+        return recipe instanceof RecipeExtremeShaped || recipe instanceof RecipeExtremeShapeless;
+    }
+
     public static IMyotusTableRecipe<?> of(Recipe<?> recipe) {
         if (recipe instanceof RecipeExtremeShaped shapedRecipe) {
             return new ShapedExtremeRecipeAdapter(shapedRecipe);
