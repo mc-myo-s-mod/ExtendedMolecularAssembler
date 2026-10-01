@@ -149,8 +149,6 @@ still needs manual confirmation; this resource refresh has not been deployed.
 - Build and the client title-screen resource/style checks passed; all 19
   packaged terminal assets match source. World/cable-color visuals still need
   manual confirmation. These changes have not been deployed or committed.
-- `scripts/verify-terminal-models.ps1` checks the shared references, tint indices
-  and non-overlapping masks, including complete dark/edge border coverage.
 
 ### Current assembler palette (2026-09-28)
 
