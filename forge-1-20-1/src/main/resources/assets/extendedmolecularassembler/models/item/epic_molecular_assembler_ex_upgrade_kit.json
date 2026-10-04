@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "extendedmolecularassembler:item/epic_molecular_assembler_ex_upgrade_kit"
+  }
+}

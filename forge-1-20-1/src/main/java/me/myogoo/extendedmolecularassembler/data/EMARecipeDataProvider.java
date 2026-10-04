@@ -53,6 +53,16 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 .requires(tag("forge:dusts/ender_pearl"))
                 .requires(item("ae2:speed_card"))
                 .save(output, recipeId("ex_extended_molecular_assembler"));
+        shapeless("minecraft:crafting_shapeless", "extendedmolecularassembler:ex_extended_molecular_assembler_upgrade_kit", 1)
+                .conditions(myoConditions("expatternprovider"))
+                .requires(item("extendedmolecularassembler:extended_molecular_assembler"))
+                .requires(item("extendedmolecularassembler:extended_molecular_assembler"))
+                .requires(item("extendedmolecularassembler:extended_molecular_assembler"))
+                .requires(item(COMPAT_PROCESSOR))
+                .requires(item(ENGINEERING_PROCESSOR))
+                .requires(tag("forge:dusts/ender_pearl"))
+                .requires(item("ae2:speed_card"))
+                .save(output, recipeId("ex_extended_molecular_assembler_upgrade_kit"));
         for (String tier : new String[] { "epic", "legendary" }) {
             String table = "extendedcrafting:" + tier + "_table";
             JsonArray conditions = myoConditions("expatternprovider", "extendedcrafting");
@@ -71,6 +81,17 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                     .requires(tag("forge:dusts/ender_pearl"))
                     .requires(item("ae2:speed_card"))
                     .save(output, recipeId("ex_" + tier + "_molecular_assembler"));
+            shapeless("minecraft:crafting_shapeless",
+                    "extendedmolecularassembler:" + tier + "_molecular_assembler_ex_upgrade_kit", 1)
+                    .conditions(conditions)
+                    .requires(item("extendedmolecularassembler:" + tier + "_molecular_assembler"))
+                    .requires(item("extendedmolecularassembler:" + tier + "_molecular_assembler"))
+                    .requires(item("extendedmolecularassembler:" + tier + "_molecular_assembler"))
+                    .requires(item(COMPAT_PROCESSOR))
+                    .requires(item(ENGINEERING_PROCESSOR))
+                    .requires(tag("forge:dusts/ender_pearl"))
+                    .requires(item("ae2:speed_card"))
+                    .save(output, recipeId(tier + "_molecular_assembler_ex_upgrade_kit"));
         }
         buildExtendedPatternEncodingTerminalRecipes(output);
 
@@ -82,6 +103,20 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
             tableExists.addProperty("item", table);
             conditions.add(tableExists);
             String previous = tier.equals("epic") ? "extended" : "epic";
+            shapeless("minecraft:crafting_shapeless", "extendedmolecularassembler:" + tier + "_molecular_assembler_upgrade_kit", 1)
+                    .conditions(conditions)
+                    .requires(item(table))
+                    .requires(item(COMPAT_PROCESSOR))
+                    .save(output, recipeId(tier + "_molecular_assembler_upgrade_kit"));
+            JsonArray exKitConditions = conditions.deepCopy();
+            exKitConditions.add(myoCondition("expatternprovider"));
+            var exKit = shapeless("minecraft:crafting_shapeless",
+                    "extendedmolecularassembler:ex_" + tier + "_molecular_assembler_upgrade_kit", 1)
+                    .conditions(exKitConditions);
+            for (int i = 0; i < 4; i++) {
+                exKit.requires(item(table)).requires(item(COMPAT_PROCESSOR));
+            }
+            exKit.save(output, recipeId("ex_" + tier + "_molecular_assembler_upgrade_kit"));
             for (String device : new String[] { "molecular_assembler", "pattern_encoding_terminal" }) {
                 shapeless("minecraft:crafting_shapeless", "extendedmolecularassembler:" + tier + "_" + device, 1)
                         .conditions(conditions)

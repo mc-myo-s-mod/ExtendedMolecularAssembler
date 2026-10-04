@@ -37,6 +37,29 @@ Export-mode crafting confirmation are implemented using the matching Forge APIs.
 Optional content is guarded by Myotus annotation integrations, without reflection.
 Quantum content remains AdvancedAE-only WIP with no crafting recipe.
 
+### Assembler upgrade kits
+
+- Right-click kits upgrade Extended -> Epic -> Legendary, Ex Extended -> Ex Epic
+  -> Ex Legendary, and Extended -> Ex Extended. They do not skip tiers or downgrade.
+- All crafting/output slots must be empty and no pushed job may be active. The
+  installed pattern, acceleration cards, custom name, orientation and node data
+  are retained. Ex kits register only with ExtendedAE.
+- Tier kits cost the target table and one Compat Processor; Ex tier kits cost four
+  of each, matching the four-assembler Ex recipes. The Ex Extended kit costs three
+  Extended Assemblers, a Compat Processor, an Engineering Processor, Ender Dust and
+  an Acceleration Card; the installed assembler supplies the fourth assembler.
+- Epic/Legendary kit recipes require their table item to exist. Kit icons show
+  the source assembler's table colors and the target assembler's shaded arrow.
+- Epic -> Ex Epic and Legendary -> Ex Legendary conversion kits each cost three
+  same-tier normal assemblers, a Compat Processor, an Engineering Processor,
+  Ender Dust and an Acceleration Card; the installed assembler supplies the
+  fourth assembler. These kits are gated by ExtendedAE, and each recipe also
+  requires its corresponding Extended Crafting table item to exist.
+- Compilation, datagen, common crafting checks and the Forge build passed. All 46
+  GameTests passed with Reforked + ExtendedAE + AE2WTLib and without optional
+  integrations; tests for unavailable integrations skip. Client interaction with
+  the kits remains a manual check.
+
 ### Epic and Legendary wireless terminals (2026-09-28)
 
 - Epic and Legendary wireless pattern terminals reuse the existing host/menu/screen

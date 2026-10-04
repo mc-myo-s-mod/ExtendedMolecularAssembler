@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "expatternprovider"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "extendedmolecularassembler:extended_molecular_assembler"
+    },
+    {
+      "item": "extendedmolecularassembler:extended_molecular_assembler"
+    },
+    {
+      "item": "extendedmolecularassembler:extended_molecular_assembler"
+    },
+    {
+      "item": "myotus:compat_processor"
+    },
+    {
+      "item": "ae2:engineering_processor"
+    },
+    {
+      "tag": "forge:dusts/ender_pearl"
+    },
+    {
+      "item": "ae2:speed_card"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:ex_extended_molecular_assembler_upgrade_kit"
+  }
+}

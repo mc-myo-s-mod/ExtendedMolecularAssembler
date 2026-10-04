@@ -5,6 +5,7 @@ import appeng.crafting.pattern.EncodedPatternItem;
 import appeng.core.localization.GuiText;
 import appeng.util.InteractionUtil;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.item.AssemblerUpgradeKitItem;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import me.myogoo.extendedmolecularassembler.pattern.EncodedExtendedCraftingPattern;
 import net.minecraft.world.InteractionHand;
@@ -41,6 +42,23 @@ public final class EMAItems {
     public static final RegistryObject<BlockItem> LEGENDARY_MOLECULAR_ASSEMBLER =
             ITEMS.register("legendary_molecular_assembler",
                     () -> new BlockItem(EMABlocks.LEGENDARY_MOLECULAR_ASSEMBLER.get(), new Item.Properties()));
+
+    public static final RegistryObject<AssemblerUpgradeKitItem> EPIC_ASSEMBLER_UPGRADE_KIT =
+            ITEMS.register("epic_molecular_assembler_upgrade_kit", () -> new AssemblerUpgradeKitItem(
+                    new Item.Properties(), EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER, EMABlocks.EPIC_MOLECULAR_ASSEMBLER));
+    public static final RegistryObject<AssemblerUpgradeKitItem> LEGENDARY_ASSEMBLER_UPGRADE_KIT =
+            ITEMS.register("legendary_molecular_assembler_upgrade_kit", () -> new AssemblerUpgradeKitItem(
+                    new Item.Properties(), EMABlocks.EPIC_MOLECULAR_ASSEMBLER, EMABlocks.LEGENDARY_MOLECULAR_ASSEMBLER));
+    @Nullable
+    public static RegistryObject<AssemblerUpgradeKitItem> EX_EXTENDED_ASSEMBLER_UPGRADE_KIT;
+    @Nullable
+    public static RegistryObject<AssemblerUpgradeKitItem> EX_EPIC_ASSEMBLER_UPGRADE_KIT;
+    @Nullable
+    public static RegistryObject<AssemblerUpgradeKitItem> EX_LEGENDARY_ASSEMBLER_UPGRADE_KIT;
+    @Nullable
+    public static RegistryObject<AssemblerUpgradeKitItem> EPIC_ASSEMBLER_EX_UPGRADE_KIT;
+    @Nullable
+    public static RegistryObject<AssemblerUpgradeKitItem> LEGENDARY_ASSEMBLER_EX_UPGRADE_KIT;
 
     public static final RegistryObject<BlockItem> BASIC_ME_CRAFTING_PROVIDER =
             ITEMS.register("basic_me_crafting_provider",
@@ -129,6 +147,21 @@ public final class EMAItems {
             EX_LEGENDARY_MOLECULAR_ASSEMBLER = ITEMS.register(
                     "ex_legendary_molecular_assembler",
                     () -> new BlockItem(EMABlocks.EX_LEGENDARY_MOLECULAR_ASSEMBLER.get(), new Item.Properties()));
+            EX_EXTENDED_ASSEMBLER_UPGRADE_KIT = ITEMS.register("ex_extended_molecular_assembler_upgrade_kit",
+                    () -> new AssemblerUpgradeKitItem(new Item.Properties(),
+                            EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER, EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER));
+            EX_EPIC_ASSEMBLER_UPGRADE_KIT = ITEMS.register("ex_epic_molecular_assembler_upgrade_kit",
+                    () -> new AssemblerUpgradeKitItem(new Item.Properties(),
+                            EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER, EMABlocks.EX_EPIC_MOLECULAR_ASSEMBLER));
+            EX_LEGENDARY_ASSEMBLER_UPGRADE_KIT = ITEMS.register("ex_legendary_molecular_assembler_upgrade_kit",
+                    () -> new AssemblerUpgradeKitItem(new Item.Properties(),
+                            EMABlocks.EX_EPIC_MOLECULAR_ASSEMBLER, EMABlocks.EX_LEGENDARY_MOLECULAR_ASSEMBLER));
+            EPIC_ASSEMBLER_EX_UPGRADE_KIT = ITEMS.register("epic_molecular_assembler_ex_upgrade_kit",
+                    () -> new AssemblerUpgradeKitItem(new Item.Properties(),
+                            EMABlocks.EPIC_MOLECULAR_ASSEMBLER, EMABlocks.EX_EPIC_MOLECULAR_ASSEMBLER));
+            LEGENDARY_ASSEMBLER_EX_UPGRADE_KIT = ITEMS.register("legendary_molecular_assembler_ex_upgrade_kit",
+                    () -> new AssemblerUpgradeKitItem(new Item.Properties(),
+                            EMABlocks.LEGENDARY_MOLECULAR_ASSEMBLER, EMABlocks.EX_LEGENDARY_MOLECULAR_ASSEMBLER));
         }
     }
 

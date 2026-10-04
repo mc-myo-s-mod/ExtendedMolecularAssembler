@@ -1,0 +1,47 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    },
+    {
+      "type": "forge:item_exists",
+      "item": "extendedcrafting:legendary_table"
+    },
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "expatternprovider"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "extendedcrafting:legendary_table"
+    },
+    {
+      "item": "myotus:compat_processor"
+    },
+    {
+      "item": "extendedcrafting:legendary_table"
+    },
+    {
+      "item": "myotus:compat_processor"
+    },
+    {
+      "item": "extendedcrafting:legendary_table"
+    },
+    {
+      "item": "myotus:compat_processor"
+    },
+    {
+      "item": "extendedcrafting:legendary_table"
+    },
+    {
+      "item": "myotus:compat_processor"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:ex_legendary_molecular_assembler_upgrade_kit"
+  }
+}

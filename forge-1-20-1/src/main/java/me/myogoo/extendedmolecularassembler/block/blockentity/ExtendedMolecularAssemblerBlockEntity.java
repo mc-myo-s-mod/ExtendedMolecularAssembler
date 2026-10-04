@@ -426,6 +426,16 @@ public class ExtendedMolecularAssemblerBlockEntity extends AENetworkInvBlockEnti
         return this.patternInv;
     }
 
+    public boolean canUpgrade() {
+        for (int i = 0; i < this.laneCount; i++) {
+            var lane = this.lanes[i];
+            if (lane.forcePlan || !lane.gridInv.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public void addAdditionalDrops(Level level, BlockPos pos, List<ItemStack> drops) {
         super.addAdditionalDrops(level, pos, drops);

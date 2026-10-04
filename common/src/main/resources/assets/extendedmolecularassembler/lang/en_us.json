@@ -1,4 +1,13 @@
 {
+  "item.extendedmolecularassembler.epic_molecular_assembler_upgrade_kit": "Epic Molecular Assembler Upgrade Kit",
+  "item.extendedmolecularassembler.legendary_molecular_assembler_upgrade_kit": "Legendary Molecular Assembler Upgrade Kit",
+  "item.extendedmolecularassembler.epic_molecular_assembler_ex_upgrade_kit": "Epic Molecular Assembler Ex Conversion Kit",
+  "item.extendedmolecularassembler.legendary_molecular_assembler_ex_upgrade_kit": "Legendary Molecular Assembler Ex Conversion Kit",
+  "item.extendedmolecularassembler.ex_extended_molecular_assembler_upgrade_kit": "Ex Extended Molecular Assembler Upgrade Kit",
+  "item.extendedmolecularassembler.ex_epic_molecular_assembler_upgrade_kit": "Ex Epic Molecular Assembler Upgrade Kit",
+  "item.extendedmolecularassembler.ex_legendary_molecular_assembler_upgrade_kit": "Ex Legendary Molecular Assembler Upgrade Kit",
+  "tooltip.extendedmolecularassembler.assembler_upgrade_kit": "%s → %s",
+  "message.extendedmolecularassembler.assembler_upgrade_busy": "Finish crafting and empty all crafting and output slots before upgrading.",
   "gui.extendedmolecularassembler.matrix.extendedPatterns": "Extended Matrix Patterns",
   "gui.extendedmolecularassembler.matrix.epicPatterns": "Epic Matrix Patterns",
   "gui.extendedmolecularassembler.matrix.legendaryPatterns": "Legendary Matrix Patterns",

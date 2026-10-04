@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedcrafting"
+    },
+    {
+      "type": "forge:item_exists",
+      "item": "extendedcrafting:epic_table"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "extendedcrafting:epic_table"
+    },
+    {
+      "item": "myotus:compat_processor"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "item": "extendedmolecularassembler:epic_molecular_assembler_upgrade_kit"
+  }
+}

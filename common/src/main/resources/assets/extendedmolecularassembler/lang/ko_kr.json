@@ -1,4 +1,13 @@
 {
+  "item.extendedmolecularassembler.epic_molecular_assembler_upgrade_kit": "에픽 분자 조합기 업그레이드 킷",
+  "item.extendedmolecularassembler.legendary_molecular_assembler_upgrade_kit": "레전더리 분자 조합기 업그레이드 킷",
+  "item.extendedmolecularassembler.epic_molecular_assembler_ex_upgrade_kit": "에픽 분자 조합기 Ex 전환 킷",
+  "item.extendedmolecularassembler.legendary_molecular_assembler_ex_upgrade_kit": "레전더리 분자 조합기 Ex 전환 킷",
+  "item.extendedmolecularassembler.ex_extended_molecular_assembler_upgrade_kit": "Ex 확장 분자 조합기 업그레이드 킷",
+  "item.extendedmolecularassembler.ex_epic_molecular_assembler_upgrade_kit": "Ex 에픽 분자 조합기 업그레이드 킷",
+  "item.extendedmolecularassembler.ex_legendary_molecular_assembler_upgrade_kit": "Ex 레전더리 분자 조합기 업그레이드 킷",
+  "tooltip.extendedmolecularassembler.assembler_upgrade_kit": "%s → %s",
+  "message.extendedmolecularassembler.assembler_upgrade_busy": "조합을 끝내고 모든 조합칸과 출력칸을 비운 뒤 업그레이드하세요.",
   "gui.extendedmolecularassembler.matrix.extendedPatterns": "확장 매트릭스 패턴",
   "gui.extendedmolecularassembler.matrix.epicPatterns": "에픽 매트릭스 패턴",
   "gui.extendedmolecularassembler.matrix.legendaryPatterns": "레전더리 매트릭스 패턴",
