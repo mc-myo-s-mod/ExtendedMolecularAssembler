@@ -9,6 +9,8 @@ import appeng.api.util.AECableType;
 import appeng.blockentity.crafting.CraftingBlockEntity;
 import appeng.core.definitions.AEBlocks;
 import appeng.menu.me.crafting.CraftConfirmMenu;
+import appeng.menu.SlotSemantics;
+import io.netty.buffer.Unpooled;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
@@ -30,6 +32,9 @@ import me.myogoo.extendedmolecularassembler.integration.advancedae.AdvancedAEGam
 import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAEGameTestHelper;
 import me.myogoo.extendedmolecularassembler.integration.itemlist.ExtendedPatternRecipeTransfer;
 import me.myogoo.extendedmolecularassembler.menu.crafting.CraftConfirmExportPlanGate;
+import me.myogoo.extendedmolecularassembler.menu.ExtendedMolecularAssemblerMenu;
+import me.myogoo.extendedmolecularassembler.menu.ExtendedMolecularAssemblerMenu.LanePatternSync;
+import me.myogoo.extendedmolecularassembler.menu.slot.ExtendedMolecularAssemblerPatternSlot;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinder;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeMatch;
@@ -44,16 +49,20 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -567,6 +576,142 @@ public final class ExtendedPatternGameTests {
                 name + " must expose covered cable connection type like AE2 Molecular Assembler");
         helper.assertTrue(ICraftingMachine.of(level, absolutePos, Direction.NORTH) != null,
                 name + " does not expose AE2 crafting-machine capability");
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void assemblerMenuCachesSynchronizedPatterns(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        assertAssemblerMenuPatternCache(helper, EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get());
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void exAssemblerMenuCachesSynchronizedPatterns(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedAE.class)) {
+            helper.succeed();
+            return;
+        }
+
+        assertAssemblerMenuPatternCache(helper, EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
+        helper.succeed();
+    }
+
+    private static void assertAssemblerMenuPatternCache(GameTestHelper helper, Block block) {
+        var serverHost = placeAssembler(helper, block, new BlockPos(1, 1, 1), "pattern cache assembler");
+        var firstStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.get(0));
+        var secondStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.get(1));
+        serverHost.getPatternInventory().setItemDirect(0, firstStack.copy());
+        var inventory = FakePlayerFactory.getMinecraft((ServerLevel) helper.getLevel()).getInventory();
+        var serverMenu = new ExtendedMolecularAssemblerMenu(0, inventory, serverHost);
+        var serverPlan = serverHost.getCurrentPattern(0);
+        helper.assertTrue(serverPlan != null && serverMenu.getCurrentPattern(0) == serverPlan,
+                "server menu must reuse the crafting lane plan");
+
+        var clientHost = new ExtendedMolecularAssemblerBlockEntity(serverHost.getType(),
+                serverHost.getBlockPos(), serverHost.getBlockState()) {
+            @Override
+            public ExtendedTableCraftingPattern getCurrentPattern(int laneIndex) {
+                throw new AssertionError("client menu bypassed its synchronized pattern cache");
+            }
+        };
+        clientHost.setLevel(helper.getLevel());
+        var clientMenu = new ExtendedMolecularAssemblerMenu(1, inventory, clientHost) {
+            @Override
+            public boolean isClientSide() {
+                return true;
+            }
+        };
+        helper.assertTrue(clientMenu.getCurrentPattern(0) == null, "initial empty sync must have no pattern");
+        clientMenu.lanePatterns = roundTripLanePatterns(helper, LanePatternSync.from(serverHost));
+        var first = clientMenu.getCurrentPattern(0);
+        helper.assertTrue(first != null, "server internal pattern must reach client lane zero");
+        assertCachedPatternSlots(helper, clientMenu, 0, first);
+
+        clientMenu.lanePatterns = roundTripLanePatterns(helper, LanePatternSync.from(serverHost));
+        helper.assertTrue(clientMenu.getCurrentPattern(0) == first,
+                "equal-content packet must retain the decoded pattern");
+
+        if (serverHost.getLaneCount() > 1) {
+            helper.assertTrue(clientMenu.getSlots(SlotSemantics.ENCODED_PATTERN).isEmpty(),
+                    "Ex regression must exercise the hidden retained internal pattern");
+            var stacks = new ArrayList<>(clientMenu.lanePatterns.patterns());
+            stacks.set(1, secondStack.copy());
+            clientMenu.lanePatterns = roundTripLanePatterns(helper, new LanePatternSync(stacks));
+            var otherLane = clientMenu.getCurrentPattern(1);
+            helper.assertTrue(otherLane != null, "nonzero Ex lane must decode its synchronized pattern");
+            helper.assertTrue(clientMenu.getCurrentPattern(0) == first,
+                    "unrelated lane update must not invalidate lane zero");
+            assertCachedPatternSlots(helper, clientMenu, 1, otherLane);
+            stacks.set(0, secondStack.copy());
+            clientMenu.lanePatterns = roundTripLanePatterns(helper, new LanePatternSync(stacks));
+            helper.assertTrue(clientMenu.getCurrentPattern(1) == otherLane,
+                    "lane zero update must not invalidate another lane");
+        }
+
+        serverHost.getPatternInventory().setItemDirect(0, secondStack.copy());
+        clientMenu.lanePatterns = roundTripLanePatterns(helper, LanePatternSync.from(serverHost));
+        var second = clientMenu.getCurrentPattern(0);
+        helper.assertTrue(second != null && second != first, "replacement must invalidate the old pattern");
+        assertPattern(helper, EXTENDED_CRAFTING_CASES.get(1), second);
+        assertCachedPatternSlots(helper, clientMenu, 0, second);
+
+        serverHost.getPatternInventory().setItemDirect(0, ItemStack.EMPTY);
+        clientMenu.lanePatterns = roundTripLanePatterns(helper, LanePatternSync.from(serverHost));
+        helper.assertTrue(clientMenu.getCurrentPattern(0) == null, "removal must clear the decoded pattern");
+        clientMenu.lanePatterns = roundTripLanePatterns(helper,
+                new LanePatternSync(List.of(new ItemStack(Items.STONE))));
+        helper.assertTrue(clientMenu.getCurrentPattern(0) == null
+                        && clientMenu.getCurrentPattern(0) == null,
+                "invalid synchronized stack must remain a null pattern");
+
+        serverHost.getPatternInventory().setItemDirect(0, firstStack.copy());
+        clientMenu.lanePatterns = roundTripLanePatterns(helper, LanePatternSync.from(serverHost));
+        var restored = clientMenu.getCurrentPattern(0);
+        helper.assertTrue(restored != null, "valid sync must replace a cached null result");
+        assertCachedPatternSlots(helper, clientMenu, 0, restored);
+        var mutableSource = LanePatternSync.from(serverHost);
+        mutableSource.patternAt(0).set(EMADataComponents.ENCODED_EXTENDED_CRAFTING_PATTERN,
+                secondStack.get(EMADataComponents.ENCODED_EXTENDED_CRAFTING_PATTERN));
+        clientMenu.lanePatterns = roundTripLanePatterns(helper, mutableSource);
+        var mutated = clientMenu.getCurrentPattern(0);
+        helper.assertTrue(mutated != null && mutated != restored,
+                "in-place component changes in a newly synchronized snapshot must invalidate the cache");
+        assertPattern(helper, EXTENDED_CRAFTING_CASES.get(1), mutated);
+        helper.assertTrue(clientMenu.getCurrentPattern(-1) == null
+                        && clientMenu.getCurrentPattern(ExtendedMolecularAssemblerBlockEntity.PARALLEL_LANE_COUNT) == null,
+                "invalid lane indices must have no pattern");
+    }
+
+    private static void assertCachedPatternSlots(GameTestHelper helper, ExtendedMolecularAssemblerMenu menu,
+            int lane, ExtendedTableCraftingPattern expected) {
+        menu.page = lane;
+        menu.showPage();
+        for (int pass = 0; pass < 3; pass++) {
+            for (var slot : menu.slots) {
+                if (slot instanceof ExtendedMolecularAssemblerPatternSlot patternSlot
+                        && patternSlot.getLaneIndex() == lane) {
+                    helper.assertTrue(patternSlot.isSlotEnabled() == expected.isSlotEnabled(patternSlot.getSlotIndex()),
+                            "slot enablement must follow the current synchronized pattern");
+                }
+            }
+            helper.assertTrue(menu.getCurrentPattern(lane) == expected,
+                    "repeated slot and getter queries must retain decoded pattern identity");
+        }
+    }
+
+    private static LanePatternSync roundTripLanePatterns(GameTestHelper helper, LanePatternSync source) {
+        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+        try {
+            source.writeToPacket(buffer);
+            return new LanePatternSync(buffer);
+        } finally {
+            buffer.release();
+        }
     }
 
     private static BlockPos providerTestPosition(int index) {

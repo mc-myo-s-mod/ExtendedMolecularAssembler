@@ -12,6 +12,7 @@ import appeng.api.stacks.KeyCounter;
 import appeng.blockentity.crafting.PatternProviderBlockEntity;
 import appeng.core.definitions.AEBlocks;
 import com.mojang.authlib.GameProfile;
+import io.netty.buffer.Unpooled;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.adapter.recipe.TableRecipeAdapters;
 import me.myogoo.extendedmolecularassembler.api.ExtendedPatternDetailsHelper;
@@ -30,6 +31,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -295,6 +297,118 @@ public final class LargeAssemblerGameTests {
         });
     }
 
+    @GameTest(template = "empty", timeoutTicks = 40)
+    public static void assemblerMenuCachesSynchronizedPatterns(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "ema_pattern_cache"));
+        var replacement = makePattern(level, level.getRecipeManager()
+                .byKey(ExtendedMolecularAssembler.makeId("gametest/ec_tier_1")).orElseThrow());
+        var variants = assemblerVariants();
+        for (int i = 0; i < variants.size(); i++) {
+            var variant = variants.get(i);
+            var recipe = level.getRecipeManager()
+                    .byKey(ExtendedMolecularAssembler.makeId("gametest/ec_tier_" + variant.side() / 2))
+                    .orElse(null);
+            var pattern = recipe != null ? makePattern(level, recipe) : makeTierFourPattern(level);
+            var serverHost = placeAssembler(helper, variant.block(), assemblerTestPos(i));
+            serverHost.getPatternInventory().setItemDirect(0, pattern.getDefinition().toStack());
+            var serverPlan = serverHost.getCurrentPattern(0);
+            helper.assertTrue(serverPlan != null, "Internal pattern did not create a server plan");
+            var serverMenu = new ExtendedMolecularAssemblerMenu(0, player.getInventory(), serverHost);
+            helper.assertTrue(serverMenu.getCurrentPattern(0) == serverPlan,
+                    "Server menu must reuse the existing crafting plan");
+
+            // A client host with the retained internal pattern, including Ex's hidden first-page pattern.
+            var clientHost = new ExtendedMolecularAssemblerBlockEntity(variant.blockEntityType(),
+                    serverHost.getBlockPos(), variant.block().defaultBlockState()) {
+                @Override
+                public ExtendedTableCraftingPattern getCurrentPattern(int laneIndex) {
+                    throw new AssertionError("Client menu bypassed its pattern cache through the block entity");
+                }
+            };
+            clientHost.setLevel(level);
+            clientHost.getPatternInventory().setItemDirect(0, pattern.getDefinition().toStack());
+            var menu = createMenu(player, clientHost);
+            syncPatterns(menu, ExtendedMolecularAssemblerMenu.LanePatternSync.from(serverHost));
+            var cached = menu.getCurrentPattern(0);
+            helper.assertTrue(cached != null && cached != serverPlan,
+                    "Client menu must decode its synchronized pattern independently");
+            for (int frame = 0; frame < 3; frame++) {
+                for (var slot : menu.slots) {
+                    if (slot instanceof ExtendedMolecularAssemblerPatternSlot input && input.getLaneIndex() == 0) {
+                        helper.assertTrue(input.isSlotEnabled() == cached.isSlotEnabled(input.getSlotIndex(), variant.side()),
+                                "Cached pattern did not control the empty grid slot");
+                        helper.assertTrue(menu.getCurrentPattern(0) == cached,
+                                "Repeated slot queries decoded an unchanged pattern again");
+                    }
+                }
+            }
+
+            syncPatterns(menu, ExtendedMolecularAssemblerMenu.LanePatternSync.from(serverHost));
+            helper.assertTrue(menu.getCurrentPattern(0) == cached,
+                    "An equal synchronization snapshot discarded the cached pattern");
+            if (variant.laneCount() > 1) {
+                var lanes = new ArrayList<>(menu.lanePatterns.patterns());
+                lanes.set(variant.laneCount() - 1, pattern.getDefinition().toStack());
+                syncPatterns(menu, new ExtendedMolecularAssemblerMenu.LanePatternSync(lanes));
+                menu.page = variant.laneCount() - 1;
+                menu.onServerDataSync();
+                var lastPage = menu.getCurrentPattern(menu.page);
+                helper.assertTrue(lastPage != null, "Ex last-page pattern did not synchronize");
+                menu.page = 0;
+                menu.onServerDataSync();
+                helper.assertTrue(menu.getCurrentPattern(0) == cached,
+                        "Updating another Ex page invalidated the retained first-page pattern");
+                helper.assertTrue(menu.getCurrentPattern(variant.laneCount() - 1) == lastPage,
+                        "Page switching discarded the cached pattern");
+                lanes.set(variant.laneCount() - 1, replacement.getDefinition().toStack());
+                syncPatterns(menu, new ExtendedMolecularAssemblerMenu.LanePatternSync(lanes));
+                helper.assertTrue(menu.getCurrentPattern(0) == cached,
+                        "Replacing another Ex page invalidated an unchanged page");
+                helper.assertTrue(menu.getCurrentPattern(variant.laneCount() - 1).getDefinition()
+                                .equals(replacement.getDefinition()),
+                        "Ex last-page pattern replacement was not decoded");
+            }
+
+            serverHost.getPatternInventory().setItemDirect(0, replacement.getDefinition().toStack());
+            syncPatterns(menu, ExtendedMolecularAssemblerMenu.LanePatternSync.from(serverHost));
+            var replaced = menu.getCurrentPattern(0);
+            helper.assertTrue(replaced != null && replaced != cached
+                            && replaced.getDefinition().equals(replacement.getDefinition()),
+                    "Pattern replacement did not invalidate the client cache");
+            serverHost.getPatternInventory().setItemDirect(0, new ItemStack(Items.PAPER));
+            syncPatterns(menu, ExtendedMolecularAssemblerMenu.LanePatternSync.from(serverHost));
+            helper.assertTrue(menu.getCurrentPattern(0) == null && menu.getCurrentPattern(0) == null,
+                    "Invalid pattern retained a previously decoded pattern");
+            serverHost.getPatternInventory().setItemDirect(0, ItemStack.EMPTY);
+            syncPatterns(menu, ExtendedMolecularAssemblerMenu.LanePatternSync.from(serverHost));
+            helper.assertTrue(menu.getCurrentPattern(0) == null, "Removed pattern remained cached");
+            helper.assertFalse(findPatternSlot(menu, variant.side() * variant.side() / 2).isSlotEnabled(),
+                    "Removing the pattern left an empty grid slot enabled");
+            serverHost.getPatternInventory().setItemDirect(0, pattern.getDefinition().toStack());
+            syncPatterns(menu, ExtendedMolecularAssemblerMenu.LanePatternSync.from(serverHost));
+            helper.assertTrue(menu.getCurrentPattern(0) != null, "An empty cache blocked a newly inserted pattern");
+        }
+        helper.succeed();
+    }
+
+    private static void syncPatterns(ExtendedMolecularAssemblerMenu menu,
+            ExtendedMolecularAssemblerMenu.LanePatternSync patterns) {
+        var data = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            patterns.writeToPacket(data);
+            menu.lanePatterns = new ExtendedMolecularAssemblerMenu.LanePatternSync(data);
+            menu.onServerDataSync();
+        } finally {
+            data.release();
+        }
+    }
+
     private static List<AssemblerVariant> assemblerVariants() {
         var variants = new ArrayList<>(List.of(
                 new AssemblerVariant(9, 1, EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get(),
@@ -339,12 +453,14 @@ public final class LargeAssemblerGameTests {
 
     private static ExtendedMolecularAssemblerMenu createMenu(FakePlayer player,
             ExtendedMolecularAssemblerBlockEntity assembler) {
-        return new ExtendedMolecularAssemblerMenu(0, player.getInventory(), assembler) {
+        var menu = new ExtendedMolecularAssemblerMenu(0, player.getInventory(), assembler) {
             @Override
             public boolean isClientSide() {
                 return true;
             }
         };
+        menu.lanePatterns = ExtendedMolecularAssemblerMenu.LanePatternSync.from(assembler);
+        return menu;
     }
 
     private static ExtendedMolecularAssemblerPatternSlot findPatternSlot(ExtendedMolecularAssemblerMenu menu,

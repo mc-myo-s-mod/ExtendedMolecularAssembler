@@ -24,7 +24,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMolecularAssemblerBlockEntity>
@@ -167,9 +166,12 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
     }
 
     public ExtendedTableCraftingPattern getCurrentPattern(int laneIndex) {
-        var hostPattern = this.getHost().getCurrentPattern(laneIndex);
-        if (hostPattern != null) {
-            return hostPattern;
+        // Client block entities decode on every lookup; use the synchronized menu cache instead.
+        if (!this.isClientSide()) {
+            var hostPattern = this.getHost().getCurrentPattern(laneIndex);
+            if (hostPattern != null) {
+                return hostPattern;
+            }
         }
 
         this.refreshDecodedPatternCache();
@@ -210,9 +212,13 @@ public class ExtendedMolecularAssemblerMenu extends UpgradeableMenu<ExtendedMole
             return;
         }
 
+        for (int lane = 0; lane < this.decodedPatterns.length; lane++) {
+            if (!ItemStack.matches(this.decodedPatternSource.patternAt(lane), this.lanePatterns.patternAt(lane))) {
+                this.decodedPatternLoaded[lane] = false;
+                this.decodedPatterns[lane] = null;
+            }
+        }
         this.decodedPatternSource = this.lanePatterns;
-        Arrays.fill(this.decodedPatternLoaded, false);
-        Arrays.fill(this.decodedPatterns, null);
     }
 
     public record LanePatternSync(List<ItemStack> patterns) implements PacketWritable {

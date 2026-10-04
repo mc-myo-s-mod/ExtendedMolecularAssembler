@@ -55,6 +55,37 @@ public record EncodedExtendedCraftingPattern(
         return !tableType.equals(ExtendedPatternTableTypes.UNKNOWN) && tableTier > 0 && tableSideLength > 0;
     }
 
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof EncodedExtendedCraftingPattern other)) {
+            return false;
+        }
+        return tableTier == other.tableTier
+                && tableSideLength == other.tableSideLength
+                && canSubstitute == other.canSubstitute
+                && canSubstituteFluids == other.canSubstituteFluids
+                && recipeId.equals(other.recipeId)
+                && tableType.equals(other.tableType)
+                && ItemStack.matches(result, other.result)
+                && ItemStack.listMatches(inputs, other.inputs);
+    }
+
+    @Override
+    public int hashCode() {
+        var hash = ItemStack.hashStackList(inputs);
+        hash = 31 * hash + ItemStack.hashItemAndComponents(result);
+        hash = 31 * hash + recipeId.hashCode();
+        hash = 31 * hash + tableType.hashCode();
+        hash = 31 * hash + tableTier;
+        hash = 31 * hash + tableSideLength;
+        hash = 31 * hash + Boolean.hashCode(canSubstitute);
+        hash = 31 * hash + Boolean.hashCode(canSubstituteFluids);
+        return hash;
+    }
+
     private static EncodedExtendedCraftingPattern readFromStream(RegistryFriendlyByteBuf buffer) {
         var inputs = ItemStack.OPTIONAL_LIST_STREAM_CODEC.decode(buffer);
         var result = ItemStack.STREAM_CODEC.decode(buffer);
