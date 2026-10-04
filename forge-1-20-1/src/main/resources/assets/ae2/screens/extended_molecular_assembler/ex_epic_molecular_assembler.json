@@ -1,0 +1,52 @@
+{
+  "$schema": "../schema.json",
+  "includes": [
+    "../common/common.json",
+    "../common/player_inventory.json"
+  ],
+  "background": {
+    "texture": "guis/ex_epic_molecular_assembler.png",
+    "textureWidth": 512,
+    "textureHeight": 512,
+    "srcRect": [0, 0, 257, 326]
+  },
+  "slots": {
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_1": { "left": 10, "top": 30, "grid": "BREAK_AFTER_9COLS" },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_2": { "left": 10, "top": 30, "grid": "BREAK_AFTER_9COLS" },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_3": { "left": 10, "top": 30, "grid": "BREAK_AFTER_9COLS" },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_4": { "left": 10, "top": 30, "grid": "BREAK_AFTER_9COLS" },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_5": { "left": 10, "top": 30, "grid": "BREAK_AFTER_9COLS" },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_6": { "left": 10, "top": 30, "grid": "BREAK_AFTER_9COLS" },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_7": { "left": 10, "top": 30, "grid": "BREAK_AFTER_9COLS" },
+    "EXTENDED_MOLECULAR_ASSEMBLER_GRID_8": { "left": 10, "top": 30, "grid": "BREAK_AFTER_9COLS" },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_1": { "left": 221, "top": 119 },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_2": { "left": 221, "top": 119 },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_3": { "left": 221, "top": 119 },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_4": { "left": 221, "top": 119 },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_5": { "left": 221, "top": 119 },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_6": { "left": 221, "top": 119 },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_7": { "left": 221, "top": 119 },
+    "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_8": { "left": 221, "top": 119 },
+    "PLAYER_INVENTORY": { "left": 10, "bottom": 83, "grid": "BREAK_AFTER_9COLS" },
+    "PLAYER_HOTBAR": { "left": 10, "bottom": 25, "grid": "HORIZONTAL" }
+  },
+  "text": {
+    "dialog_title": { "position": { "left": 8, "top": 6 } },
+    "job": { "position": { "left": 8, "top": 18 } },
+    "player_inventory_title": {
+      "text": { "translate": "container.inventory" },
+      "position": { "left": 10, "bottom": 95 }
+    }
+  },
+  "images": {
+    "progressBar": {
+      "texture": "guis/ex_epic_molecular_assembler.png",
+      "textureWidth": 512,
+      "textureHeight": 512,
+      "srcRect": [258, 1, 4, 16]
+    }
+  },
+  "widgets": {
+    "progressBar": { "left": 244, "top": 119 }
+  }
+}

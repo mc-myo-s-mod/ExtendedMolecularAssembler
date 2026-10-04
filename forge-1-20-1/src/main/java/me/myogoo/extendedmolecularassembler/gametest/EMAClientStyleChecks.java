@@ -36,7 +36,7 @@ public final class EMAClientStyleChecks {
         if (background == null || background.getSrcX() != 0 || background.getSrcY() != 0
                 || background.getSrcWidth() != 221 || background.getSrcHeight() != 290
                 || assembler.getGeneratedBackground() != null || !assembler.getText().containsKey("job")
-                || progress.getSrcX() != 222 || progress.getSrcY() != 1
+                || progress.getSrcX() != 223 || progress.getSrcY() != 1
                 || progress.getSrcWidth() != 4 || progress.getSrcHeight() != 16) {
             throw new IllegalStateException("Assembler must use its custom 1.20.1 background and progress sprite");
         }
@@ -53,13 +53,62 @@ public final class EMAClientStyleChecks {
             count += 2;
         }
         if (ModList.get().isLoaded("expatternprovider")) {
+            for (var tier : new String[] { "extended", "epic", "legendary" }) {
+                int extra = tier.equals("epic") ? 36 : tier.equals("legendary") ? 72 : 0;
+                var exAssembler = checkStyle("ex_" + tier + "_molecular_assembler",
+                        "EXTENDED_MOLECULAR_ASSEMBLER_GRID_1");
+                var exBackground = exAssembler.getBackground();
+                var exProgress = exAssembler.getImage("progressBar");
+                int outputX = tier.equals("epic") ? 221 : tier.equals("legendary") ? 258 : 186;
+                int outputY = tier.equals("epic") ? 119 : tier.equals("legendary") ? 126 : 98;
+                int spriteX = tier.equals("epic") ? 258 : tier.equals("legendary") ? 294 : 223;
+                if (exBackground.getSrcWidth() != 221 + extra || exBackground.getSrcHeight() != 290 + extra
+                        || exProgress.getSrcX() != spriteX || exProgress.getSrcY() != 1
+                        || exProgress.getSrcWidth() != 4 || exProgress.getSrcHeight() != 16) {
+                    throw new IllegalStateException("Ex " + tier + " assembler has incorrect atlas bounds");
+                }
+                var bounds = new Rect2i(0, 0, 221 + extra, 290 + extra);
+                if (extra > 0 && exAssembler.getSlots().containsKey("ENCODED_PATTERN")) {
+                    throw new IllegalStateException("Ex " + tier + " assembler must not inherit a pattern slot");
+                }
+                for (int lane = 1; lane <= 8; lane++) {
+                    var grid = exAssembler.getSlots().get("EXTENDED_MOLECULAR_ASSEMBLER_GRID_" + lane)
+                            .resolve(bounds);
+                    var output = exAssembler.getSlots().get("EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_" + lane)
+                            .resolve(bounds);
+                    if (grid.getX() != 10 || grid.getY() != 30
+                            || output.getX() != outputX || output.getY() != outputY) {
+                        throw new IllegalStateException("Ex " + tier + " assembler has misplaced lane slots");
+                    }
+                }
+                for (var entry : Map.of("PLAYER_INVENTORY", new Point(10, 207 + extra),
+                        "PLAYER_HOTBAR", new Point(10, 265 + extra)).entrySet()) {
+                    var actual = exAssembler.getSlots().get(entry.getKey()).resolve(bounds);
+                    var expected = entry.getValue();
+                    if (actual.getX() != expected.getX() || actual.getY() != expected.getY()) {
+                        throw new IllegalStateException("Ex " + tier + " assembler has misplaced inventory slots");
+                    }
+                }
+                for (var entry : Map.of("dialog_title", new Point(8, 6), "job", new Point(8, 18),
+                        "player_inventory_title", new Point(10, 195 + extra)).entrySet()) {
+                    var actual = exAssembler.getText().get(entry.getKey()).getPosition().resolve(bounds);
+                    var expected = entry.getValue();
+                    if (actual.getX() != expected.getX() || actual.getY() != expected.getY()) {
+                        throw new IllegalStateException("Ex " + tier + " assembler has a misplaced label");
+                    }
+                }
+                var bar = exAssembler.getWidget("progressBar").resolve(bounds);
+                if (bar.getX() != outputX + 23 || bar.getY() != outputY) {
+                    throw new IllegalStateException("Ex " + tier + " assembler has a misplaced progress bar");
+                }
+            }
             checkStyle("extended_assembler_matrix_pattern_core", "ENCODED_PATTERN");
             checkStyle("epic_assembler_matrix_pattern_core", "ENCODED_PATTERN");
             checkStyle("legendary_assembler_matrix_pattern_core", "ENCODED_PATTERN");
             checkStyle("extended_crafting_pattern_view", "MACHINE_CRAFTING_GRID");
             checkStyle("epic_crafting_pattern_view", "MACHINE_CRAFTING_GRID");
             checkStyle("legendary_crafting_pattern_view", "MACHINE_CRAFTING_GRID");
-            count += 6;
+            count += 9;
         }
         if (ModList.get().isLoaded("ae2wtlib")) {
             checkStyle("wireless_extended_pattern_encoding_terminal", "EXTENDED_PATTERN_CRAFTING_GRID");
@@ -112,7 +161,7 @@ public final class EMAClientStyleChecks {
             boolean legendary = name.startsWith("legendary_");
             boolean large = epic || legendary;
             int width = epic ? 210 : legendary ? 246 : 204;
-            int height = epic ? 382 : legendary ? 418 : 371;
+            int height = epic ? 382 : legendary ? 418 : 346;
             var terminal = style.getTerminalStyle();
             if (terminal.getScreenWidth() != width || terminal.getScreenHeight(3) != height
                     || terminal.getScreenHeight(7) != height + 72) {
@@ -137,19 +186,33 @@ public final class EMAClientStyleChecks {
                         throw new IllegalStateException(name + " has a misplaced " + entry.getKey());
                     }
                 }
-                if (large) {
-                    var buttons = Map.of(
+                var buttons = large ? Map.of(
                             "clearPattern", new Point(legendary ? width - 36 : 136, height - 96),
                             "canSubstituteFluids", new Point(legendary ? width - 48 : 148, height - 96),
                             "substitutions", new Point(legendary ? width - 60 : 160, height - 96),
                             "recipeCycle", new Point(legendary ? width - 20 : 112, height - 100),
-                            "encodePattern", new Point(epic ? 182 : 215, height - 54));
-                    for (var entry : buttons.entrySet()) {
-                        var actual = style.getWidget(entry.getKey()).resolve(bounds);
-                        var expected = entry.getValue().move(0, (rows - 3) * 18);
-                        if (actual.getX() != expected.getX() || actual.getY() != expected.getY()) {
-                            throw new IllegalStateException(name + " has a misplaced " + entry.getKey());
-                        }
+                            "encodePattern", new Point(epic ? 182 : 215, height - 54))
+                        : Map.of(
+                                "clearPattern", new Point(160, 251),
+                                "canSubstituteFluids", new Point(177, 110),
+                                "substitutions", new Point(187, 110),
+                                "recipeCycle", new Point(178, 124),
+                                "encodePattern", new Point(178, 195));
+                for (var entry : buttons.entrySet()) {
+                    var actual = style.getWidget(entry.getKey()).resolve(bounds);
+                    var expected = entry.getValue().move(0, (rows - 3) * 18);
+                    if (actual.getX() != expected.getX() || actual.getY() != expected.getY()) {
+                        throw new IllegalStateException(name + " has a misplaced " + entry.getKey());
+                    }
+                }
+                var labels = Map.of(
+                        "crafting_grid_title", new Point(8, 73),
+                        "player_inventory_title", new Point(8, height - 93));
+                for (var entry : labels.entrySet()) {
+                    var actual = style.getText().get(entry.getKey()).getPosition().resolve(bounds);
+                    var expected = entry.getValue().move(0, (rows - 3) * 18);
+                    if (actual.getX() != expected.getX() || actual.getY() != expected.getY()) {
+                        throw new IllegalStateException(name + " has a misplaced " + entry.getKey());
                     }
                 }
             }

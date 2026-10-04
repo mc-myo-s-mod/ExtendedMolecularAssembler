@@ -17,8 +17,8 @@
   },
   "slots": {
     "ENCODED_PATTERN": {
-      "left": 222,
-      "top": 65
+      "left": 221,
+      "top": 86
     },
     "PLAYER_INVENTORY": {
       "left": 10,
@@ -36,8 +36,8 @@
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_1": {
-      "left": 222,
-      "top": 98
+      "left": 221,
+      "top": 119
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_2": {
       "left": 10,
@@ -45,8 +45,8 @@
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_2": {
-      "left": 222,
-      "top": 98
+      "left": 221,
+      "top": 119
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_3": {
       "left": 10,
@@ -54,8 +54,8 @@
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_3": {
-      "left": 222,
-      "top": 98
+      "left": 221,
+      "top": 119
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_4": {
       "left": 10,
@@ -63,8 +63,8 @@
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_4": {
-      "left": 222,
-      "top": 98
+      "left": 221,
+      "top": 119
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_5": {
       "left": 10,
@@ -72,8 +72,8 @@
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_5": {
-      "left": 222,
-      "top": 98
+      "left": 221,
+      "top": 119
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_6": {
       "left": 10,
@@ -81,8 +81,8 @@
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_6": {
-      "left": 222,
-      "top": 98
+      "left": 221,
+      "top": 119
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_7": {
       "left": 10,
@@ -90,8 +90,8 @@
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_7": {
-      "left": 222,
-      "top": 98
+      "left": 221,
+      "top": 119
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_GRID_8": {
       "left": 10,
@@ -99,8 +99,8 @@
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_MOLECULAR_ASSEMBLER_OUTPUT_8": {
-      "left": 222,
-      "top": 98
+      "left": 221,
+      "top": 119
     }
   },
   "text": {
@@ -128,11 +128,11 @@
   },
   "images": {
     "progressBar": {
-      "texture": "guis/extended_molecular_assembler.png",
+      "texture": "guis/epic_molecular_assembler.png",
       "textureWidth": 512,
       "textureHeight": 512,
       "srcRect": [
-        222,
+        258,
         1,
         4,
         16
@@ -141,8 +141,8 @@
   },
   "widgets": {
     "progressBar": {
-      "left": 245,
-      "top": 98
+      "left": 244,
+      "top": 119
     }
   }
 }

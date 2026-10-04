@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema.json",
+  "includes": ["extended_molecular_assembler.json"],
+  "background": {
+    "texture": "guis/ex_extended_molecular_assembler.png",
+    "textureWidth": 512,
+    "textureHeight": 512,
+    "srcRect": [0, 0, 221, 290]
+  },
+  "images": {
+    "progressBar": {
+      "texture": "guis/ex_extended_molecular_assembler.png",
+      "textureWidth": 512,
+      "textureHeight": 512,
+      "srcRect": [223, 1, 4, 16]
+    }
+  }
+}

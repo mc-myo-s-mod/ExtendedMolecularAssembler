@@ -21,9 +21,11 @@ public class ExtendedMolecularAssemblerScreen extends UpgradeableScreen<Extended
 
     public ExtendedMolecularAssemblerScreen(ExtendedMolecularAssemblerMenu menu, Inventory playerInventory,
             Component title, ScreenStyle style) {
-        super(menu, playerInventory, title, menu.getGridSide() > 9
+        super(menu, playerInventory, title, menu.getGridSide() > 9 || menu.getPageCount() > 1
                 ? StyleManager.loadStyleDoc("/screens/extended_molecular_assembler/"
-                        + (menu.getGridSide() == 11 ? "epic" : "legendary") + "_molecular_assembler.json")
+                        + (menu.getPageCount() > 1 ? "ex_" : "")
+                        + (menu.getGridSide() == 11 ? "epic" : menu.getGridSide() == 13 ? "legendary" : "extended")
+                        + "_molecular_assembler.json")
                 : style);
         setTextContent(TEXT_ID_DIALOG_TITLE, getGuiDisplayName(menu.getHost().getName()));
 

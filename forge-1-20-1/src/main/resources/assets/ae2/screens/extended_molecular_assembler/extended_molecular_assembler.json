@@ -126,7 +126,7 @@
       "texture": "guis/extended_molecular_assembler.png",
       "textureWidth": 512,
       "textureHeight": 512,
-      "srcRect": [222, 1, 4, 16]
+      "srcRect": [223, 1, 4, 16]
     }
   },
   "widgets": {

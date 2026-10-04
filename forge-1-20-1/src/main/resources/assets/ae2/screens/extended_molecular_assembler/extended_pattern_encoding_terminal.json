@@ -6,20 +6,20 @@
   "slots": {
     "EXTENDED_PATTERN_CRAFTING_GRID": {
       "left": 8,
-      "bottom": 287,
+      "bottom": 262,
       "grid": "BREAK_AFTER_9COLS"
     },
     "EXTENDED_PATTERN_CRAFTING_RESULT": {
       "left": 178,
-      "bottom": 197
+      "bottom": 172
     },
     "BLANK_PATTERN": {
       "left": 178,
-      "bottom": 285
+      "bottom": 260
     },
     "ENCODED_PATTERN": {
       "left": 178,
-      "bottom": 150
+      "bottom": 125
     },
     "PLAYER_INVENTORY": {
       "left": 8,
@@ -48,7 +48,7 @@
       },
       "position": {
         "left": 8,
-        "bottom": 298
+        "bottom": 273
       }
     }
   },
@@ -81,7 +81,7 @@
       "texture": "guis/extended_pattern_terminal.png",
       "textureWidth": 512,
       "textureHeight": 512,
-      "srcRect": [0, 71, 204, 300]
+      "srcRect": [0, 71, 204, 275]
     }
   },
   "widgets": {
@@ -95,7 +95,7 @@
     },
     "encodePattern": {
       "left": 178,
-      "bottom": 176
+      "bottom": 151
     },
     "clearPattern": {
       "left": 160,
@@ -103,15 +103,15 @@
     },
     "recipeCycle": {
       "left": 178,
-      "bottom": 247
+      "bottom": 222
     },
     "substitutions": {
       "left": 187,
-      "bottom": 261
+      "bottom": 236
     },
     "canSubstituteFluids": {
       "left": 177,
-      "bottom": 261
+      "bottom": 236
     }
   }
 }
