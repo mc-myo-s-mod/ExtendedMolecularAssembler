@@ -133,15 +133,15 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                     "extendedmolecularassembler:" + tier + "_me_crafting_provider", true);
             JsonArray matrixConditions = conditions.deepCopy();
             matrixConditions.add(myoCondition("expatternprovider"));
-            for (String core : new String[] { "crafting", "pattern" }) {
-                shapeless("minecraft:crafting_shapeless",
-                        "extendedmolecularassembler:" + tier + "_assembler_matrix_" + core + "_core", 1)
-                        .conditions(matrixConditions)
-                        .requires(item("extendedmolecularassembler:" + previous + "_assembler_matrix_" + core + "_core"))
-                        .requires(item("extendedmolecularassembler:" + tier + "_molecular_assembler"))
-                        .requires(item(COMPAT_PROCESSOR))
-                        .save(output, recipeId(tier + "_assembler_matrix_" + core + "_core"));
-            }
+            String assembler = "extendedmolecularassembler:ex_" + tier + "_molecular_assembler";
+            saveMatrixCore(output, tier + "_assembler_matrix_crafting_core",
+                    "extendedmolecularassembler:" + tier + "_assembler_matrix_crafting_core",
+                    matrixConditions, assembler,
+                    "ae2:blue_lumen_paint_ball", "ae2:light_blue_lumen_paint_ball", "ae2:cyan_lumen_paint_ball");
+            saveMatrixCore(output, tier + "_assembler_matrix_pattern_core",
+                    "extendedmolecularassembler:" + tier + "_assembler_matrix_pattern_core",
+                    matrixConditions, assembler,
+                    "ae2:purple_lumen_paint_ball", "ae2:magenta_lumen_paint_ball", "ae2:pink_lumen_paint_ball");
         }
 
         JsonArray extendedCrafting = myoConditions("extendedcrafting");
@@ -205,12 +205,14 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
         saveMatrixCore(output,
                 "extended_assembler_matrix_crafting_core",
                 "extendedmolecularassembler:extended_assembler_matrix_crafting_core",
+                myoConditions("expatternprovider"), EX_EXTENDED_MOLECULAR_ASSEMBLER,
                 "ae2:blue_lumen_paint_ball",
                 "ae2:light_blue_lumen_paint_ball",
                 "ae2:cyan_lumen_paint_ball");
         saveMatrixCore(output,
                 "extended_assembler_matrix_pattern_core",
                 "extendedmolecularassembler:extended_assembler_matrix_pattern_core",
+                myoConditions("expatternprovider"), EX_EXTENDED_MOLECULAR_ASSEMBLER,
                 "ae2:purple_lumen_paint_ball",
                 "ae2:magenta_lumen_paint_ball",
                 "ae2:pink_lumen_paint_ball");
@@ -222,12 +224,13 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 .requires(item(COMPAT_PROCESSOR))
                 .save(output, recipeId("extended_assembler_matrix_pattern_uploader"));
 
-        saveMatrixCorePlus(output, "extended_assembler_matrix_crafting_core_plus",
-                "extendedmolecularassembler:extended_assembler_matrix_crafting_core",
-                "extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus", extendedAEPlusContent);
-        saveMatrixCorePlus(output, "extended_assembler_matrix_pattern_core_plus",
-                "extendedmolecularassembler:extended_assembler_matrix_pattern_core",
-                "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus", extendedAEPlusContent);
+        for (String tier : new String[] { "extended", "epic", "legendary" }) {
+            for (String core : new String[] { "crafting", "pattern" }) {
+                String coreId = tier + "_assembler_matrix_" + core + "_core";
+                saveMatrixCorePlus(output, coreId + "_plus", "extendedmolecularassembler:" + coreId,
+                        "extendedmolecularassembler:" + coreId + "_plus", extendedAEPlusContent);
+            }
+        }
     }
 
     private static void buildExtendedPatternEncodingTerminalRecipes(JsonRecipeOutput output) {
@@ -286,11 +289,11 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
     }
 
     private static void saveMatrixCore(JsonRecipeOutput output, String path, String result,
-            String paintA, String paintB, String paintC) {
-        saveShaped(output, path, myoConditions("expatternprovider"), "redstone",
+            JsonArray conditions, String assembler, String paintA, String paintB, String paintC) {
+        saveShaped(output, path, conditions, "redstone",
                 new String[]{"ABC", "FMP", "ABC"},
                 key('A', paintA, 'B', paintB, 'C', paintC, 'P', COMPAT_PROCESSOR,
-                        'F', ASSEMBLER_MATRIX_FRAME, 'M', EX_EXTENDED_MOLECULAR_ASSEMBLER),
+                        'F', ASSEMBLER_MATRIX_FRAME, 'M', assembler),
                 result, true);
     }
 

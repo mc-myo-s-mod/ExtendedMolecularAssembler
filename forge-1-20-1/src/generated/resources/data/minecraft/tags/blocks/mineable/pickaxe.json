@@ -62,6 +62,22 @@
       "required": false
     },
     {
+      "id": "extendedmolecularassembler:epic_assembler_matrix_crafting_core_plus",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:epic_assembler_matrix_pattern_core_plus",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:legendary_assembler_matrix_crafting_core_plus",
+      "required": false
+    },
+    {
+      "id": "extendedmolecularassembler:legendary_assembler_matrix_pattern_core_plus",
+      "required": false
+    },
+    {
       "id": "extendedmolecularassembler:extended_quantum_crafter",
       "required": false
     }

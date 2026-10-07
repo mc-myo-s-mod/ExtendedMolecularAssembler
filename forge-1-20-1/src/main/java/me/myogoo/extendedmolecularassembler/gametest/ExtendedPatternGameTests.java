@@ -66,6 +66,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModList;
@@ -243,6 +244,10 @@ public final class ExtendedPatternGameTests {
         assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_uploader", extendedAE);
         assertOptionalBlockRegistration(helper, "extended_assembler_matrix_pattern_core_plus", extendedAE);
         assertOptionalBlockRegistration(helper, "extended_assembler_matrix_crafting_core_plus", extendedAE);
+        for (var tier : new String[] { "epic", "legendary" }) {
+            assertOptionalBlockRegistration(helper, tier + "_assembler_matrix_pattern_core_plus", extendedAE);
+            assertOptionalBlockRegistration(helper, tier + "_assembler_matrix_crafting_core_plus", extendedAE);
+        }
         assertOptionalBlockRegistration(helper, "extended_quantum_crafter", advancedAE);
         assertRecipeRegistration(helper, "ex_extended_molecular_assembler", extendedAE);
         for (var prefix : new String[] { "", "epic_", "legendary_" }) {
@@ -337,9 +342,59 @@ public final class ExtendedPatternGameTests {
                 plusContent);
         assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core_plus",
                 plusContent);
+        for (var tier : new String[] { "epic", "legendary" }) {
+            assertRecipeRegistration(helper, tier + "_assembler_matrix_pattern_core_plus", plusContent);
+            assertRecipeRegistration(helper, tier + "_assembler_matrix_crafting_core_plus", plusContent);
+        }
         assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_uploader_standalone", false);
         assertRecipeRegistration(helper, "extended_assembler_matrix_crafting_core_plus_standalone", false);
         assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core_plus_standalone", false);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void tieredMatrixCoreRecipesUseMatchingExAssemblers(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var recipes = level.getRecipeManager();
+        boolean integrations = MyotusAPI.integrations().isLoaded(ExPatternProvider.class)
+                && MyotusAPI.integrations().isLoaded(ExtendedCrafting.class);
+        for (var tier : new String[] { "epic", "legendary" }) {
+            boolean available = integrations && BuiltInRegistries.ITEM.containsKey(
+                    new ResourceLocation("extendedcrafting", tier + "_table"));
+            for (var core : new String[] { "crafting", "pattern" }) {
+                var path = tier + "_assembler_matrix_" + core + "_core";
+                assertRecipeRegistration(helper, path, available);
+                if (!available) {
+                    continue;
+                }
+                var id = ExtendedMolecularAssembler.makeId(path);
+                var loaded = recipes.byKey(id).orElseThrow();
+                helper.assertTrue(loaded instanceof ShapedRecipe, path + " must be shaped");
+                var recipe = (ShapedRecipe) loaded;
+                assertEqual(helper, 3, recipe.getWidth(), path + " width");
+                assertEqual(helper, 3, recipe.getHeight(), path + " height");
+                assertStackMatches(helper, new ItemStack(BuiltInRegistries.ITEM.get(id)),
+                        recipe.getResultItem(level.registryAccess()), path + " result");
+                var base = recipes.byKey(ExtendedMolecularAssembler.makeId(
+                        "extended_assembler_matrix_" + core + "_core")).orElseThrow();
+                for (int slot = 0; slot < 9; slot++) {
+                    if (slot != 4) {
+                        assertEqual(helper, base.getIngredients().get(slot).toJson(),
+                                recipe.getIngredients().get(slot).toJson(), path + " ingredient " + slot);
+                    }
+                }
+                var center = recipe.getIngredients().get(4);
+                var expected = BuiltInRegistries.ITEM.get(ExtendedMolecularAssembler.makeId(
+                        "ex_" + tier + "_molecular_assembler"));
+                helper.assertTrue(center.test(new ItemStack(expected)), path + " matching Ex assembler");
+                for (var rejected : new String[] { tier, "ex_extended",
+                        "ex_" + (tier.equals("epic") ? "legendary" : "epic") }) {
+                    var item = BuiltInRegistries.ITEM.get(ExtendedMolecularAssembler.makeId(
+                            rejected + "_molecular_assembler"));
+                    helper.assertFalse(center.test(new ItemStack(item)), path + " must reject " + rejected);
+                }
+            }
+        }
         helper.succeed();
     }
 
@@ -765,6 +820,30 @@ public final class ExtendedPatternGameTests {
 
         var pattern = decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.get(0));
         ExtendedAEGameTestHelper.assertMatrixCraftingCoreTracksAndCancelsExtendedJobs(helper, pattern);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void extendedAEPlusCoresAndUploaderRespectTiers(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExPatternProvider.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+
+        ExtendedAEGameTestHelper.assertPlusCoreAndUploader(helper,
+                decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.get(3)), "extended");
+        for (int tier = 5; tier <= 6; tier++) {
+            var variant = tier == 5 ? "epic" : "legendary";
+            if (!BuiltInRegistries.ITEM.containsKey(new ResourceLocation("extendedcrafting", variant + "_table"))) {
+                continue;
+            }
+            var pattern = decodeLargePatternForTier(helper, tier,
+                    ExtendedMolecularAssembler.makeId("gametest/ec_tier_" + tier),
+                    tier == 5 ? Items.DIAMOND_BLOCK : Items.NETHERITE_BLOCK);
+            helper.assertTrue(pattern != null, variant + " matrix test pattern was not decoded");
+            ExtendedAEGameTestHelper.assertPlusCoreAndUploader(helper, pattern, variant);
+        }
         helper.succeed();
     }
 

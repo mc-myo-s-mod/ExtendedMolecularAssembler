@@ -47,7 +47,11 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
     }
 
     public static boolean canUploadFromEncodingMenuToMatrix(ServerPlayer player, Object menu, ItemStack stack) {
-        if (player == null || stack == null || stack.isEmpty() || !isExtendedEncodedPattern(player.level(), stack)) {
+        if (player == null) {
+            return false;
+        }
+        var decoded = decodeExtendedPattern(player.level(), stack);
+        if (decoded == null) {
             return false;
         }
 
@@ -56,12 +60,16 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
             return false;
         }
 
-        var targets = findEligiblePatternCoreInventories(grid);
+        var targets = findEligiblePatternCoreInventories(grid, decoded.tableSideLength());
         return !targets.isEmpty() && !matrixContainsPattern(targets, stack) && canFullyInsert(targets, stack);
     }
 
     public static boolean matrixAlreadyContainsPatternFromEncodingMenu(ServerPlayer player, Object menu, ItemStack stack) {
-        if (player == null || stack == null || stack.isEmpty() || !isExtendedEncodedPattern(player.level(), stack)) {
+        if (player == null) {
+            return false;
+        }
+        var decoded = decodeExtendedPattern(player.level(), stack);
+        if (decoded == null) {
             return false;
         }
 
@@ -70,7 +78,7 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
             return false;
         }
 
-        var targets = findEligiblePatternCoreInventories(grid);
+        var targets = findEligiblePatternCoreInventories(grid, decoded.tableSideLength());
         return !targets.isEmpty() && matrixContainsPattern(targets, stack);
     }
 
@@ -79,7 +87,8 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
             send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_PATTERN.key());
             return stack;
         }
-        if (!isExtendedEncodedPattern(player.level(), stack)) {
+        var decoded = decodeExtendedPattern(player.level(), stack);
+        if (decoded == null) {
             send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_INVALID_PATTERN.key());
             return stack;
         }
@@ -90,9 +99,14 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
             return stack;
         }
 
-        var targets = findEligiblePatternCoreInventories(grid);
+        var targets = findEligiblePatternCoreInventories(grid, decoded.tableSideLength());
         if (targets.isEmpty()) {
-            send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_MATRIX.key());
+            if (hasEligibleMatrixUploader(menu)) {
+                send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_MATCHING_CORE.key(),
+                        decoded.tableSideLength(), decoded.tableSideLength());
+            } else {
+                send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_MATRIX.key());
+            }
             return stack;
         }
 
@@ -122,11 +136,13 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
         return stack;
     }
 
-    private static boolean isExtendedEncodedPattern(Level level, ItemStack stack) {
-        return level != null
-                && !stack.isEmpty()
+    static ExtendedTableCraftingPattern decodeExtendedPattern(Level level, ItemStack stack) {
+        if (level != null && stack != null && !stack.isEmpty()
                 && stack.getItem() instanceof EncodedPatternItem
-                && PatternDetailsHelper.decodePattern(stack, level) instanceof ExtendedTableCraftingPattern;
+                && PatternDetailsHelper.decodePattern(stack, level) instanceof ExtendedTableCraftingPattern pattern) {
+            return pattern;
+        }
+        return null;
     }
 
     private static IGrid findGrid(Object menu) {
@@ -141,7 +157,7 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
         return null;
     }
 
-    private static List<InternalInventory> findEligiblePatternCoreInventories(IGrid grid) {
+    private static List<InternalInventory> findEligiblePatternCoreInventories(IGrid grid, int sideLength) {
         var result = new ArrayList<InternalInventory>();
         if (grid == null) {
             return result;
@@ -150,7 +166,8 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
         try {
             Map<ClusterAssemblerMatrix, Boolean> uploaderClusters = new IdentityHashMap<>();
             for (var core : grid.getMachines(ExtendedAssemblerMatrixPatternCoreBlockEntity.class)) {
-                if (core == null || !core.isFormed() || !core.getMainNode().isActive()) {
+                if (core == null || !core.acceptsPatternSideLength(sideLength)
+                        || !core.isFormed() || !core.getMainNode().isActive()) {
                     continue;
                 }
 
@@ -275,9 +292,9 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
         return false;
     }
 
-    private static void send(ServerPlayer player, String key) {
+    private static void send(ServerPlayer player, String key, Object... args) {
         if (player != null) {
-            player.sendSystemMessage(Component.translatable(key));
+            player.sendSystemMessage(Component.translatable(key, args));
         }
     }
 }

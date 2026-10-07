@@ -13,6 +13,13 @@ item_ids:
 - extendedmolecularassembler:ex_epic_molecular_assembler
 - extendedmolecularassembler:legendary_molecular_assembler
 - extendedmolecularassembler:ex_legendary_molecular_assembler
+- extendedmolecularassembler:epic_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:legendary_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:ex_extended_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:ex_epic_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:ex_legendary_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:epic_molecular_assembler_ex_upgrade_kit
+- extendedmolecularassembler:legendary_molecular_assembler_ex_upgrade_kit
 ---
 
 # 확장 분자 조합기
@@ -58,6 +65,22 @@ ExtendedAE가 있을 때 활성화되는 강화형입니다. 에픽의 11×11, �
 
 병렬 조합을 하려면 AE2 조합 CPU와 패턴 공급기에서 충분한 작업과 재료를 공급해야 합니다.
 </myotus:condition>
+
+## 조합기 업그레이드 킷
+
+각 킷을 해당 조합기에 사용하면 업그레이드됩니다. 비Ex 조합기를 대응하는 Ex 조합기로 전환하면 설치된 패턴이 플레이어 인벤토리로 반환되며, 공간이 없으면 근처에 떨어집니다.
+
+| 킷 | 업그레이드 |
+|---|---|
+| <ItemLink id="extendedmolecularassembler:epic_molecular_assembler_upgrade_kit" /> | 확장 → 에픽 |
+| <ItemLink id="extendedmolecularassembler:legendary_molecular_assembler_upgrade_kit" /> | 에픽 → 레전더리 |
+| <ItemLink id="extendedmolecularassembler:ex_extended_molecular_assembler_upgrade_kit" /> | 확장 → Ex 확장 |
+| <ItemLink id="extendedmolecularassembler:ex_epic_molecular_assembler_upgrade_kit" /> | Ex 확장 → Ex 에픽 |
+| <ItemLink id="extendedmolecularassembler:ex_legendary_molecular_assembler_upgrade_kit" /> | Ex 에픽 → Ex 레전더리 |
+| <ItemLink id="extendedmolecularassembler:epic_molecular_assembler_ex_upgrade_kit" /> | 에픽 → Ex 에픽 |
+| <ItemLink id="extendedmolecularassembler:legendary_molecular_assembler_ex_upgrade_kit" /> | 레전더리 → Ex 레전더리 |
+
+Ex 조합기 킷에는 ExtendedAE가 필요합니다.
 
 ## AE2 자동 조합에서 사용하기
 

@@ -48,6 +48,14 @@ public final class EMAExtendedAEIntegration {
     public static RegistryObject<BlockItem> EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_ITEM;
     public static RegistryObject<BlockItem> LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_ITEM;
     public static RegistryObject<BlockItem> LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_ITEM;
+    public static RegistryObject<ExtendedAssemblerMatrixPatternCoreBlock> EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS;
+    public static RegistryObject<ExtendedAssemblerMatrixCraftingCoreBlock> EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS;
+    public static RegistryObject<ExtendedAssemblerMatrixPatternCoreBlock> LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS;
+    public static RegistryObject<ExtendedAssemblerMatrixCraftingCoreBlock> LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS;
+    public static RegistryObject<BlockItem> EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM;
+    public static RegistryObject<BlockItem> EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM;
+    public static RegistryObject<BlockItem> LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM;
+    public static RegistryObject<BlockItem> LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM;
     public static RegistryObject<BlockEntityType<ExtendedAssemblerMatrixPatternCoreBlockEntity>>
             EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_BE;
     public static RegistryObject<BlockEntityType<ExtendedAssemblerMatrixCraftingCoreBlockEntity>>
@@ -66,6 +74,14 @@ public final class EMAExtendedAEIntegration {
             LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_BE;
     public static RegistryObject<BlockEntityType<ExtendedAssemblerMatrixCraftingCoreBlockEntity>>
             LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_BE;
+    public static RegistryObject<BlockEntityType<ExtendedAssemblerMatrixPatternCoreBlockEntity>>
+            EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_BE;
+    public static RegistryObject<BlockEntityType<ExtendedAssemblerMatrixCraftingCoreBlockEntity>>
+            EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_BE;
+    public static RegistryObject<BlockEntityType<ExtendedAssemblerMatrixPatternCoreBlockEntity>>
+            LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_BE;
+    public static RegistryObject<BlockEntityType<ExtendedAssemblerMatrixCraftingCoreBlockEntity>>
+            LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_BE;
     public static RegistryObject<MenuType<ExtendedAssemblerMatrixPatternCoreMenu>>
             EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_MENU;
     public static RegistryObject<MenuType<ExtendedAssemblerMatrixPatternCoreMenu>>
@@ -195,6 +211,53 @@ public final class EMAExtendedAEIntegration {
                 "legendary_assembler_matrix_crafting_core",
                 () -> createCraftingCoreBlockEntityType(LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE.get(), 8, 13));
 
+        EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS = EMABlocks.BLOCKS.register(
+                "epic_assembler_matrix_pattern_core_plus",
+                () -> new ExtendedAssemblerMatrixPatternCoreBlock(
+                        () -> EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM.get()));
+        EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS = EMABlocks.BLOCKS.register(
+                "epic_assembler_matrix_crafting_core_plus",
+                () -> new ExtendedAssemblerMatrixCraftingCoreBlock(
+                        () -> EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM.get()));
+        LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS = EMABlocks.BLOCKS.register(
+                "legendary_assembler_matrix_pattern_core_plus",
+                () -> new ExtendedAssemblerMatrixPatternCoreBlock(
+                        () -> LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM.get()));
+        LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS = EMABlocks.BLOCKS.register(
+                "legendary_assembler_matrix_crafting_core_plus",
+                () -> new ExtendedAssemblerMatrixCraftingCoreBlock(
+                        () -> LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM.get()));
+
+        EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM = EMAItems.ITEMS.register(
+                "epic_assembler_matrix_pattern_core_plus",
+                () -> new BlockItem(EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS.get(), new net.minecraft.world.item.Item.Properties()));
+        EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM = EMAItems.ITEMS.register(
+                "epic_assembler_matrix_crafting_core_plus",
+                () -> new BlockItem(EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS.get(), new net.minecraft.world.item.Item.Properties()));
+        LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM = EMAItems.ITEMS.register(
+                "legendary_assembler_matrix_pattern_core_plus",
+                () -> new BlockItem(LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS.get(), new net.minecraft.world.item.Item.Properties()));
+        LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM = EMAItems.ITEMS.register(
+                "legendary_assembler_matrix_crafting_core_plus",
+                () -> new BlockItem(LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS.get(), new net.minecraft.world.item.Item.Properties()));
+
+        EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_BE = EMABlockEntities.BLOCK_ENTITIES.register(
+                "epic_assembler_matrix_pattern_core_plus",
+                () -> createPatternCoreBlockEntityType(EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS.get(),
+                        ExtendedAssemblerMatrixPatternCoreBlockEntity.PLUS_INV_SIZE, 11));
+        EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_BE = EMABlockEntities.BLOCK_ENTITIES.register(
+                "epic_assembler_matrix_crafting_core_plus",
+                () -> createCraftingCoreBlockEntityType(EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS.get(),
+                        ExtendedAssemblerMatrixCraftingCoreBlockEntity.PLUS_THREAD_COUNT, 11));
+        LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_BE = EMABlockEntities.BLOCK_ENTITIES.register(
+                "legendary_assembler_matrix_pattern_core_plus",
+                () -> createPatternCoreBlockEntityType(LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS.get(),
+                        ExtendedAssemblerMatrixPatternCoreBlockEntity.PLUS_INV_SIZE, 13));
+        LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_BE = EMABlockEntities.BLOCK_ENTITIES.register(
+                "legendary_assembler_matrix_crafting_core_plus",
+                () -> createCraftingCoreBlockEntityType(LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS.get(),
+                        ExtendedAssemblerMatrixCraftingCoreBlockEntity.PLUS_THREAD_COUNT, 13));
+
         EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_MENU = EMAMenus.REGISTER.register(
                 "epic_assembler_matrix_pattern_core",
                 () -> createPatternCoreMenuType("epic_assembler_matrix_pattern_core",
@@ -216,6 +279,10 @@ public final class EMAExtendedAEIntegration {
             output.accept(EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_ITEM.get());
             output.accept(EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM.get());
             output.accept(EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM.get());
+            output.accept(EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM.get());
+            output.accept(EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM.get());
+            output.accept(LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM.get());
+            output.accept(LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM.get());
         }
     }
 
@@ -372,6 +439,14 @@ public final class EMAExtendedAEIntegration {
                 LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_BE.get(), LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_ITEM.get());
         AEBaseBlockEntity.registerBlockEntityItem(
                 LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_BE.get(), LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_ITEM.get());
+        AEBaseBlockEntity.registerBlockEntityItem(
+                EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_BE.get(), EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM.get());
+        AEBaseBlockEntity.registerBlockEntityItem(
+                EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_BE.get(), EPIC_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM.get());
+        AEBaseBlockEntity.registerBlockEntityItem(
+                LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_BE.get(), LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_PLUS_ITEM.get());
+        AEBaseBlockEntity.registerBlockEntityItem(
+                LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_BE.get(), LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE_PLUS_ITEM.get());
 
         if (EXTENDED_ASSEMBLER_MATRIX_PATTERN_UPLOADER_BE != null) {
             AEBaseBlockEntity.registerBlockEntityItem(

@@ -13,6 +13,13 @@ item_ids:
 - extendedmolecularassembler:ex_epic_molecular_assembler
 - extendedmolecularassembler:legendary_molecular_assembler
 - extendedmolecularassembler:ex_legendary_molecular_assembler
+- extendedmolecularassembler:epic_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:legendary_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:ex_extended_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:ex_epic_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:ex_legendary_molecular_assembler_upgrade_kit
+- extendedmolecularassembler:epic_molecular_assembler_ex_upgrade_kit
+- extendedmolecularassembler:legendary_molecular_assembler_ex_upgrade_kit
 ---
 
 # Extended Molecular Assemblers
@@ -58,6 +65,22 @@ These ExtendedAE variants retain the Epic 11×11 and Legendary 13×13 grids and 
 
 Parallel crafting requires the AE2 crafting CPU and pattern provider to supply enough jobs and ingredients.
 </myotus:condition>
+
+## Assembler Upgrade Kits
+
+Use a kit on its matching assembler to upgrade it. When converting a non-Ex assembler to its Ex version, the installed pattern returns to the player; if their inventory is full, it drops nearby.
+
+| Kit | Upgrade |
+|---|---|
+| <ItemLink id="extendedmolecularassembler:epic_molecular_assembler_upgrade_kit" /> | Extended → Epic |
+| <ItemLink id="extendedmolecularassembler:legendary_molecular_assembler_upgrade_kit" /> | Epic → Legendary |
+| <ItemLink id="extendedmolecularassembler:ex_extended_molecular_assembler_upgrade_kit" /> | Extended → Ex Extended |
+| <ItemLink id="extendedmolecularassembler:ex_epic_molecular_assembler_upgrade_kit" /> | Ex Extended → Ex Epic |
+| <ItemLink id="extendedmolecularassembler:ex_legendary_molecular_assembler_upgrade_kit" /> | Ex Epic → Ex Legendary |
+| <ItemLink id="extendedmolecularassembler:epic_molecular_assembler_ex_upgrade_kit" /> | Epic → Ex Epic |
+| <ItemLink id="extendedmolecularassembler:legendary_molecular_assembler_ex_upgrade_kit" /> | Legendary → Ex Legendary |
+
+Ex assembler kits require ExtendedAE.
 
 ## Using with AE2 Autocrafting
 

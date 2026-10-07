@@ -1,15 +1,11 @@
 package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
-import appeng.api.crafting.PatternDetailsHelper;
-import appeng.crafting.pattern.EncodedPatternItem;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixFunction;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
-import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -42,19 +38,17 @@ public class ExtendedAssemblerMatrixPatternUploaderBlockEntity extends TileAssem
         return this.uploadHandler;
     }
 
-    private boolean isExtendedEncodedPattern(ItemStack stack) {
-        return !stack.isEmpty()
-                && stack.getItem() instanceof EncodedPatternItem
-                && PatternDetailsHelper.decodePattern(stack, this.getLevel()) instanceof ExtendedTableCraftingPattern;
-    }
-
     private ItemStack upload(ItemStack stack, boolean simulate) {
-        if (!isExtendedEncodedPattern(stack)) {
+        var decoded = ExtendedAssemblerMatrixPatternUploadUtil.decodeExtendedPattern(this.getLevel(), stack);
+        if (decoded == null) {
             return stack;
         }
 
-        var remainder = stack.copy();
+        var handlers = new ArrayList<IItemHandler>();
         for (var core : this.findTargets()) {
+            if (!core.acceptsPatternSideLength(decoded.tableSideLength())) {
+                continue;
+            }
             var handler = core.getPatternInv(null);
             if (handler == null) {
                 continue;
@@ -62,6 +56,11 @@ public class ExtendedAssemblerMatrixPatternUploaderBlockEntity extends TileAssem
             if (ExtendedAssemblerMatrixPatternUploadUtil.itemHandlerContainsPattern(handler, stack)) {
                 return stack;
             }
+            handlers.add(handler);
+        }
+
+        var remainder = stack.copy();
+        for (var handler : handlers) {
             for (int slot = 0; slot < handler.getSlots() && !remainder.isEmpty(); slot++) {
                 remainder = handler.insertItem(slot, remainder, simulate);
             }
@@ -148,7 +147,8 @@ public class ExtendedAssemblerMatrixPatternUploaderBlockEntity extends TileAssem
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return slot == 0 && ExtendedAssemblerMatrixPatternUploaderBlockEntity.this.isExtendedEncodedPattern(stack);
+            return slot == 0 && ExtendedAssemblerMatrixPatternUploadUtil.decodeExtendedPattern(
+                    ExtendedAssemblerMatrixPatternUploaderBlockEntity.this.getLevel(), stack) != null;
         }
     }
 }

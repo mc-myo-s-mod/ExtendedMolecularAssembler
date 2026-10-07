@@ -1,8 +1,10 @@
 package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
 import appeng.api.crafting.IPatternDetails;
+import appeng.api.inventories.InternalInventory;
 import appeng.api.stacks.KeyCounter;
 import appeng.menu.slot.IOptionalSlot;
+import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.network.packet.CPatternKey;
 import com.mojang.authlib.GameProfile;
@@ -240,6 +242,80 @@ public final class ExtendedAEGameTestHelper {
         core.cancelJobs();
         assertEqual(helper, 0, core.usedThreadCount(),
                 "ExtendedAE matrix crafting core used thread count after cancel");
+    }
+
+    public static void assertPlusCoreAndUploader(GameTestHelper helper, ExtendedTableCraftingPattern pattern,
+            String variant) {
+        var uploaderPos = new BlockPos(2, 2, 2);
+        var plusPos = uploaderPos.below();
+        var normalPos = uploaderPos.north();
+        var wrongPos = uploaderPos.above();
+        var craftingPos = new BlockPos(1, 1, 1);
+        var patternStack = pattern.getDefinition().toStack();
+        var plus = placeOptionalBlockEntity(helper, variant + "_assembler_matrix_pattern_core_plus", plusPos,
+                ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
+        var normal = placeOptionalBlockEntity(helper, variant + "_assembler_matrix_pattern_core", normalPos,
+                ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
+        var wrong = placeOptionalBlockEntity(helper,
+                (variant.equals("extended") ? "epic" : "extended") + "_assembler_matrix_pattern_core", wrongPos,
+                ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
+        var uploader = placeOptionalBlockEntity(helper, "extended_assembler_matrix_pattern_uploader", uploaderPos,
+                ExtendedAssemblerMatrixPatternUploaderBlockEntity.class);
+        var inventory = plus.getPatternInventory();
+        var handler = uploader.getPatternInv(Direction.WEST);
+        assertEqual(helper, 72, inventory.size(), variant + " Plus pattern capacity");
+        assertEqual(helper, pattern.tableSideLength(), plus.getPatternSideLength(), variant + " Plus pattern tier");
+
+        // DOWN is visited before NORTH: a later duplicate must block an earlier empty core.
+        normal.getPatternInventory().setItemDirect(0, patternStack.copy());
+        for (var simulate : new boolean[] { true, false }) {
+            assertStackMatches(helper, patternStack, handler.insertItem(0, patternStack.copy(), simulate),
+                    variant + " duplicate across cores, simulate=" + simulate);
+            helper.assertTrue(inventory.isEmpty(), "Duplicate upload modified the earlier Plus core");
+        }
+        normal.getPatternInventory().clear();
+        var incompatibleSlotChecks = new int[1];
+        wrong.getPatternInventory().setFilter(new IAEItemFilter() {
+            @Override
+            public boolean allowInsert(InternalInventory inv, int slot, ItemStack stack) {
+                incompatibleSlotChecks[0]++;
+                return false;
+            }
+        });
+        helper.assertTrue(handler.insertItem(0, patternStack.copy(), true).isEmpty(),
+                variant + " upload simulation failed");
+        helper.assertTrue(inventory.isEmpty(), "Upload simulation mutated the Plus core");
+        helper.assertTrue(handler.insertItem(0, patternStack.copy(), false).isEmpty(),
+                variant + " upload did not reach its Plus core");
+        assertStackMatches(helper, patternStack, inventory.getStackInSlot(0), variant + " uploaded pattern");
+        inventory.clear();
+        for (var core : List.of(plus, normal)) {
+            var inv = core.getPatternInventory();
+            for (int slot = 0; slot < inv.size(); slot++) {
+                inv.setItemDirect(slot, new ItemStack(Items.PAPER));
+            }
+        }
+        assertStackMatches(helper, patternStack, handler.insertItem(0, patternStack.copy(), false),
+                variant + " full cores must return the pattern");
+        inventory.setItemDirect(71, ItemStack.EMPTY);
+        helper.assertTrue(handler.insertItem(0, patternStack.copy(), false).isEmpty(),
+                variant + " uploader did not reach Plus slot 72");
+        assertStackMatches(helper, patternStack, inventory.getStackInSlot(71), variant + " final Plus slot");
+        assertEqual(helper, 0, incompatibleSlotChecks[0], "Wrong-tier core received per-slot insert checks");
+
+        var crafting = placeOptionalBlockEntity(helper, variant + "_assembler_matrix_crafting_core_plus", craftingPos,
+                ExtendedAssemblerMatrixCraftingCoreBlockEntity.class);
+        assertEqual(helper, pattern.tableSideLength(), crafting.getGridSide(), variant + " Plus crafting tier");
+        for (int job = 0; job < 32; job++) {
+            helper.assertTrue(pushExtendedMatrixJob(crafting, pattern), variant + " Plus rejected job " + job);
+        }
+        assertEqual(helper, 32, crafting.usedThreadCount(), variant + " Plus running job count");
+        helper.assertFalse(pushExtendedMatrixJob(crafting, pattern), variant + " Plus accepted a 33rd job");
+        crafting.cancelJobs();
+        assertEqual(helper, 0, crafting.usedThreadCount(), variant + " Plus did not cancel all jobs");
+        for (var pos : List.of(plusPos, normalPos, wrongPos, uploaderPos, craftingPos)) {
+            helper.setBlock(pos, Blocks.AIR);
+        }
     }
 
     public static void assertClusterDispatchesExtendedJob(

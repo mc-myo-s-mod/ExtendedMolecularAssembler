@@ -116,6 +116,7 @@ public enum EMATranslationKey implements MyoTranslateKey {
         MATRIX_UPLOAD_NO_EXTENDEDAE_PLUS("message.extendedmolecularassembler.matrix_upload.no_extendedae_plus"),
         MATRIX_UPLOAD_NO_NETWORK("message.extendedmolecularassembler.matrix_upload.no_network"),
         MATRIX_UPLOAD_NO_MATRIX("message.extendedmolecularassembler.matrix_upload.no_matrix"),
+        MATRIX_UPLOAD_NO_MATCHING_CORE("message.extendedmolecularassembler.matrix_upload.no_matching_core"),
         MATRIX_UPLOAD_DUPLICATE("message.extendedmolecularassembler.matrix_upload.duplicate"),
         MATRIX_UPLOAD_FULL("message.extendedmolecularassembler.matrix_upload.full"),
         MATRIX_UPLOAD_SUCCESS("message.extendedmolecularassembler.matrix_upload.success"),

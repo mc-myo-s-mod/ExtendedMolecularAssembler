@@ -1,5 +1,6 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
   "conditions": [
     {
       "type": "myotus:mod_condition",
@@ -14,19 +15,34 @@
       "active_mod": "expatternprovider"
     }
   ],
-  "ingredients": [
-    {
-      "item": "extendedmolecularassembler:extended_assembler_matrix_crafting_core"
+  "key": {
+    "A": {
+      "item": "ae2:blue_lumen_paint_ball"
     },
-    {
-      "item": "extendedmolecularassembler:epic_molecular_assembler"
+    "B": {
+      "item": "ae2:light_blue_lumen_paint_ball"
     },
-    {
+    "C": {
+      "item": "ae2:cyan_lumen_paint_ball"
+    },
+    "F": {
+      "item": "expatternprovider:assembler_matrix_wall"
+    },
+    "M": {
+      "item": "extendedmolecularassembler:ex_epic_molecular_assembler"
+    },
+    "P": {
       "item": "myotus:compat_processor"
     }
+  },
+  "pattern": [
+    "ABC",
+    "FMP",
+    "ABC"
   ],
   "result": {
     "count": 1,
     "item": "extendedmolecularassembler:epic_assembler_matrix_crafting_core"
-  }
+  },
+  "show_notification": true
 }
