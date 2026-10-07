@@ -26,9 +26,9 @@ public enum ExportMECraftingProviderTier {
     XTREME(4, "xtreme", 0xC2FFFF, EMATranslationKey.TIER.XTREME,
             ExtendedPatternTableTypes.RE_AVARITIA_EXTREME,
             ExtendedPatternTableTypes.AVARITIA_NEO_EXTREME),
-    EPIC(5, "epic", 0xBC80EA, EMATranslationKey.TIER.EPIC,
+    EPIC(5, "epic", 0x483E48, EMATranslationKey.TIER.EPIC,
             ExtendedPatternTableTypes.EXTENDED_CRAFTING_EPIC),
-    LEGENDARY(6, "legendary", 0xF3BC4C, EMATranslationKey.TIER.LEGENDARY,
+    LEGENDARY(6, "legendary", 0xBE0202, EMATranslationKey.TIER.LEGENDARY,
             ExtendedPatternTableTypes.EXTENDED_CRAFTING_LEGENDARY);
 
     private static final int NORMAL_PLAN_HIGHLIGHT_ALPHA = 0x22;
