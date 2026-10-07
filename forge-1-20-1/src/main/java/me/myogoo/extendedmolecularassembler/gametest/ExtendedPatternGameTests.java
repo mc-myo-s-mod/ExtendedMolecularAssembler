@@ -401,7 +401,7 @@ public final class ExtendedPatternGameTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 20)
-    public static void patternCoreRecipeUsesPatternStorage(GameTestHelper helper) {
+    public static void patternCoreRecipeUsesMatrixWall(GameTestHelper helper) {
         boolean available = MyotusAPI.integrations().isLoaded(ExPatternProvider.class);
         assertRecipeRegistration(helper, "extended_assembler_matrix_pattern_core", available);
         if (!available) {
@@ -415,13 +415,16 @@ public final class ExtendedPatternGameTests {
         assertEqual(helper, 3, ((ShapedRecipe) recipe).getHeight(), "Pattern Core recipe height");
         var ingredients = recipe.getIngredients();
         var expected = new String[]{"ae2:purple_lumen_paint_ball", "ae2:magenta_lumen_paint_ball",
-                "ae2:pink_lumen_paint_ball", "expatternprovider:assembler_matrix_pattern",
+                "ae2:pink_lumen_paint_ball", "expatternprovider:assembler_matrix_wall",
                 "expatternprovider:ex_pattern_provider", "myotus:compat_processor",
                 "ae2:purple_lumen_paint_ball", "ae2:magenta_lumen_paint_ball", "ae2:pink_lumen_paint_ball"};
         for (int slot = 0; slot < expected.length; slot++) {
             var item = BuiltInRegistries.ITEM.get(new ResourceLocation(expected[slot]));
             helper.assertTrue(ingredients.get(slot).test(new ItemStack(item)), "Pattern Core ingredient " + slot);
         }
+        var patternCore = BuiltInRegistries.ITEM.get(new ResourceLocation("expatternprovider:assembler_matrix_pattern"));
+        helper.assertFalse(ingredients.get(3).test(new ItemStack(patternCore)),
+                "Pattern Core must use a Matrix Wall instead of another Pattern Core");
         var part = BuiltInRegistries.ITEM.get(new ResourceLocation("expatternprovider:ex_pattern_provider_part"));
         helper.assertTrue(ingredients.get(4).test(new ItemStack(part)), "Pattern Core accepts part-form provider");
         helper.assertFalse(ingredients.get(4).test(EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER.get().getDefaultInstance()),

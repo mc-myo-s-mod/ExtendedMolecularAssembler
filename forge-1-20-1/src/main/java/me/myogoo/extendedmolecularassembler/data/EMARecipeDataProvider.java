@@ -206,7 +206,7 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 "ae2:light_blue_lumen_paint_ball",
                 "ae2:cyan_lumen_paint_ball");
         var patternCoreKey = key('A', "ae2:purple_lumen_paint_ball", 'B', "ae2:magenta_lumen_paint_ball",
-                'C', "ae2:pink_lumen_paint_ball", 'K', "expatternprovider:assembler_matrix_pattern",
+                'C', "ae2:pink_lumen_paint_ball", 'K', ASSEMBLER_MATRIX_FRAME,
                 'P', COMPAT_PROCESSOR);
         patternCoreKey.add("T", tag("expatternprovider:extended_pattern_provider"));
         saveShaped(output, "extended_assembler_matrix_pattern_core", myoConditions("expatternprovider"), "redstone",
