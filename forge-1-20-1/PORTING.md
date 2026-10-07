@@ -41,9 +41,11 @@ Quantum content remains AdvancedAE-only WIP with no crafting recipe.
 
 - Right-click kits upgrade Extended -> Epic -> Legendary, Ex Extended -> Ex Epic
   -> Ex Legendary, and Extended -> Ex Extended. They do not skip tiers or downgrade.
-- All crafting/output slots must be empty and no pushed job may be active. The
-  installed pattern, acceleration cards, custom name, orientation and node data
-  are retained. Ex kits register only with ExtendedAE.
+- All crafting/output slots must be empty and no pushed job may be active.
+  Non-Ex -> Ex conversions return the installed pattern to the player's inventory,
+  dropping it at the player if the inventory is full. Other tier upgrades retain
+  the pattern. Acceleration cards, custom name, orientation and node data are
+  retained in either case. Ex kits register only with ExtendedAE.
 - Tier kits cost the target table and one Compat Processor; Ex tier kits cost four
   of each, matching the four-assembler Ex recipes. The Ex Extended kit costs three
   Extended Assemblers, a Compat Processor, an Engineering Processor, Ender Dust and

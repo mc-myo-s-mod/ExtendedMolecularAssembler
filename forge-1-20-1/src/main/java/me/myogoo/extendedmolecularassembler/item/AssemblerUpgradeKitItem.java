@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import appeng.api.orientation.IOrientationStrategy;
+import appeng.util.inv.PlayerInternalInventory;
 import me.myogoo.extendedmolecularassembler.block.ExtendedMolecularAssemblerBlock;
 import me.myogoo.extendedmolecularassembler.block.blockentity.ExtendedMolecularAssemblerBlockEntity;
 import net.minecraft.ChatFormatting;
@@ -66,6 +67,7 @@ public class AssemblerUpgradeKitItem extends Item {
         }
 
         var pattern = oldAssembler.getPatternInventory().getStackInSlot(0).copy();
+        boolean returnPattern = !source.get().isExAssembler() && target.get().isExAssembler();
         var originalData = new CompoundTag();
         oldAssembler.saveAdditional(originalData);
         var data = originalData.copy();
@@ -82,15 +84,16 @@ public class AssemblerUpgradeKitItem extends Item {
         }
         newAssembler.setLevel(level);
         newAssembler.loadTag(data);
-        newAssembler.getPatternInventory().setItemDirect(0, pattern);
-
-        level.removeBlockEntity(pos);
-        if (!level.setBlock(pos, newState, 3)) {
-            restoreSource(level, pos, oldState, originalData);
-            return InteractionResult.FAIL;
+        if (!returnPattern) {
+            newAssembler.getPatternInventory().setItemDirect(0, pattern);
         }
 
+        level.removeBlockEntity(pos);
         try {
+            if (!level.setBlock(pos, newState, 3)) {
+                restoreSource(level, pos, oldState, originalData);
+                return InteractionResult.FAIL;
+            }
             level.removeBlockEntity(pos);
             level.setBlockEntity(newAssembler);
             newAssembler.saveChanges();
@@ -103,6 +106,12 @@ public class AssemblerUpgradeKitItem extends Item {
 
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
+        }
+        if (returnPattern) {
+            var remainder = new PlayerInternalInventory(player.getInventory()).addItems(pattern);
+            if (!remainder.isEmpty()) {
+                player.drop(remainder, false);
+            }
         }
         return InteractionResult.CONSUME;
     }
