@@ -1,15 +1,18 @@
 package me.myogoo.extendedmolecularassembler.gametest;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import appeng.client.Point;
 import appeng.client.gui.layout.SlotGridLayout;
 import appeng.client.gui.style.ScreenStyle;
 import appeng.client.gui.style.StyleManager;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.integration.extendedae.client.ExtendedAssemblerMatrixPatternCoreScreen;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.client.ExtendedCraftingPatternViewScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -53,6 +56,18 @@ public final class EMAClientStyleChecks {
             count += 2;
         }
         if (ModList.get().isLoaded("expatternprovider")) {
+            var expectedIcons = System.getProperty("ema.expectedMatrixTableIcons");
+            if (expectedIcons != null) {
+                var actualIcons = java.util.stream.IntStream.of(9, 11, 13)
+                        .mapToObj(side -> ExtendedAssemblerMatrixPatternCoreScreen.getPatternViewIcons(side).stream()
+                                .map(item -> BuiltInRegistries.ITEM.getKey(item).toString())
+                                .collect(Collectors.joining(",")))
+                        .collect(Collectors.joining(";"));
+                if (!expectedIcons.equals(actualIcons)) {
+                    throw new IllegalStateException("Unexpected matrix table icons: " + actualIcons);
+                }
+                ExtendedMolecularAssembler.LOGGER.info("EMA matrix table icon checks passed: {}", actualIcons);
+            }
             for (var tier : new String[] { "extended", "epic", "legendary" }) {
                 int extra = tier.equals("epic") ? 36 : tier.equals("legendary") ? 72 : 0;
                 var exAssembler = checkStyle("ex_" + tier + "_molecular_assembler",

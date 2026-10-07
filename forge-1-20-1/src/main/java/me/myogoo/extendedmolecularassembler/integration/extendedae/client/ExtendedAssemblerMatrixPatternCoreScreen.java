@@ -19,16 +19,26 @@ import appeng.helpers.InventoryAction;
 import com.glodblock.github.extendedae.client.button.ActionEPPButton;
 import com.glodblock.github.extendedae.client.button.CycleEPPButton;
 import com.glodblock.github.extendedae.util.FCUtil;
+import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
+import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu.PatternEntry;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAOpenExtendedAEAssemblerMatrixScreenPacket;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
+import me.myogoo.myotus.api.MyotusAPI;
+import me.myogoo.myotus.client.gui.widgets.button.CustomImageButton;
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import me.myogoo.extendedmolecularassembler.init.EMANetwork;
 
 import java.util.ArrayList;
@@ -50,9 +60,9 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
 
     private final ActionEPPButton cancelJobsButton;
     private final ActionEPPButton backToMatrixButton;
-    private final ActionEPPButton matrix9Button;
-    private final ActionEPPButton matrix11Button;
-    private final ActionEPPButton matrix13Button;
+    private final CustomImageButton matrix9Button;
+    private final CustomImageButton matrix11Button;
+    private final CustomImageButton matrix13Button;
     private final CycleEPPButton patternAccessButton;
     private final Scrollbar patternScrollbar;
     private final AETextField searchField;
@@ -133,16 +143,39 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
         super.removed();
     }
 
-    private ActionEPPButton createPatternViewButton(int sideLength) {
-        var button = new ActionEPPButton(btn -> {
+    private CustomImageButton createPatternViewButton(int sideLength) {
+        var tables = getPatternViewIcons(sideLength);
+        var button = new CustomImageButton(btn -> {
             EMANetwork.sendToServer(new EMAOpenExtendedAEAssemblerMatrixScreenPacket(
                     this.menu.getHost().getBlockPos(),
                     EMAOpenExtendedAEAssemblerMatrixScreenPacket.Target.forPatternSide(sideLength)));
-        }, Icon.ARROW_RIGHT);
+        }) {
+            @Override
+            protected Item getItemOverlay() {
+                return tables.get(Math.floorMod(Util.getMillis() / 2000, tables.size()));
+            }
+        };
         button.setMessage(Component.translatable(EMATranslationKey.GUI.MATRIX_PATTERN_CORE_SHORT.key())
                 .append(Component.literal(" (" + sideLength + "x" + sideLength + ")")));
         button.active = this.menu.getHost().getPatternSideLength() != sideLength;
         return button;
+    }
+
+    public static List<Item> getPatternViewIcons(int sideLength) {
+        var tables = new ArrayList<Item>();
+        if (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            tables.add(BuiltInRegistries.ITEM.get(new ResourceLocation("extendedcrafting", switch (sideLength) {
+                case 11 -> "epic_table";
+                case 13 -> "legendary_table";
+                default -> "ultimate_table";
+            })));
+        }
+        if (sideLength == 9 && (MyotusAPI.integrations().isLoaded(ReAvaritia.class)
+                || MyotusAPI.integrations().isLoaded(AvaritiaNeo.class))) {
+            tables.add(BuiltInRegistries.ITEM.get(new ResourceLocation("avaritia", "extreme_crafting_table")));
+        }
+        tables.removeIf(table -> table == Items.AIR);
+        return tables.isEmpty() ? List.of(Items.CRAFTING_TABLE) : List.copyOf(tables);
     }
 
     @Override
