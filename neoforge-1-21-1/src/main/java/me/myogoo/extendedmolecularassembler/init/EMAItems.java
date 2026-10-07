@@ -2,6 +2,7 @@ package me.myogoo.extendedmolecularassembler.init;
 
 import appeng.api.crafting.PatternDetailsHelper;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
+import me.myogoo.extendedmolecularassembler.item.AssemblerUpgradeKitItem;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -17,6 +18,8 @@ public final class EMAItems {
                     () -> new BlockItem(EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get(), new Item.Properties()));
     @Nullable
     public static DeferredItem<BlockItem> EX_EXTENDED_MOLECULAR_ASSEMBLER;
+    @Nullable
+    public static DeferredItem<AssemblerUpgradeKitItem> EX_EXTENDED_ASSEMBLER_UPGRADE_KIT;
 
     public static final DeferredItem<BlockItem> BASIC_ME_CRAFTING_PROVIDER =
             ITEMS.register("basic_me_crafting_provider",
@@ -58,6 +61,8 @@ public final class EMAItems {
             EX_EXTENDED_MOLECULAR_ASSEMBLER = ITEMS.register(
                     "ex_extended_molecular_assembler",
                     () -> new BlockItem(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get(), new Item.Properties()));
+            EX_EXTENDED_ASSEMBLER_UPGRADE_KIT = ITEMS.register(
+                    "ex_extended_molecular_assembler_upgrade_kit", () -> new AssemblerUpgradeKitItem(new Item.Properties()));
         }
     }
 

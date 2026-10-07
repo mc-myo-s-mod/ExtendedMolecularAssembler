@@ -1,0 +1,45 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "myotus:mod_condition",
+      "active_mod": "extendedae"
+    }
+  ],
+  "type": "extendedae:crystal_assembler",
+  "input_items": [
+    {
+      "amount": 3,
+      "ingredient": {
+        "item": "extendedmolecularassembler:extended_molecular_assembler"
+      }
+    },
+    {
+      "amount": 4,
+      "ingredient": {
+        "item": "extendedae:concurrent_processor"
+      }
+    },
+    {
+      "amount": 4,
+      "ingredient": {
+        "item": "myotus:compat_processor"
+      }
+    },
+    {
+      "amount": 4,
+      "ingredient": {
+        "tag": "c:dusts/ender_pearl"
+      }
+    },
+    {
+      "amount": 4,
+      "ingredient": {
+        "item": "ae2:speed_card"
+      }
+    }
+  ],
+  "output": {
+    "count": 1,
+    "id": "extendedmolecularassembler:ex_extended_molecular_assembler_upgrade_kit"
+  }
+}

@@ -52,6 +52,16 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 .inputItem("ae2:speed_card", 4)
                 .output(EX_EXTENDED_MOLECULAR_ASSEMBLER, 1)
                 .save(output);
+        MyoExtendedAECrystalAssemblerRecipeBuilder
+                .create(recipeId("ex_extended_molecular_assembler_upgrade_kit"))
+                .conditions(myoConditions("extendedae"))
+                .inputItem("extendedmolecularassembler:extended_molecular_assembler", 3)
+                .inputItem(CONCURRENT_PROCESSOR, 4)
+                .inputItem(COMPAT_PROCESSOR, 4)
+                .inputTag("c:dusts/ender_pearl", 4)
+                .inputItem("ae2:speed_card", 4)
+                .output("extendedmolecularassembler:ex_extended_molecular_assembler_upgrade_kit", 1)
+                .save(output);
         buildExtendedPatternEncodingTerminalRecipes(output);
 
         JsonArray extendedCrafting = myoConditions("extendedcrafting");
