@@ -19,7 +19,7 @@ EMA 매트릭스 블록은 ExtendedAE 조합기 매트릭스와 연동되지만,
 
 ## 패턴 코어
 
-<ItemLink id="extendedmolecularassembler:extended_assembler_matrix_pattern_core" />는 확장 조합 패턴을 저장하고 AE2 조합 공급기 시스템에 제공합니다.
+<ItemLink id="extendedmolecularassembler:extended_assembler_matrix_pattern_core" />는 확장 조합 패턴을 저장하고 AE2 조합 제공기 시스템에 제공합니다.
 
 각 패턴 코어가 제공하는 기능:
 
