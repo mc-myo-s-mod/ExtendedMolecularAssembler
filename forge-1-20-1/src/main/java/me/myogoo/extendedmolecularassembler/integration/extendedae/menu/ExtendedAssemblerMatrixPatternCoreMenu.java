@@ -51,12 +51,7 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
 
     public ExtendedAssemblerMatrixPatternCoreMenu(int id, Inventory playerInventory,
             ExtendedAssemblerMatrixPatternCoreBlockEntity host) {
-        this(TYPE, id, playerInventory, host);
-    }
-
-    public ExtendedAssemblerMatrixPatternCoreMenu(MenuType<ExtendedAssemblerMatrixPatternCoreMenu> menuType,
-            int id, Inventory playerInventory, ExtendedAssemblerMatrixPatternCoreBlockEntity host) {
-        super(menuType, id, playerInventory, host);
+        super(TYPE, id, playerInventory, host);
         this.host = host;
         registerClientAction(ACTION_CANCEL, this::cancelJobs);
         registerClientAction(ACTION_SET_PATTERN_ACCESS_VISIBLE, Boolean.class, this::setPatternAccessVisible);
@@ -232,14 +227,11 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
     private FilteredInternalInventory filteredSlot(InternalInventory inventory) {
         return new FilteredInternalInventory(inventory,
                 new ExtendedAssemblerMatrixPatternCoreBlockEntity.ExtendedPatternFilter(
-                        this.host::getLevel, this.host.getPatternSideLength()));
+                        this.host::getLevel));
     }
 
     private InternalInventory getAvailablePatternSlot() {
         for (var patternCore : getClusterPatternCores()) {
-            if (patternCore.getPatternSideLength() != this.host.getPatternSideLength()) {
-                continue;
-            }
             var patternInventory = patternCore.getPatternInventory();
             for (int i = 0; i < patternInventory.size(); i++) {
                 if (patternInventory.getStackInSlot(i).isEmpty()) {
@@ -257,9 +249,6 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
         this.trackers.clear();
         this.trackerMap.clear();
         for (var patternCore : getClusterPatternCores()) {
-            if (patternCore.getPatternSideLength() != this.host.getPatternSideLength()) {
-                continue;
-            }
             var tracker = new PatternSlotTracker(patternCore);
             this.trackers.add(tracker);
             this.trackerMap.put(patternCore.getLocateID(), tracker);

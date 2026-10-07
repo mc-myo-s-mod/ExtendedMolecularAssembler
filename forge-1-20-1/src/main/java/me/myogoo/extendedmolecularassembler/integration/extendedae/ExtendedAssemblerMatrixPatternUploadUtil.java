@@ -60,7 +60,7 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
             return false;
         }
 
-        var targets = findEligiblePatternCoreInventories(grid, decoded.tableSideLength());
+        var targets = findEligiblePatternCoreInventories(grid);
         return !targets.isEmpty() && !matrixContainsPattern(targets, stack) && canFullyInsert(targets, stack);
     }
 
@@ -78,7 +78,7 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
             return false;
         }
 
-        var targets = findEligiblePatternCoreInventories(grid, decoded.tableSideLength());
+        var targets = findEligiblePatternCoreInventories(grid);
         return !targets.isEmpty() && matrixContainsPattern(targets, stack);
     }
 
@@ -99,14 +99,9 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
             return stack;
         }
 
-        var targets = findEligiblePatternCoreInventories(grid, decoded.tableSideLength());
+        var targets = findEligiblePatternCoreInventories(grid);
         if (targets.isEmpty()) {
-            if (hasEligibleMatrixUploader(menu)) {
-                send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_MATCHING_CORE.key(),
-                        decoded.tableSideLength(), decoded.tableSideLength());
-            } else {
-                send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_MATRIX.key());
-            }
+            send(player, EMATranslationKey.MESSAGE.MATRIX_UPLOAD_NO_MATRIX.key());
             return stack;
         }
 
@@ -157,7 +152,7 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
         return null;
     }
 
-    private static List<InternalInventory> findEligiblePatternCoreInventories(IGrid grid, int sideLength) {
+    private static List<InternalInventory> findEligiblePatternCoreInventories(IGrid grid) {
         var result = new ArrayList<InternalInventory>();
         if (grid == null) {
             return result;
@@ -166,8 +161,7 @@ public final class ExtendedAssemblerMatrixPatternUploadUtil {
         try {
             Map<ClusterAssemblerMatrix, Boolean> uploaderClusters = new IdentityHashMap<>();
             for (var core : grid.getMachines(ExtendedAssemblerMatrixPatternCoreBlockEntity.class)) {
-                if (core == null || !core.acceptsPatternSideLength(sideLength)
-                        || !core.isFormed() || !core.getMainNode().isActive()) {
+                if (core == null || !core.isFormed() || !core.getMainNode().isActive()) {
                     continue;
                 }
 

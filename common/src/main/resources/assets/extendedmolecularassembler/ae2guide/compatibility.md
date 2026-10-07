@@ -41,7 +41,7 @@ The Matrix does not share:
 * Extended job counts.
 * EMA job cancellation state.
 
-Use EMA Pattern Core blocks for extended pattern storage and EMA Crafting Core blocks for extended job execution.
+Use EMA Pattern Core blocks for extended pattern storage and EMA Craft Core blocks for extended job execution.
 
 ## AdvancedAE Quantum Crafter
 
@@ -54,5 +54,5 @@ creative-mode testing, but has no survival recipe.
 |---|---:|
 | EMA Pattern Core | 36 patterns |
 | EMA Pattern Core Plus | 72 patterns |
-| EMA Crafting Core | 8 jobs |
-| EMA Crafting Core Plus | 32 jobs |
+| EMA Craft Core | 8 jobs |
+| EMA Craft Core Plus | 32 jobs |

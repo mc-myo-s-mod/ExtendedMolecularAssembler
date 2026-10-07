@@ -88,4 +88,4 @@ Ex assembler kits require ExtendedAE.
 2. Store or provide the resulting extended pattern through the appropriate setup.
 3. Ensure the assembler can receive the ingredients and return the output to the ME network.
 
-For Matrix-based setups, prefer the dedicated EMA Matrix Pattern Core and Crafting Core blocks instead of placing extended patterns in ordinary ExtendedAE pattern slots.
+For Matrix-based setups, prefer the dedicated EMA Matrix Pattern Core and Craft Core blocks instead of placing extended patterns in ordinary ExtendedAE pattern slots.

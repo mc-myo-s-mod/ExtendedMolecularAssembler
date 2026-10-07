@@ -32,7 +32,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlock
     @Override
     public void openGui(ExtendedAssemblerMatrixPatternCoreBlockEntity tile, Player player) {
         if (tile.isActive() && tile.isFormed()) {
-            MenuOpener.open(EMAExtendedAEIntegration.patternCoreMenuType(tile.getPatternSideLength()), player,
+            MenuOpener.open(EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_MENU.get(), player,
                     MenuLocators.forBlockEntity(tile));
         }
     }

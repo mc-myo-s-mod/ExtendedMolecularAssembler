@@ -49,7 +49,6 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
     public static final int PLUS_INV_SIZE = 72;
 
     private final AppEngInternalInventory patternInventory;
-    private final int patternSideLength;
     private LazyOptional<IItemHandler> patternHandler = LazyOptional.empty();
     private final List<IPatternDetails> patterns = new ArrayList<>();
     private final Set<IPatternDetails> patternSet = new HashSet<>();
@@ -62,18 +61,9 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
 
     public ExtendedAssemblerMatrixPatternCoreBlockEntity(BlockEntityType<?> type, BlockPos pos,
             BlockState blockState, int patternSlotCount) {
-        this(type, pos, blockState, patternSlotCount, ExtendedTableCraftingPattern.MACHINE_GRID_SIDE);
-    }
-
-    public ExtendedAssemblerMatrixPatternCoreBlockEntity(BlockEntityType<?> type, BlockPos pos,
-            BlockState blockState, int patternSlotCount, int patternSideLength) {
         super(type, pos, blockState);
-        if (patternSideLength != 9 && patternSideLength != 11 && patternSideLength != 13) {
-            throw new IllegalArgumentException("Unsupported ExtendedAE pattern core side " + patternSideLength);
-        }
-        this.patternSideLength = patternSideLength;
         this.patternInventory = new AppEngInternalInventory(this, patternSlotCount, 1);
-        this.patternInventory.setFilter(new ExtendedPatternFilter(this::getLevel, patternSideLength));
+        this.patternInventory.setFilter(new ExtendedPatternFilter(this::getLevel));
         this.patternHandler = LazyOptional.of(this.patternInventory::toItemHandler);
         this.getMainNode()
                 .setIdlePowerUsage(EMAConfig.extendedAssemblerMatrixPatternCoreIdlePowerUsage(
@@ -83,20 +73,6 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
 
     public AppEngInternalInventory getPatternInventory() {
         return this.patternInventory;
-    }
-
-    public int getPatternSideLength() {
-        return this.patternSideLength;
-    }
-
-    public boolean acceptsPatternSideLength(int sideLength) {
-        return acceptsPatternSideLength(this.patternSideLength, sideLength);
-    }
-
-    public static boolean acceptsPatternSideLength(int coreSideLength, int patternSideLength) {
-        return coreSideLength == ExtendedTableCraftingPattern.MACHINE_GRID_SIDE
-                ? patternSideLength <= coreSideLength
-                : patternSideLength == coreSideLength;
     }
 
     public InternalInventory getExposedInventory() {
@@ -169,8 +145,7 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         this.patternSet.clear();
         var level = getLevel();
         for (var stack : this.patternInventory) {
-            if (PatternDetailsHelper.decodePattern(stack, level) instanceof ExtendedTableCraftingPattern pattern
-                    && this.acceptsPatternSideLength(pattern.tableSideLength())) {
+            if (PatternDetailsHelper.decodePattern(stack, level) instanceof ExtendedTableCraftingPattern pattern) {
                 this.patterns.add(pattern);
                 this.patternSet.add(pattern);
             }
@@ -264,11 +239,11 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
 
     @Override
     public PatternContainerGroup getTerminalGroup() {
-        var coreBlock = EMAExtendedAEIntegration.patternCoreBlock(this.patternSideLength);
+        var coreBlock = EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE.get();
         var icon = AEItemKey.of(coreBlock);
         var name = this.hasCustomName()
                 ? this.getCustomName()
-                : EMAExtendedAEIntegration.patternCoreItem(this.patternSideLength).getDescription();
+                : EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_ITEM.get().getDescription();
         return new PatternContainerGroup(icon, name,
                 List.of(Component.translatable(EMATranslationKey.GUI.MATRIX_PATTERN_CORE.key())));
     }
@@ -293,12 +268,11 @@ public class ExtendedAssemblerMatrixPatternCoreBlockEntity extends TileAssembler
         this.patternHandler = LazyOptional.of(this.patternInventory::toItemHandler);
     }
 
-    public record ExtendedPatternFilter(Supplier<Level> world, int patternSideLength) implements IAEItemFilter {
+    public record ExtendedPatternFilter(Supplier<Level> world) implements IAEItemFilter {
         @Override
         public boolean allowInsert(InternalInventory inv, int slot, ItemStack stack) {
             return stack.getItem() instanceof EncodedPatternItem
-                    && PatternDetailsHelper.decodePattern(stack, world.get()) instanceof ExtendedTableCraftingPattern pattern
-                    && acceptsPatternSideLength(this.patternSideLength, pattern.tableSideLength());
+                    && PatternDetailsHelper.decodePattern(stack, world.get()) instanceof ExtendedTableCraftingPattern;
         }
     }
 }

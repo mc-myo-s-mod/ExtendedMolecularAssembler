@@ -19,26 +19,16 @@ import appeng.helpers.InventoryAction;
 import com.glodblock.github.extendedae.client.button.ActionEPPButton;
 import com.glodblock.github.extendedae.client.button.CycleEPPButton;
 import com.glodblock.github.extendedae.util.FCUtil;
-import me.myogoo.extendedmolecularassembler.api.annotation.AvaritiaNeo;
-import me.myogoo.extendedmolecularassembler.api.annotation.ExtendedCrafting;
-import me.myogoo.extendedmolecularassembler.api.annotation.ReAvaritia;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.menu.ExtendedAssemblerMatrixPatternCoreMenu.PatternEntry;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAOpenExtendedAEAssemblerMatrixScreenPacket;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import me.myogoo.extendedmolecularassembler.lang.EMATranslationKey;
-import me.myogoo.myotus.api.MyotusAPI;
-import me.myogoo.myotus.client.gui.widgets.button.CustomImageButton;
-import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import me.myogoo.extendedmolecularassembler.init.EMANetwork;
 
 import java.util.ArrayList;
@@ -60,9 +50,6 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
 
     private final ActionEPPButton cancelJobsButton;
     private final ActionEPPButton backToMatrixButton;
-    private final CustomImageButton matrix9Button;
-    private final CustomImageButton matrix11Button;
-    private final CustomImageButton matrix13Button;
     private final CycleEPPButton patternAccessButton;
     private final Scrollbar patternScrollbar;
     private final AETextField searchField;
@@ -98,13 +85,6 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
                 Icon.ARROW_LEFT);
         this.backToMatrixButton.setMessage(Component.translatable(EMATranslationKey.GUI.MATRIX_BACK_TO_MATRIX.key()));
 
-        this.matrix9Button = createPatternViewButton(9);
-        this.matrix11Button = createPatternViewButton(11);
-        this.matrix13Button = createPatternViewButton(13);
-        this.widgets.add("matrix9", this.matrix9Button);
-        this.widgets.add("matrix11", this.matrix11Button);
-        this.widgets.add("matrix13", this.matrix13Button);
-
         this.patternAccessButton = new CycleEPPButton();
         this.patternAccessButton.addActionPair(Icon.PATTERN_ACCESS_SHOW,
                 Component.translatable(EMATranslationKey.GUI.MATRIX_SHOW_IN_PATTERN_ACCESS.key()),
@@ -133,49 +113,8 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
 
     @Override
     public void removed() {
-        var switchingPatternCore = this.minecraft != null
-                && this.minecraft.player != null
-                && this.minecraft.player.containerMenu instanceof ExtendedAssemblerMatrixPatternCoreMenu currentMenu
-                && currentMenu != this.menu;
-        if (!switchingPatternCore) {
-            AssemblerMatrixNavigationContext.clear();
-        }
+        AssemblerMatrixNavigationContext.clear();
         super.removed();
-    }
-
-    private CustomImageButton createPatternViewButton(int sideLength) {
-        var tables = getPatternViewIcons(sideLength);
-        var button = new CustomImageButton(btn -> {
-            EMANetwork.sendToServer(new EMAOpenExtendedAEAssemblerMatrixScreenPacket(
-                    this.menu.getHost().getBlockPos(),
-                    EMAOpenExtendedAEAssemblerMatrixScreenPacket.Target.forPatternSide(sideLength)));
-        }) {
-            @Override
-            protected Item getItemOverlay() {
-                return tables.get(Math.floorMod(Util.getMillis() / 2000, tables.size()));
-            }
-        };
-        button.setMessage(Component.translatable(EMATranslationKey.GUI.MATRIX_PATTERN_CORE_SHORT.key())
-                .append(Component.literal(" (" + sideLength + "x" + sideLength + ")")));
-        button.active = this.menu.getHost().getPatternSideLength() != sideLength;
-        return button;
-    }
-
-    public static List<Item> getPatternViewIcons(int sideLength) {
-        var tables = new ArrayList<Item>();
-        if (MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
-            tables.add(BuiltInRegistries.ITEM.get(new ResourceLocation("extendedcrafting", switch (sideLength) {
-                case 11 -> "epic_table";
-                case 13 -> "legendary_table";
-                default -> "ultimate_table";
-            })));
-        }
-        if (sideLength == 9 && (MyotusAPI.integrations().isLoaded(ReAvaritia.class)
-                || MyotusAPI.integrations().isLoaded(AvaritiaNeo.class))) {
-            tables.add(BuiltInRegistries.ITEM.get(new ResourceLocation("avaritia", "extreme_crafting_table")));
-        }
-        tables.removeIf(table -> table == Items.AIR);
-        return tables.isEmpty() ? List.of(Items.CRAFTING_TABLE) : List.copyOf(tables);
     }
 
     @Override
@@ -250,10 +189,6 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
             var x = PATTERN_LEFT + visibleIndex % PATTERN_COLS * SLOT_SIZE;
             var y = PATTERN_TOP + visibleIndex / PATTERN_COLS * SLOT_SIZE;
 
-            Icon.SLOT_BACKGROUND.getBlitter()
-                    .dest(x - 1, y - 1)
-                    .blit(guiGraphics);
-
             var entryIndex = firstVisibleSlot + visibleIndex;
             if (entryIndex >= 0 && entryIndex < this.filteredPatternEntries.size()) {
                 var cachedEntry = this.filteredPatternEntries.get(entryIndex);
@@ -268,19 +203,9 @@ public class ExtendedAssemblerMatrixPatternCoreScreen
             }
 
             if (visibleIndex == hoveredVisibleIndex) {
-                renderVirtualSlotHighlight(guiGraphics, x, y);
+                renderCustomSlotHighlight(guiGraphics, x, y, 0);
             }
         }
-    }
-
-    private static void renderVirtualSlotHighlight(GuiGraphics guiGraphics, int x, int y) {
-        var w = 16;
-        var h = 16;
-        guiGraphics.hLine(x, x + w, y - 1, 0xFFdaffff);
-        guiGraphics.hLine(x - 1, x + w, y + h, 0xFFdaffff);
-        guiGraphics.vLine(x - 1, y - 2, y + h, 0xFFdaffff);
-        guiGraphics.vLine(x + w, y - 2, y + h, 0xFFdaffff);
-        guiGraphics.fillGradient(x, y, x + w, y + h, 0x669cd3ff, 0x669cd3ff);
     }
 
     private void updatePatternScrollbar() {

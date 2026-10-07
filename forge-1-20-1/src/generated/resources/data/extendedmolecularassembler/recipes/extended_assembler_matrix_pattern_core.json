@@ -17,19 +17,19 @@
     "C": {
       "item": "ae2:pink_lumen_paint_ball"
     },
-    "F": {
-      "item": "expatternprovider:assembler_matrix_wall"
-    },
-    "M": {
-      "item": "extendedmolecularassembler:ex_extended_molecular_assembler"
+    "K": {
+      "item": "expatternprovider:assembler_matrix_pattern"
     },
     "P": {
       "item": "myotus:compat_processor"
+    },
+    "T": {
+      "tag": "expatternprovider:extended_pattern_provider"
     }
   },
   "pattern": [
     "ABC",
-    "FMP",
+    "KTP",
     "ABC"
   ],
   "result": {

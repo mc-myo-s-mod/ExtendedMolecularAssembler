@@ -1,10 +1,16 @@
 package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.inventories.InternalInventory;
+import appeng.api.networking.crafting.CraftingSubmitErrorCode;
+import appeng.api.networking.crafting.ICraftingPlan;
+import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.stacks.KeyCounter;
+import appeng.blockentity.crafting.PatternProviderBlockEntity;
+import appeng.core.definitions.AEBlocks;
+import appeng.crafting.CraftingPlan;
+import appeng.me.helpers.MachineSource;
+import appeng.me.service.CraftingService;
 import appeng.menu.slot.IOptionalSlot;
-import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.network.packet.CPatternKey;
 import com.mojang.authlib.GameProfile;
@@ -26,7 +32,9 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.common.util.FakePlayer;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -58,33 +66,18 @@ public final class ExtendedAEGameTestHelper {
         assertEqual(helper, 1, core.getAvailablePatterns().size(),
                 "ExtendedAE pattern core available extended pattern count");
 
-        var epicCore = placeOptionalBlockEntity(
+        var plusCore = placeOptionalBlockEntity(
                 helper,
-                "epic_assembler_matrix_pattern_core",
+                "extended_assembler_matrix_pattern_core_plus",
                 new BlockPos(2, 1, 1),
                 ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
-        assertEqual(helper, 11, epicCore.getPatternSideLength(), "Epic pattern core side length");
-        var epicHandler = (IItemHandler) epicCore.getPatternInv(Direction.NORTH);
-        var smallerPatternRemainder = epicHandler.insertItem(0, patternStack.copy(), true);
-        helper.assertFalse(smallerPatternRemainder.isEmpty(),
-                "Epic matrix pattern core accepted a smaller-than-11x11 pattern");
+        assertEqual(helper, 36, core.getPatternInventory().size(), "Pattern core capacity");
+        assertEqual(helper, 72, plusCore.getPatternInventory().size(), "Plus pattern core capacity");
+        helper.assertTrue(plusCore.getPatternInv(Direction.NORTH).insertItem(0, patternStack.copy(), true).isEmpty(),
+                "Plus matrix pattern core rejected an EMA pattern");
     }
 
-    public static void assertPatternCoreSideRouting(GameTestHelper helper) {
-        helper.assertTrue(ExtendedAssemblerMatrixPatternCoreBlockEntity.acceptsPatternSideLength(9, 3),
-                "Base matrix pattern core rejected a smaller pattern");
-        helper.assertTrue(ExtendedAssemblerMatrixPatternCoreBlockEntity.acceptsPatternSideLength(9, 9),
-                "Base matrix pattern core rejected a 9x9 pattern");
-        helper.assertFalse(ExtendedAssemblerMatrixPatternCoreBlockEntity.acceptsPatternSideLength(9, 11),
-                "Base matrix pattern core accepted an 11x11 pattern");
-        helper.assertTrue(ExtendedAssemblerMatrixPatternCoreBlockEntity.acceptsPatternSideLength(11, 11),
-                "Epic matrix pattern core rejected an 11x11 pattern");
-        helper.assertFalse(ExtendedAssemblerMatrixPatternCoreBlockEntity.acceptsPatternSideLength(11, 9),
-                "Epic matrix pattern core accepted a non-11x11 pattern");
-        helper.assertTrue(ExtendedAssemblerMatrixPatternCoreBlockEntity.acceptsPatternSideLength(13, 13),
-                "Legendary matrix pattern core rejected a 13x13 pattern");
-        helper.assertFalse(ExtendedAssemblerMatrixPatternCoreBlockEntity.acceptsPatternSideLength(13, 11),
-                "Legendary matrix pattern core accepted a non-13x13 pattern");
+    public static void assertCraftCoreGridSizes(GameTestHelper helper) {
         helper.assertTrue(ExtendedAssemblerMatrixCraftingCoreBlockEntity.supportsGridSide(9, 9),
                 "9x9 matrix crafting core rejected a 9x9 pattern");
         helper.assertFalse(ExtendedAssemblerMatrixCraftingCoreBlockEntity.supportsGridSide(9, 11),
@@ -249,22 +242,18 @@ public final class ExtendedAEGameTestHelper {
         var uploaderPos = new BlockPos(2, 2, 2);
         var plusPos = uploaderPos.below();
         var normalPos = uploaderPos.north();
-        var wrongPos = uploaderPos.above();
         var craftingPos = new BlockPos(1, 1, 1);
         var patternStack = pattern.getDefinition().toStack();
-        var plus = placeOptionalBlockEntity(helper, variant + "_assembler_matrix_pattern_core_plus", plusPos,
+        var plus = placeOptionalBlockEntity(helper, "extended_assembler_matrix_pattern_core_plus", plusPos,
                 ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
-        var normal = placeOptionalBlockEntity(helper, variant + "_assembler_matrix_pattern_core", normalPos,
-                ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
-        var wrong = placeOptionalBlockEntity(helper,
-                (variant.equals("extended") ? "epic" : "extended") + "_assembler_matrix_pattern_core", wrongPos,
+        var normal = placeOptionalBlockEntity(helper, "extended_assembler_matrix_pattern_core", normalPos,
                 ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
         var uploader = placeOptionalBlockEntity(helper, "extended_assembler_matrix_pattern_uploader", uploaderPos,
                 ExtendedAssemblerMatrixPatternUploaderBlockEntity.class);
         var inventory = plus.getPatternInventory();
         var handler = uploader.getPatternInv(Direction.WEST);
         assertEqual(helper, 72, inventory.size(), variant + " Plus pattern capacity");
-        assertEqual(helper, pattern.tableSideLength(), plus.getPatternSideLength(), variant + " Plus pattern tier");
+        assertEqual(helper, 36, normal.getPatternInventory().size(), "Normal pattern capacity");
 
         // DOWN is visited before NORTH: a later duplicate must block an earlier empty core.
         normal.getPatternInventory().setItemDirect(0, patternStack.copy());
@@ -274,14 +263,6 @@ public final class ExtendedAEGameTestHelper {
             helper.assertTrue(inventory.isEmpty(), "Duplicate upload modified the earlier Plus core");
         }
         normal.getPatternInventory().clear();
-        var incompatibleSlotChecks = new int[1];
-        wrong.getPatternInventory().setFilter(new IAEItemFilter() {
-            @Override
-            public boolean allowInsert(InternalInventory inv, int slot, ItemStack stack) {
-                incompatibleSlotChecks[0]++;
-                return false;
-            }
-        });
         helper.assertTrue(handler.insertItem(0, patternStack.copy(), true).isEmpty(),
                 variant + " upload simulation failed");
         helper.assertTrue(inventory.isEmpty(), "Upload simulation mutated the Plus core");
@@ -301,7 +282,6 @@ public final class ExtendedAEGameTestHelper {
         helper.assertTrue(handler.insertItem(0, patternStack.copy(), false).isEmpty(),
                 variant + " uploader did not reach Plus slot 72");
         assertStackMatches(helper, patternStack, inventory.getStackInSlot(71), variant + " final Plus slot");
-        assertEqual(helper, 0, incompatibleSlotChecks[0], "Wrong-tier core received per-slot insert checks");
 
         var crafting = placeOptionalBlockEntity(helper, variant + "_assembler_matrix_crafting_core_plus", craftingPos,
                 ExtendedAssemblerMatrixCraftingCoreBlockEntity.class);
@@ -313,7 +293,7 @@ public final class ExtendedAEGameTestHelper {
         helper.assertFalse(pushExtendedMatrixJob(crafting, pattern), variant + " Plus accepted a 33rd job");
         crafting.cancelJobs();
         assertEqual(helper, 0, crafting.usedThreadCount(), variant + " Plus did not cancel all jobs");
-        for (var pos : List.of(plusPos, normalPos, wrongPos, uploaderPos, craftingPos)) {
+        for (var pos : List.of(plusPos, normalPos, uploaderPos, craftingPos)) {
             helper.setBlock(pos, Blocks.AIR);
         }
     }
@@ -332,13 +312,31 @@ public final class ExtendedAEGameTestHelper {
                 new BlockPos(2, 1, 1),
                 ExtendedAssemblerMatrixCraftingCoreBlockEntity.class);
         var cluster = new ClusterAssemblerMatrix(patternCore.getBlockPos(), craftingCore.getBlockPos());
+        patternCore.getPatternInventory().setItemDirect(0, pattern.getDefinition().toStack());
+        patternCore.updatePatterns();
         cluster.addTileEntity(patternCore);
+        helper.assertFalse(ExtendedAEAssemblerMatrixBridge.hasCraftingCore(cluster, pattern),
+                "Matrix without a crafting core passed the request capability check");
+        helper.assertFalse(cluster.pushCraftingJob(pattern, countersForPattern(pattern)),
+                "Matrix without a crafting core accepted a job");
         cluster.addTileEntity(craftingCore);
+        helper.assertTrue(ExtendedAEAssemblerMatrixBridge.hasCraftingCore(cluster, pattern),
+                "Matrix with a matching crafting core failed the request capability check");
 
         helper.assertTrue(cluster.pushCraftingJob(pattern, countersForPattern(pattern)),
                 "ExtendedAE matrix cluster did not dispatch an EMA extended job");
         assertEqual(helper, 1, craftingCore.usedThreadCount(),
                 "ExtendedAE matrix cluster-dispatched used thread count");
+        for (int i = 1; i < 8; i++) {
+            helper.assertTrue(cluster.pushCraftingJob(pattern, countersForPattern(pattern)),
+                    "Matrix failed to fill its remaining threads");
+        }
+        helper.assertTrue(ExtendedAEAssemblerMatrixBridge.hasCraftingCore(cluster, pattern),
+                "Busy crafting cores must not block new requests");
+        craftingCore.cancelJobs();
+        helper.setBlock(new BlockPos(2, 1, 1), Blocks.AIR);
+        helper.assertFalse(ExtendedAEAssemblerMatrixBridge.hasCraftingCore(cluster, pattern),
+                "Removed crafting core still passed the request capability check");
     }
 
     public static void assertClusterDispatchesExtendedJob(
@@ -350,7 +348,7 @@ public final class ExtendedAEGameTestHelper {
             case 13 -> "legendary";
             default -> throw new IllegalArgumentException("Unsupported large matrix grid side " + expectedGridSide);
         };
-        var patternCorePath = variant + "_assembler_matrix_pattern_core";
+        var patternCorePath = "extended_assembler_matrix_pattern_core";
         var craftingCorePath = variant + "_assembler_matrix_crafting_core";
         var patternCorePos = new BlockPos(1, 1, 1);
         var baseCorePos = new BlockPos(2, 1, 1);
@@ -363,8 +361,6 @@ public final class ExtendedAEGameTestHelper {
                 patternCorePath,
                 patternCorePos,
                 ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
-        assertEqual(helper, expectedGridSide, patternCore.getPatternSideLength(),
-                "Large ExtendedAE matrix pattern core side length");
         var patternHandler = (IItemHandler) patternCore.getPatternInv(Direction.NORTH);
         var patternStack = pattern.getDefinition().toStack();
         var remainder = patternHandler.insertItem(0, patternStack, false);
@@ -394,7 +390,19 @@ public final class ExtendedAEGameTestHelper {
         var cluster = new ClusterAssemblerMatrix(patternCorePos, baseCorePos);
         cluster.addTileEntity(patternCore);
         cluster.addTileEntity(baseCore);
+        helper.assertFalse(ExtendedAEAssemblerMatrixBridge.hasCraftingCore(cluster, storedPattern),
+                "9x9 core passed a larger pattern request capability check");
+        helper.assertFalse(cluster.pushCraftingJob(storedPattern, countersForPattern(storedPattern)),
+                "9x9 core accepted a larger pattern job");
+        var otherCluster = new ClusterAssemblerMatrix(largeCorePos, largeCorePos);
+        otherCluster.addTileEntity(largeCore);
+        helper.assertTrue(ExtendedAEAssemblerMatrixBridge.hasCraftingCore(otherCluster, storedPattern),
+                "Matching core was not detected in the other Matrix");
+        helper.assertFalse(ExtendedAEAssemblerMatrixBridge.hasCraftingCore(cluster, storedPattern),
+                "A core in another Matrix must not satisfy the pattern-hosting Matrix");
         cluster.addTileEntity(largeCore);
+        helper.assertTrue(ExtendedAEAssemblerMatrixBridge.hasCraftingCore(cluster, storedPattern),
+                "Matching large core failed the request capability check");
 
         helper.assertTrue(cluster.pushCraftingJob(storedPattern, countersForPattern(storedPattern)),
                 "ExtendedAE matrix cluster did not route its tier pattern");
@@ -403,6 +411,9 @@ public final class ExtendedAEGameTestHelper {
         assertEqual(helper, 1, largeCore.usedThreadCount(),
                 "Matching large matrix crafting core did not accept its tier job");
         largeCore.cancelJobs();
+        helper.setBlock(largeCorePos, Blocks.AIR);
+        helper.assertFalse(ExtendedAEAssemblerMatrixBridge.hasCraftingCore(cluster, storedPattern),
+                "Removed large core still passed the request capability check");
         helper.setBlock(patternCorePos, Blocks.AIR);
         helper.setBlock(baseCorePos, Blocks.AIR);
         helper.setBlock(largeCorePos, Blocks.AIR);
@@ -438,6 +449,128 @@ public final class ExtendedAEGameTestHelper {
             helper.assertFalse(ItemStack.matches(patternStack, drop),
                     "ExtendedAE matrix crafting core dropped the encoded pattern snapshot");
         }
+    }
+
+    public static void assertCraftingPlanRequiresLocalCore(GameTestHelper helper,
+            List<ExtendedTableCraftingPattern> patterns) {
+        var host = placeRequestTestMatrix(helper, new BlockPos(1, 1, 1), false);
+        var other = placeRequestTestMatrix(helper, new BlockPos(6, 1, 1), true);
+        var craftingPos = new BlockPos(3, 2, 2);
+        helper.setBlock(new BlockPos(5, 2, 2), AEBlocks.CREATIVE_ENERGY_CELL.block());
+        helper.setBlock(new BlockPos(5, 2, 3), AEBlocks.PATTERN_PROVIDER.block());
+        var alternative = (PatternProviderBlockEntity) helper.getBlockEntity(new BlockPos(5, 2, 3));
+        var times = new LinkedHashMap<IPatternDetails, Long>();
+        for (int i = 0; i < patterns.size(); i++) {
+            host.getPatternInventory().setItemDirect(i, patterns.get(i).getDefinition().toStack());
+            times.put(patterns.get(i), 1L);
+        }
+        host.updatePatterns();
+        var plan = new CraftingPlan(patterns.get(patterns.size() - 1).getPrimaryOutput(), 1,
+                false, false, new KeyCounter(), new KeyCounter(), new KeyCounter(), Map.copyOf(times));
+
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(host.getCluster() != null && other.getCluster() != null
+                            && host.getCluster() != other.getCluster(),
+                    "Request gate test Matrices did not form separately");
+            helper.assertTrue(host.getMainNode().isActive() && other.getMainNode().isActive(),
+                    "Request gate test Matrices are not powered and active");
+            helper.assertTrue(host.getMainNode().getGrid() == other.getMainNode().getGrid(),
+                    "Request gate test Matrices are not on the same AE2 network");
+            var grid = host.getMainNode().getGrid();
+            for (var pattern : patterns) {
+                helper.assertTrue(grid.getCraftingService().getCraftingFor(pattern.getPrimaryOutput().what())
+                                .contains(pattern),
+                        "Matrix pattern was not registered with AE2 before the request");
+            }
+            assertPlanSubmission(helper, host, plan, true, "capable core only in another Matrix");
+
+            helper.setBlock(craftingPos, EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_CRAFTING_CORE.get());
+            helper.runAfterDelay(40, () -> {
+                assertPlanSubmission(helper, host, plan, patterns.stream().anyMatch(p -> p.tableSideLength() > 9),
+                        "9x9 core with a mixed-size plan");
+                helper.setBlock(craftingPos,
+                        EMAExtendedAEIntegration.LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE.get());
+                helper.runAfterDelay(40, () -> {
+                    assertPlanSubmission(helper, host, plan, false, "sufficient local core");
+                    // Keep the Matrix valid while removing its only EMA-capable worker. Reuse the same plan object.
+                    helper.setBlock(craftingPos, BuiltInRegistries.BLOCK.get(
+                            new ResourceLocation("expatternprovider", "assembler_matrix_crafter")));
+                    helper.runAfterDelay(40, () -> {
+                        assertPlanSubmission(helper, host, plan, true, "stale plan after local core removal");
+                        for (int i = 0; i < patterns.size(); i++) {
+                            alternative.getLogic().getPatternInv()
+                                    .setItemDirect(i, patterns.get(i).getDefinition().toStack());
+                        }
+                        alternative.getLogic().updatePatterns();
+                        helper.runAfterDelay(1, () -> {
+                            helper.assertTrue(alternative.getMainNode().isActive()
+                                            && alternative.getMainNode().getGrid() == host.getMainNode().getGrid(),
+                                    "Non-Matrix alternative is not active on the same network");
+                            assertProviderCursorUnchanged(helper, host, plan, patterns.get(0), alternative);
+                            assertPlanSubmission(helper, host, plan, false, "non-Matrix alternative provider");
+                            helper.succeed();
+                        });
+                    });
+                });
+            });
+        });
+    }
+
+    private static ExtendedAssemblerMatrixPatternCoreBlockEntity placeRequestTestMatrix(
+            GameTestHelper helper, BlockPos min, boolean capable) {
+        var max = min.offset(3, 2, 2);
+        for (var pos : BlockPos.betweenClosed(min, max)) {
+            var boundaryAxes = (pos.getX() == min.getX() || pos.getX() == max.getX() ? 1 : 0)
+                    + (pos.getY() == min.getY() || pos.getY() == max.getY() ? 1 : 0)
+                    + (pos.getZ() == min.getZ() || pos.getZ() == max.getZ() ? 1 : 0);
+            var path = boundaryAxes >= 2 ? "assembler_matrix_frame"
+                    : boundaryAxes == 1 ? "assembler_matrix_wall" : "assembler_matrix_crafter";
+            var block = BuiltInRegistries.BLOCK.get(new ResourceLocation("expatternprovider", path));
+            helper.assertTrue(block != Blocks.AIR, "Missing Matrix test block " + path);
+            helper.setBlock(pos, block);
+        }
+        if (capable) {
+            helper.setBlock(min.offset(2, 1, 1),
+                    EMAExtendedAEIntegration.LEGENDARY_ASSEMBLER_MATRIX_CRAFTING_CORE.get());
+        }
+        return placeOptionalBlockEntity(helper, "extended_assembler_matrix_pattern_core", min.offset(1, 1, 1),
+                ExtendedAssemblerMatrixPatternCoreBlockEntity.class);
+    }
+
+    private static void assertPlanSubmission(GameTestHelper helper,
+            ExtendedAssemblerMatrixPatternCoreBlockEntity host, ICraftingPlan plan, boolean blocked, String stage) {
+        helper.assertTrue(host.isFormed() && host.getMainNode().isActive(), stage + ": Matrix is not active");
+        var grid = host.getMainNode().getGrid();
+        helper.assertTrue(grid.getCraftingService().getCpus().isEmpty(), stage + ": test unexpectedly has a CPU");
+        assertEqual(helper, blocked, ExtendedAEAssemblerMatrixBridge.getPlanBlockReason(grid, plan) != null,
+                stage + ": plan block reason");
+        var result = grid.getCraftingService().submitJob(plan, null, null, true, new MachineSource(host));
+        // Without the submitJob mixin, even unsupported plans return NO_CPU_FOUND, making this assertion fail.
+        assertEqual(helper, blocked ? CraftingSubmitErrorCode.INCOMPLETE_PLAN : CraftingSubmitErrorCode.NO_CPU_FOUND,
+                result.errorCode(), stage + ": actual AE2 submission result");
+    }
+
+    private static void assertProviderCursorUnchanged(GameTestHelper helper,
+            ExtendedAssemblerMatrixPatternCoreBlockEntity host, ICraftingPlan plan,
+            ExtendedTableCraftingPattern pattern, PatternProviderBlockEntity alternative) {
+        var grid = host.getMainNode().getGrid();
+        var service = (CraftingService) grid.getCraftingService();
+        var before = new ArrayList<ICraftingProvider>();
+        service.getProviders(pattern).forEach(before::add);
+        helper.assertTrue(before.size() == 2 && before.contains(host) && before.contains(alternative.getLogic()),
+                "Cursor test requires exactly the Matrix and ordinary providers");
+        // Start the live round-robin at the executable provider, where an early return would advance it by one.
+        var iterator = service.getProviders(pattern).iterator();
+        for (int i = 0; i < before.indexOf(alternative.getLogic()); i++) {
+            iterator.next();
+        }
+        before.clear();
+        service.getProviders(pattern).forEach(before::add);
+        helper.assertTrue(ExtendedAEAssemblerMatrixBridge.getPlanBlockReason(grid, plan) == null,
+                "Alternative provider did not unblock the plan during cursor check");
+        var after = new ArrayList<ICraftingProvider>();
+        service.getProviders(pattern).forEach(after::add);
+        assertEqual(helper, before, after, "Plan guard changed AE2's round-robin provider cursor");
     }
 
     private static <T> T placeOptionalBlockEntity(

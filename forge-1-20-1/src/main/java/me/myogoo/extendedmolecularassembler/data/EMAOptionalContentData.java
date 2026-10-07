@@ -16,13 +16,9 @@ final class EMAOptionalContentData {
             "extended_assembler_matrix_pattern_core_plus",
             "extended_assembler_matrix_crafting_core_plus",
             "epic_assembler_matrix_crafting_core",
-            "epic_assembler_matrix_pattern_core",
             "legendary_assembler_matrix_crafting_core",
-            "legendary_assembler_matrix_pattern_core",
             "epic_assembler_matrix_crafting_core_plus",
-            "epic_assembler_matrix_pattern_core_plus",
             "legendary_assembler_matrix_crafting_core_plus",
-            "legendary_assembler_matrix_pattern_core_plus",
             "extended_quantum_crafter").stream().map(ExtendedMolecularAssembler::makeId).toList();
 
     private EMAOptionalContentData() {

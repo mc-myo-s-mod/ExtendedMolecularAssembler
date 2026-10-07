@@ -30,7 +30,7 @@ The mod provides two main approaches:
 |---|---:|
 | EMA Pattern Core | 36 extended patterns |
 | EMA Pattern Core Plus | 72 extended patterns |
-| EMA Crafting Core | 8 jobs |
-| EMA Crafting Core Plus | 32 jobs |
+| EMA Craft Core | 8 jobs |
+| EMA Craft Core Plus | 32 jobs |
 
-Pattern storage and crafting execution are intentionally separate. Pattern Core blocks expose extended crafting patterns to AE2; Crafting Core blocks execute jobs.
+Pattern storage and crafting execution are intentionally separate. Pattern Core blocks expose extended crafting patterns to AE2; Craft Core blocks execute jobs.

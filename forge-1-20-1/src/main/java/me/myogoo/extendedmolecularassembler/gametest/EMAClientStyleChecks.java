@@ -1,18 +1,15 @@
 package me.myogoo.extendedmolecularassembler.gametest;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import appeng.client.Point;
 import appeng.client.gui.layout.SlotGridLayout;
 import appeng.client.gui.style.ScreenStyle;
 import appeng.client.gui.style.StyleManager;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
-import me.myogoo.extendedmolecularassembler.integration.extendedae.client.ExtendedAssemblerMatrixPatternCoreScreen;
 import me.myogoo.extendedmolecularassembler.integration.extendedae.client.ExtendedCraftingPatternViewScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -56,18 +53,6 @@ public final class EMAClientStyleChecks {
             count += 2;
         }
         if (ModList.get().isLoaded("expatternprovider")) {
-            var expectedIcons = System.getProperty("ema.expectedMatrixTableIcons");
-            if (expectedIcons != null) {
-                var actualIcons = java.util.stream.IntStream.of(9, 11, 13)
-                        .mapToObj(side -> ExtendedAssemblerMatrixPatternCoreScreen.getPatternViewIcons(side).stream()
-                                .map(item -> BuiltInRegistries.ITEM.getKey(item).toString())
-                                .collect(Collectors.joining(",")))
-                        .collect(Collectors.joining(";"));
-                if (!expectedIcons.equals(actualIcons)) {
-                    throw new IllegalStateException("Unexpected matrix table icons: " + actualIcons);
-                }
-                ExtendedMolecularAssembler.LOGGER.info("EMA matrix table icon checks passed: {}", actualIcons);
-            }
             for (var tier : new String[] { "extended", "epic", "legendary" }) {
                 int extra = tier.equals("epic") ? 36 : tier.equals("legendary") ? 72 : 0;
                 var exAssembler = checkStyle("ex_" + tier + "_molecular_assembler",
@@ -118,12 +103,10 @@ public final class EMAClientStyleChecks {
                 }
             }
             checkStyle("extended_assembler_matrix_pattern_core", "ENCODED_PATTERN");
-            checkStyle("epic_assembler_matrix_pattern_core", "ENCODED_PATTERN");
-            checkStyle("legendary_assembler_matrix_pattern_core", "ENCODED_PATTERN");
             checkStyle("extended_crafting_pattern_view", "MACHINE_CRAFTING_GRID");
             checkStyle("epic_crafting_pattern_view", "MACHINE_CRAFTING_GRID");
             checkStyle("legendary_crafting_pattern_view", "MACHINE_CRAFTING_GRID");
-            count += 9;
+            count += 7;
         }
         if (ModList.get().isLoaded("ae2wtlib")) {
             checkStyle("wireless_extended_pattern_encoding_terminal", "EXTENDED_PATTERN_CRAFTING_GRID");
@@ -150,6 +133,12 @@ public final class EMAClientStyleChecks {
             if (style.getSlots().get("PLAYER_INVENTORY").resolve(bounds).getY() != 117
                     || style.getSlots().get("PLAYER_HOTBAR").resolve(bounds).getY() != 175) {
                 throw new IllegalStateException(name + " has misplaced inventory slots");
+            }
+            var widgets = ScreenStyle.GSON.toJsonTree(style).getAsJsonObject().getAsJsonObject("widgets");
+            for (var navigation : new String[] { "matrix9", "matrix11", "matrix13" }) {
+                if (widgets.has(navigation)) {
+                    throw new IllegalStateException(name + " must not have tier navigation: " + navigation);
+                }
             }
         }
         if (gridSemantic.equals("MACHINE_CRAFTING_GRID")) {

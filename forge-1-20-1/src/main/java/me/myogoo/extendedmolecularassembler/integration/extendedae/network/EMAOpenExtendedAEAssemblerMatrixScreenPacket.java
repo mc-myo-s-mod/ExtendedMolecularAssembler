@@ -43,13 +43,11 @@ public record EMAOpenExtendedAEAssemblerMatrixScreenPacket(BlockPos pos, Target 
         if (this.target == Target.MATRIX) {
             this.openMatrixFromPatternCore(player);
         } else if (player.containerMenu instanceof ContainerAssemblerMatrix) {
-            this.openPatternCoreFromMatrix(player, this.target.patternSideLength());
-        } else if (player.containerMenu instanceof ExtendedAssemblerMatrixPatternCoreMenu) {
-            this.openPatternCoreFromPatternCore(player, this.target.patternSideLength());
+            this.openPatternCoreFromMatrix(player);
         }
     }
 
-    private void openPatternCoreFromMatrix(ServerPlayer player, int patternSideLength) {
+    private void openPatternCoreFromMatrix(ServerPlayer player) {
         if (!(player.containerMenu instanceof ContainerAssemblerMatrix menu) || !isValidMenu(menu, player)) {
             return;
         }
@@ -59,35 +57,14 @@ public record EMAOpenExtendedAEAssemblerMatrixScreenPacket(BlockPos pos, Target 
             return;
         }
 
-        var patternCore = findPatternCore(matrixBlock, patternSideLength);
+        var patternCore = findPatternCore(matrixBlock);
         if (patternCore == null || !isLiveMatrixBlock(player, patternCore)
                 || !isSameActiveCluster(matrixBlock, patternCore)) {
             return;
         }
 
-        MenuOpener.open(EMAExtendedAEIntegration.patternCoreMenuType(patternSideLength), player,
+        MenuOpener.open(EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_MENU.get(), player,
                 MenuLocators.forBlockEntity(patternCore));
-    }
-
-    private void openPatternCoreFromPatternCore(ServerPlayer player, int patternSideLength) {
-        if (!(player.containerMenu instanceof ExtendedAssemblerMatrixPatternCoreMenu menu)
-                || !isValidMenu(menu, player)) {
-            return;
-        }
-
-        var sourceCore = menu.getHost();
-        if (!this.pos.equals(sourceCore.getBlockPos()) || !isLiveMatrixBlock(player, sourceCore)) {
-            return;
-        }
-
-        var targetCore = findPatternCore(sourceCore, patternSideLength);
-        if (targetCore == null || !isLiveMatrixBlock(player, targetCore)
-                || !isSameActiveCluster(sourceCore, targetCore)) {
-            return;
-        }
-
-        MenuOpener.open(EMAExtendedAEIntegration.patternCoreMenuType(patternSideLength), player,
-                MenuLocators.forBlockEntity(targetCore));
     }
 
     private void openMatrixFromPatternCore(ServerPlayer player) {
@@ -150,10 +127,8 @@ public record EMAOpenExtendedAEAssemblerMatrixScreenPacket(BlockPos pos, Target 
         return cluster != null && !cluster.isDestroyed() && target.getCluster() == cluster;
     }
 
-    private static ExtendedAssemblerMatrixPatternCoreBlockEntity findPatternCore(TileAssemblerMatrixBase matrixBlock,
-            int patternSideLength) {
-        if (matrixBlock instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity patternCore
-                && patternCore.getPatternSideLength() == patternSideLength) {
+    private static ExtendedAssemblerMatrixPatternCoreBlockEntity findPatternCore(TileAssemblerMatrixBase matrixBlock) {
+        if (matrixBlock instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity patternCore) {
             return patternCore;
         }
 
@@ -164,8 +139,7 @@ public record EMAOpenExtendedAEAssemblerMatrixScreenPacket(BlockPos pos, Target 
 
         var iterator = cluster.getBlockEntities();
         while (iterator.hasNext()) {
-            if (iterator.next() instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity patternCore
-                    && patternCore.getPatternSideLength() == patternSideLength) {
+            if (iterator.next() instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity patternCore) {
                 return patternCore;
             }
         }
@@ -173,28 +147,7 @@ public record EMAOpenExtendedAEAssemblerMatrixScreenPacket(BlockPos pos, Target 
     }
 
     public enum Target {
-        MATRIX(-1),
-        PATTERN_CORE(9),
-        PATTERN_CORE_11(11),
-        PATTERN_CORE_13(13);
-
-        private final int patternSideLength;
-
-        Target(int patternSideLength) {
-            this.patternSideLength = patternSideLength;
-        }
-
-        public int patternSideLength() {
-            return this.patternSideLength;
-        }
-
-        public static Target forPatternSide(int sideLength) {
-            return switch (sideLength) {
-                case 9 -> PATTERN_CORE;
-                case 11 -> PATTERN_CORE_11;
-                case 13 -> PATTERN_CORE_13;
-                default -> throw new IllegalArgumentException("Unsupported matrix pattern side " + sideLength);
-            };
-        }
+        MATRIX,
+        PATTERN_CORE
     }
 }

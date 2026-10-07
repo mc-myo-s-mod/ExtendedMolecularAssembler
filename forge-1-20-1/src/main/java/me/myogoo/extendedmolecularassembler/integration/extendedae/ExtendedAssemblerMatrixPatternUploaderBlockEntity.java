@@ -46,9 +46,6 @@ public class ExtendedAssemblerMatrixPatternUploaderBlockEntity extends TileAssem
 
         var handlers = new ArrayList<IItemHandler>();
         for (var core : this.findTargets()) {
-            if (!core.acceptsPatternSideLength(decoded.tableSideLength())) {
-                continue;
-            }
             var handler = core.getPatternInv(null);
             if (handler == null) {
                 continue;

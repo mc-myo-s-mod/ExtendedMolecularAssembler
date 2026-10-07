@@ -12,7 +12,8 @@
     "advancedae.QuantumCrafterMenuMixin",
     "extendedae.CalculatorAssemblerMatrixMixin",
     "extendedae.CPatternKeyMixin",
-    "extendedae.ClusterAssemblerMatrixMixin"
+    "extendedae.ClusterAssemblerMatrixMixin",
+    "extendedae.CraftingServiceMixin"
   ],
   "client": [
     "ae2.AbstractTableRendererMixin",

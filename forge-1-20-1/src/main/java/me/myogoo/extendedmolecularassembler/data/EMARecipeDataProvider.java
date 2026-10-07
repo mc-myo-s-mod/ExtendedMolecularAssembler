@@ -138,10 +138,6 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                     "extendedmolecularassembler:" + tier + "_assembler_matrix_crafting_core",
                     matrixConditions, assembler,
                     "ae2:blue_lumen_paint_ball", "ae2:light_blue_lumen_paint_ball", "ae2:cyan_lumen_paint_ball");
-            saveMatrixCore(output, tier + "_assembler_matrix_pattern_core",
-                    "extendedmolecularassembler:" + tier + "_assembler_matrix_pattern_core",
-                    matrixConditions, assembler,
-                    "ae2:purple_lumen_paint_ball", "ae2:magenta_lumen_paint_ball", "ae2:pink_lumen_paint_ball");
         }
 
         JsonArray extendedCrafting = myoConditions("extendedcrafting");
@@ -209,13 +205,13 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 "ae2:blue_lumen_paint_ball",
                 "ae2:light_blue_lumen_paint_ball",
                 "ae2:cyan_lumen_paint_ball");
-        saveMatrixCore(output,
-                "extended_assembler_matrix_pattern_core",
-                "extendedmolecularassembler:extended_assembler_matrix_pattern_core",
-                myoConditions("expatternprovider"), EX_EXTENDED_MOLECULAR_ASSEMBLER,
-                "ae2:purple_lumen_paint_ball",
-                "ae2:magenta_lumen_paint_ball",
-                "ae2:pink_lumen_paint_ball");
+        var patternCoreKey = key('A', "ae2:purple_lumen_paint_ball", 'B', "ae2:magenta_lumen_paint_ball",
+                'C', "ae2:pink_lumen_paint_ball", 'K', "expatternprovider:assembler_matrix_pattern",
+                'P', COMPAT_PROCESSOR);
+        patternCoreKey.add("T", tag("expatternprovider:extended_pattern_provider"));
+        saveShaped(output, "extended_assembler_matrix_pattern_core", myoConditions("expatternprovider"), "redstone",
+                new String[]{"ABC", "KTP", "ABC"}, patternCoreKey,
+                "extendedmolecularassembler:extended_assembler_matrix_pattern_core", true);
 
         shapeless("minecraft:crafting_shapeless",
                 "extendedmolecularassembler:extended_assembler_matrix_pattern_uploader", 1)
@@ -225,12 +221,13 @@ public final class EMARecipeDataProvider extends JsonRecipeProvider {
                 .save(output, recipeId("extended_assembler_matrix_pattern_uploader"));
 
         for (String tier : new String[] { "extended", "epic", "legendary" }) {
-            for (String core : new String[] { "crafting", "pattern" }) {
-                String coreId = tier + "_assembler_matrix_" + core + "_core";
-                saveMatrixCorePlus(output, coreId + "_plus", "extendedmolecularassembler:" + coreId,
-                        "extendedmolecularassembler:" + coreId + "_plus", extendedAEPlusContent);
-            }
+            String coreId = tier + "_assembler_matrix_crafting_core";
+            saveMatrixCorePlus(output, coreId + "_plus", "extendedmolecularassembler:" + coreId,
+                    "extendedmolecularassembler:" + coreId + "_plus", extendedAEPlusContent);
         }
+        saveMatrixCorePlus(output, "extended_assembler_matrix_pattern_core_plus",
+                "extendedmolecularassembler:extended_assembler_matrix_pattern_core",
+                "extendedmolecularassembler:extended_assembler_matrix_pattern_core_plus", extendedAEPlusContent);
     }
 
     private static void buildExtendedPatternEncodingTerminalRecipes(JsonRecipeOutput output) {

@@ -23,14 +23,6 @@ public final class EMAExtendedAEClientIntegration {
                 EMAExtendedAEIntegration.EXTENDED_ASSEMBLER_MATRIX_PATTERN_CORE_MENU.get(),
                 ExtendedAssemblerMatrixPatternCoreScreen::new,
                 "/screens/extended_molecular_assembler/extended_assembler_matrix_pattern_core.json");
-        InitScreens.register(
-                EMAExtendedAEIntegration.EPIC_ASSEMBLER_MATRIX_PATTERN_CORE_MENU.get(),
-                ExtendedAssemblerMatrixPatternCoreScreen::new,
-                "/screens/extended_molecular_assembler/epic_assembler_matrix_pattern_core.json");
-        InitScreens.register(
-                EMAExtendedAEIntegration.LEGENDARY_ASSEMBLER_MATRIX_PATTERN_CORE_MENU.get(),
-                ExtendedAssemblerMatrixPatternCoreScreen::new,
-                "/screens/extended_molecular_assembler/legendary_assembler_matrix_pattern_core.json");
         ExtendedCraftingPatternViewMenu.setClientLayoutProvider(gridSide ->
                 ExtendedCraftingPatternViewScreen.createMenuLayout(loadPatternViewStyle(gridSide), gridSide));
         MenuScreens.<ExtendedCraftingPatternViewMenu, ExtendedCraftingPatternViewScreen>register(

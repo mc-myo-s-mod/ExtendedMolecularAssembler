@@ -103,7 +103,7 @@ public class ExtendedPatternEncodingTermScreen extends MEStorageScreen<ExtendedP
     @Override
     protected void updateBeforeRender() {
         super.updateBeforeRender();
-        recipeCycleBtn.setVisibility(true);
+        recipeCycleBtn.setVisibility(getMenu().getGridSide() <= 9);
         recipeCycleBtn.active = getMenu().canCycleRecipes();
         substitutionsBtn.setState(getMenu().isSubstitute());
         fluidSubstitutionsBtn.setState(getMenu().isSubstituteFluids());

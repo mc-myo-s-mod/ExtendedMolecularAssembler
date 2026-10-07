@@ -30,28 +30,28 @@ Each Pattern Core provides:
 
 Pattern Core blocks do not execute jobs by themselves.
 
-## Crafting Core
+## Craft Core
 
 <BlockImage id="extendedmolecularassembler:extended_assembler_matrix_crafting_core" scale="5" />
 
 The <ItemLink id="extendedmolecularassembler:extended_assembler_matrix_crafting_core" /> executes extended crafting jobs supplied by Pattern Core blocks.
 
-Each Crafting Core provides:
+Each Craft Core provides:
 
 * 8 extended crafting jobs.
 * Output retry behavior when ME insertion is temporarily blocked.
 * Job cancellation that returns held inputs and outputs instead of deleting them.
 
-Crafting Core blocks do not store patterns by themselves.
+Craft Core blocks do not store patterns by themselves.
 
 ## Required Matrix Shape
 
 An EMA Matrix setup needs both sides:
 
 * At least one Pattern Core to expose patterns.
-* At least one Crafting Core to run jobs.
+* At least one Craft Core to run jobs.
 
-A Matrix with only Crafting Cores must not accept or execute EMA extended patterns. This prevents accidental crafting from ordinary ExtendedAE pattern storage.
+A Matrix with only Craft Cores must not accept or execute EMA extended patterns. This prevents accidental crafting from ordinary ExtendedAE pattern storage.
 
 ## Shared Speed
 

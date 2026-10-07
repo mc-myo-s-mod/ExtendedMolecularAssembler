@@ -29,13 +29,13 @@ Each Pattern Core Plus provides:
 * 72 extended pattern slots.
 * The same Pattern Access and search behavior as the normal Pattern Core.
 
-## Crafting Core Plus
+## Craft Core Plus
 
 <BlockImage id="extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus" scale="5" />
 
 The <ItemLink id="extendedmolecularassembler:extended_assembler_matrix_crafting_core_plus" /> is the high-throughput execution block.
 
-Each Crafting Core Plus provides:
+Each Craft Core Plus provides:
 
 * 32 extended crafting jobs.
 

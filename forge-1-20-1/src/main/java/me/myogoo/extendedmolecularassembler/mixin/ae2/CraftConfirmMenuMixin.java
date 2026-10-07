@@ -8,15 +8,18 @@ import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.crafting.ICraftingPlan;
 import appeng.api.stacks.AEKey;
 import appeng.menu.me.crafting.CraftConfirmMenu;
+import me.myogoo.extendedmolecularassembler.api.annotation.ExPatternProvider;
 import me.myogoo.extendedmolecularassembler.block.ExportMECraftingProviderTier;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
 import me.myogoo.extendedmolecularassembler.crafting.ExportCraftingPlanGuard;
 import me.myogoo.extendedmolecularassembler.crafting.ExportPlanEntryHighlight;
+import me.myogoo.extendedmolecularassembler.integration.extendedae.ExtendedAEAssemblerMatrixBridge;
 import me.myogoo.extendedmolecularassembler.menu.crafting.CraftConfirmExportPlanGate;
 import me.myogoo.extendedmolecularassembler.network.clientbound.EMACraftConfirmPlanBlockPacket;
 import me.myogoo.extendedmolecularassembler.network.clientbound.EMACraftConfirmPlanHighlightsPacket;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import me.myogoo.myotus.api.MyotusAPI;
 import me.myogoo.extendedmolecularassembler.init.EMANetwork;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -124,7 +127,7 @@ public abstract class CraftConfirmMenuMixin implements CraftConfirmExportPlanGat
         }
 
         IGrid grid = null;
-        if (exportMode && menu.getTarget() instanceof IActionHost host) {
+        if (menu.getTarget() instanceof IActionHost host) {
             var node = host.getActionableNode();
             if (node != null) {
                 grid = node.getGrid();
@@ -134,6 +137,7 @@ public abstract class CraftConfirmMenuMixin implements CraftConfirmExportPlanGat
         var providerRevision = ExportCraftingPlanGuard.getProviderRevision();
         var providersChanged = forceProviderScan
                 || grid != this.ema$providerGrid
+                || exportMode != this.ema$cachedExportMode
                 || providerRevision != this.ema$providerRevision;
         if (providersChanged) {
             this.ema$providerGrid = grid;
@@ -147,11 +151,15 @@ public abstract class CraftConfirmMenuMixin implements CraftConfirmExportPlanGat
                 || exportMode != this.ema$cachedExportMode) {
             this.ema$stateCached = true;
             this.ema$cachedExportMode = exportMode;
-            ema$setExportPlanBlockReason(ExportCraftingPlanGuard.getBlockReason(
-                    grid, this.result, this.ema$providerMask, exportMode));
             ema$setExportPlanEntryHighlights(ExportCraftingPlanGuard.getEntryHighlights(
                     this.ema$requiredProviders, this.ema$providerMask, exportMode));
         }
+
+        var reason = ExportCraftingPlanGuard.getBlockReason(grid, this.result, this.ema$providerMask, exportMode);
+        if (reason == null && MyotusAPI.integrations().isLoaded(ExPatternProvider.class)) {
+            reason = ExtendedAEAssemblerMatrixBridge.getPlanBlockReason(grid, this.result);
+        }
+        ema$setExportPlanBlockReason(reason);
 
         ema$syncBlockReason(menu);
         ema$syncHighlights(menu);
