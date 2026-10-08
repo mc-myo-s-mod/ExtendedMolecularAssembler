@@ -246,6 +246,7 @@ jobs:
           ./gradlew ":${TARGET_MODULE}:build" \
             -Pmod_version="${RELEASE_MOD_VERSION}" \
             --build-cache \
+            --no-configuration-cache \
             --no-daemon \
             --console=plain
 
