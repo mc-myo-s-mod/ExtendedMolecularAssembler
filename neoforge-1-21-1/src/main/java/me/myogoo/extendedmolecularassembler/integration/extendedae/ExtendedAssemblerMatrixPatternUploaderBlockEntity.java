@@ -50,14 +50,18 @@ public class ExtendedAssemblerMatrixPatternUploaderBlockEntity extends TileAssem
             return stack;
         }
 
+        var targets = this.findTargets();
+        for (var core : targets) {
+            if (ExtendedAssemblerMatrixPatternUploadUtil.itemHandlerContainsPattern(core.getPatternInv(null), stack)) {
+                return stack;
+            }
+        }
+
         var remainder = stack.copy();
-        for (var core : this.findTargets()) {
+        for (var core : targets) {
             var handler = core.getPatternInv(null);
             if (handler == null) {
                 continue;
-            }
-            if (ExtendedAssemblerMatrixPatternUploadUtil.itemHandlerContainsPattern(handler, stack)) {
-                return stack;
             }
             for (int slot = 0; slot < handler.getSlots() && !remainder.isEmpty(); slot++) {
                 remainder = handler.insertItem(slot, remainder, simulate);

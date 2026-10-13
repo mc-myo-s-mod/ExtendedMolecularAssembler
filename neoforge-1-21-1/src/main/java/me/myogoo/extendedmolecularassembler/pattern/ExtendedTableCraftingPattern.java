@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import me.myogoo.extendedmolecularassembler.crafting.PatternGridLayout;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
@@ -98,8 +99,8 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         this.tableSideLength = encodedPattern.hasTableMetadata()
                 ? encodedPattern.tableSideLength()
                 : adapter.sideLength();
-        this.patternToMachineSlot = createPatternToMachineSlots(this.tableSideLength);
-        this.machineToPatternSlot = createMachineToPatternSlots(this.patternToMachineSlot);
+        this.patternToMachineSlot = PatternGridLayout.centeredSlots(this.tableSideLength, MACHINE_GRID_SIDE);
+        this.machineToPatternSlot = PatternGridLayout.inverseSlots(this.patternToMachineSlot, MACHINE_GRID_SIZE);
         this.sparseInputs = getCraftingInputs(encodedPattern.inputs(), adapter.gridSize());
         this.sparseToCompressed = new int[MACHINE_GRID_SIZE];
         Arrays.fill(this.sparseToCompressed, -1);
@@ -383,14 +384,6 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         return this.machineToPatternSlot[machineSlot];
     }
 
-    private List<ItemStack> cropMachineInput(IntFunction<ItemStack> machineInput) {
-        var result = NonNullList.withSize(adapter.gridSize(), ItemStack.EMPTY);
-        for (int patternSlot = 0; patternSlot < result.size(); patternSlot++) {
-            result.set(patternSlot, machineInput.apply(toMachineSlot(patternSlot)));
-        }
-        return result;
-    }
-
     private List<ItemStack> makeAdapterInputItemsFromSparse() {
         var items = NonNullList.withSize(adapter.gridSize(), ItemStack.EMPTY);
         for (int i = 0; i < sparseInputs.size(); i++) {
@@ -513,26 +506,6 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
         items.set(patternSlot, key.toStack());
         var remainingItems = adapter.getRemainingItems(items);
         return patternSlot < remainingItems.size() ? remainingItems.get(patternSlot) : ItemStack.EMPTY;
-    }
-
-    private static int[] createPatternToMachineSlots(int side) {
-        var result = new int[side * side];
-        var offset = Math.floorDiv(MACHINE_GRID_SIDE - side, 2);
-        for (int patternSlot = 0; patternSlot < result.length; patternSlot++) {
-            var x = patternSlot % side;
-            var y = patternSlot / side;
-            result[patternSlot] = (x + offset) + (y + offset) * MACHINE_GRID_SIDE;
-        }
-        return result;
-    }
-
-    private static int[] createMachineToPatternSlots(int[] patternToMachineSlot) {
-        var result = new int[MACHINE_GRID_SIZE];
-        Arrays.fill(result, -1);
-        for (int patternSlot = 0; patternSlot < patternToMachineSlot.length; patternSlot++) {
-            result[patternToMachineSlot[patternSlot]] = patternSlot;
-        }
-        return result;
     }
 
     private static List<GenericStack> getCraftingInputs(List<ItemStack> stacks, int size) {

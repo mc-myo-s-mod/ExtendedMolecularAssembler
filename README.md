@@ -40,6 +40,10 @@
 |---------------------------------------------------------------------|----------------|----------|-------------------------------------------------------------------------------------------------------------------------------------|
 | [Myotus](https://modrinth.com/mod/myotus)                           | 1.21.1, 1.20.1 | ✔️       | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/myotus-lib), [Modrinth](https://modrinth.com/mod/myotus)                      |
 | [Extended Terminal](https://modrinth.com/mod/extended-terminal)      | 1.21.1, 1.20.1 | ❌         | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/extended-terminal), [Modrinth](https://modrinth.com/mod/extended-terminal) |
+AE2WTLib is optional and enables wireless terminal integration. ExtendedAE enables
+Ex assemblers, in-place Ex upgrade kits and extended Assembler Matrix cores.
+AdvancedAE enables the Extended Quantum Crafter integration, which remains `[WIP]`.
+
 ## Build
 
 The 26.1.2 module uses Java 25 and its own Gradle 9 wrapper; see
@@ -53,6 +57,14 @@ Run from the repository root:
 ```
 
 If you are building on Windows from WSL and Gradle artifacts are locked by IntelliJ or Minecraft, close the process that holds the files or build from a clean copy on the Linux filesystem.
+
+## API compatibility
+
+Existing public entry points remain available. `ExtendedQuantumCraftingJob.requiredInputTotal(GenericStack, int)` is deprecated and delegates to the same quantity calculation as `requiredInputTotal(int inputIndex, int toCraft)`. It retains the first matching input group's multiplier and the supplied stack amount; use the indexed overload when multiple groups share a key. Complete item data is used for input and return identity.
+
+`ExtendedPatternRecipeFinder.RecipeLookup` retains its callable `find` method and is deprecated in favor of `RecipeLookupAll`, which returns every candidate. No public lookup interface was removed. Saved job, lane, Matrix thread and pattern identifiers are unchanged.
+
+GameTests, their helper classes and fixtures remain available in development source-set output and are excluded from release JARs.
 
 ## License
 

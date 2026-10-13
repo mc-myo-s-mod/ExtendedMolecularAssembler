@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import me.myogoo.extendedmolecularassembler.crafting.PatternGridLayout;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -99,8 +100,8 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
                 ? encodedPattern.tableSideLength()
                 : adapter.sideLength();
         this.machineGridSide = Math.max(MACHINE_GRID_SIDE, this.tableSideLength);
-        this.patternToMachineSlot = createPatternToMachineSlots(this.tableSideLength, this.machineGridSide);
-        this.machineToPatternSlot = createMachineToPatternSlots(this.patternToMachineSlot);
+        this.patternToMachineSlot = PatternGridLayout.centeredSlots(this.tableSideLength, this.machineGridSide);
+        this.machineToPatternSlot = PatternGridLayout.inverseSlots(this.patternToMachineSlot, MAX_GRID_SIZE);
         this.sparseInputs = getCraftingContainers(encodedPattern.inputs(), adapter.gridSize());
         this.sparseToCompressed = new int[MAX_GRID_SIZE];
         Arrays.fill(this.sparseToCompressed, -1);
@@ -407,14 +408,6 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
                 : this.machineToPatternSlot[machineSlot];
     }
 
-    private List<ItemStack> cropMachineInput(IntFunction<ItemStack> machineInput) {
-        var result = NonNullList.withSize(adapter.gridSize(), ItemStack.EMPTY);
-        for (int patternSlot = 0; patternSlot < result.size(); patternSlot++) {
-            result.set(patternSlot, machineInput.apply(toMachineSlot(patternSlot)));
-        }
-        return result;
-    }
-
     private List<ItemStack> makeAdapterInputItemsFromSparse() {
         var items = NonNullList.withSize(adapter.gridSize(), ItemStack.EMPTY);
         for (int i = 0; i < sparseInputs.size(); i++) {
@@ -575,26 +568,6 @@ public class ExtendedTableCraftingPattern implements IPatternDetails {
 
     private boolean isValidTargetSide(int targetSide) {
         return targetSide >= machineGridSide && targetSide <= MAX_GRID_SIDE && (targetSide & 1) == 1;
-    }
-
-    private static int[] createPatternToMachineSlots(int side, int targetSide) {
-        var result = new int[side * side];
-        var offset = Math.floorDiv(targetSide - side, 2);
-        for (int patternSlot = 0; patternSlot < result.length; patternSlot++) {
-            var x = patternSlot % side;
-            var y = patternSlot / side;
-            result[patternSlot] = (x + offset) + (y + offset) * targetSide;
-        }
-        return result;
-    }
-
-    private static int[] createMachineToPatternSlots(int[] patternToMachineSlot) {
-        var result = new int[MAX_GRID_SIZE];
-        Arrays.fill(result, -1);
-        for (int patternSlot = 0; patternSlot < patternToMachineSlot.length; patternSlot++) {
-            result[patternToMachineSlot[patternSlot]] = patternSlot;
-        }
-        return result;
     }
 
     private static List<GenericStack> getCraftingContainers(List<ItemStack> stacks, int size) {

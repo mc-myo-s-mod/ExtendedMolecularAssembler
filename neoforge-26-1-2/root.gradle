@@ -3,6 +3,8 @@ def isWindows = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains(
 def wrapper = isWindows ? ['cmd', '/d', '/c', 'gradlew.bat'] : ['sh', './gradlew']
 def forwardedProperties = gradle.startParameter.projectProperties.collect { key, value -> "-P${key}=${value}".toString() }
 def forwardedFlags = gradle.startParameter.offline ? ['--offline'] : []
+def forwardedInitScripts = gradle.startParameter.initScripts.collectMany { ['-I', it.absolutePath] }
+def forwardedSystemProperties = gradle.startParameter.systemPropertiesArgs.collect { key, value -> "-D${key}=${value}".toString() }
 
 ['clean', 'assemble', 'build', 'check', 'compileJava', 'test',
  'runData', 'runClient', 'runServer', 'runGameTestServer', 'neoForgeIdeSync'].each { taskName ->
@@ -10,7 +12,8 @@ def forwardedFlags = gradle.startParameter.offline ? ['--offline'] : []
         group = '26.1.2'
         description = "Runs ${taskName} with the 26.1.2 Gradle wrapper."
         workingDir projectDir
-        commandLine wrapper + [taskName, '--console=plain', '--no-daemon', '--no-configuration-cache'] + forwardedFlags + forwardedProperties
+        commandLine wrapper + [taskName, '--console=plain', '--no-daemon', '--no-configuration-cache',
+                "--max-workers=${gradle.startParameter.maxWorkerCount}"] + forwardedFlags + forwardedProperties + forwardedSystemProperties + forwardedInitScripts
     }
 }
 

@@ -13,6 +13,7 @@ import appeng.api.stacks.KeyCounter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixFunction;
 import me.myogoo.extendedmolecularassembler.config.EMAConfig;
+import me.myogoo.extendedmolecularassembler.crafting.AssemblerSpeedProfile;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -30,14 +31,6 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
     public static final int DEFAULT_THREAD_COUNT = 8;
     public static final int PLUS_THREAD_COUNT = 32;
     private static final int OUTPUT_SLOT = ExtendedTableCraftingPattern.MACHINE_GRID_SIZE;
-    private static final SpeedProfile[] SPEED_PROFILES = {
-            new SpeedProfile(20, 1.0),
-            new SpeedProfile(26, 1.3),
-            new SpeedProfile(34, 1.7),
-            new SpeedProfile(40, 2.0),
-            new SpeedProfile(50, 2.5),
-            new SpeedProfile(100, 5.0)
-    };
 
     private final ExtendedMatrixThread[] extendedThreads;
     private int usedThreadCount = 0;
@@ -111,7 +104,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
 
         var changed = false;
         var speedCore = this.cluster == null ? 0 : this.cluster.getSpeedCore();
-        var speed = SPEED_PROFILES[Math.max(0, Math.min(speedCore, SPEED_PROFILES.length - 1))];
+        var speed = AssemblerSpeedProfile.forUpgrades(true, speedCore);
         var energyService = node.getGrid().getEnergyService();
         var powerMultiplier = EMAConfig.extendedAssemblerMatrixCraftingCoreCraftingPowerMultiplier(this.isPlusCore());
         for (var thread : this.extendedThreads) {
@@ -228,7 +221,7 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
             return true;
         }
 
-        private boolean tick(SpeedProfile speed, int ticksSinceLastCall, IEnergyService energyService,
+        private boolean tick(AssemblerSpeedProfile speed, int ticksSinceLastCall, IEnergyService energyService,
                 double powerMultiplier) {
             if (this.outputRetryCooldown > 0) {
                 this.outputRetryCooldown = Math.max(0, this.outputRetryCooldown - ticksSinceLastCall);
@@ -471,6 +464,4 @@ public class ExtendedAssemblerMatrixCraftingCoreBlockEntity extends TileAssemble
         }
     }
 
-    private record SpeedProfile(int speed, double acceleratorTax) {
-    }
 }

@@ -20,6 +20,7 @@ public final class EMACreativeModeTabs {
                         output.accept(EMAItems.EXTENDED_MOLECULAR_ASSEMBLER.get());
                         if (EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER != null) {
                             output.accept(EMAItems.EX_EXTENDED_MOLECULAR_ASSEMBLER.get());
+                            output.accept(EMAItems.EX_EXTENDED_ASSEMBLER_UPGRADE_KIT.get());
                         }
                         output.accept(EMAItems.BASIC_ME_CRAFTING_PROVIDER.get());
                         output.accept(EMAItems.ADVANCED_ME_CRAFTING_PROVIDER.get());

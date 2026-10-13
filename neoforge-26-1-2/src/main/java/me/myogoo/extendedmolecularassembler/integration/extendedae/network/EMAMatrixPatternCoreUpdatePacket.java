@@ -28,9 +28,16 @@ public record EMAMatrixPatternCoreUpdatePacket(long coreId, int slotCount, boole
         var slotCount = data.readVarInt();
         var full = data.readBoolean();
         var count = data.readVarInt();
+        if (slotCount < 0 || slotCount > 72 || count < 0 || count > slotCount) {
+            throw new IllegalArgumentException("Invalid matrix pattern update size");
+        }
         var changes = new HashMap<Integer, ItemStack>();
         for (int i = 0; i < count; i++) {
-            changes.put(data.readVarInt(), ItemStack.OPTIONAL_STREAM_CODEC.decode(data));
+            var slot = data.readVarInt();
+            if (slot < 0 || slot >= slotCount) {
+                throw new IllegalArgumentException("Invalid matrix pattern slot");
+            }
+            changes.put(slot, ItemStack.OPTIONAL_STREAM_CODEC.decode(data));
         }
         return new EMAMatrixPatternCoreUpdatePacket(coreId, slotCount, full, changes);
     }

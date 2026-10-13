@@ -1,6 +1,10 @@
 package me.myogoo.extendedmolecularassembler.mixin.advancedae;
 
 import appeng.api.config.Actionable;
+import appeng.api.config.PowerMultiplier;
+import appeng.api.networking.IGrid;
+import appeng.api.networking.energy.IEnergySource;
+import appeng.api.stacks.KeyCounter;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.networking.security.IActionSource;
@@ -70,6 +74,32 @@ public abstract class QuantumCrafterEntityMixin {
 
     @Unique
     private final List<ExtendedQuantumCraftingJob> ema$extendedJobs = new ArrayList<>();
+
+    @Invoker("performCrafts")
+    protected abstract void ema$performAllCrafts(int maxCrafts);
+
+    // Replace only AAE's tick energy gate; poweredExtraction keeps its separate storage-transfer charge.
+    @Inject(method = "lambda$tickingRequest$0(ILappeng/api/networking/IGrid;)V", at = @At("HEAD"), cancellable = true, require = 1)
+    private void ema$chargeConfiguredCraftingPower(int speedFactor, IGrid grid, CallbackInfo ci) {
+        if (!this.ema$isExtendedQuantumCrafter()) {
+            return;
+        }
+        ci.cancel();
+        var cost = 10.0 * speedFactor * EMAConfig.extendedQuantumCrafterCraftingPowerMultiplier();
+        if (cost == 0) {
+            this.ema$performAllCrafts(speedFactor);
+            return;
+        }
+        IEnergySource source = this.ema$self();
+        var threshold = cost - Math.min(0.01, cost * 0.001);
+        if (source.extractAEPower(cost, Actionable.SIMULATE, PowerMultiplier.CONFIG) < threshold) {
+            source = grid.getEnergyService();
+        }
+        if (source.extractAEPower(cost, Actionable.SIMULATE, PowerMultiplier.CONFIG) >= threshold
+                && source.extractAEPower(cost, Actionable.MODULATE, PowerMultiplier.CONFIG) >= threshold) {
+            this.ema$performAllCrafts(speedFactor);
+        }
+    }
 
     @Invoker("isEnabled")
     protected abstract boolean ema$isEnabled();
@@ -312,13 +342,50 @@ public abstract class QuantumCrafterEntityMixin {
     }
 
     @Unique
-    private int ema$maxCrafts(ExtendedQuantumCraftingJob job, int upperBound) {
+    private ExtendedQuantumCraftingJob ema$resolveJob(ExtendedQuantumCraftingJob job) {
+        var node = this.ema$self().getGridNode();
+        var level = this.ema$self().getLevel();
+        if (node == null || level == null || job == null || job.pattern == null) {
+            return null;
+        }
+        var selected = new ArrayList<GenericStack>();
+        var reserved = new KeyCounter();
+        for (var input : job.pattern.getInputs()) {
+            GenericStack choice = null;
+            for (var candidate : input.getPossibleInputs()) {
+                if (candidate == null || candidate.amount() <= 0 || !input.isValid(candidate.what(), level)) {
+                    continue;
+                }
+                var amount = input.getMultiplier() * candidate.amount();
+                var required = amount + reserved.get(candidate.what());
+                if (job.isInputConsumed(candidate)) {
+                    required += job.minimumInputToKeep(input);
+                }
+                var available = node.getGrid().getStorageService().getInventory()
+                        .extract(candidate.what(), required, Actionable.SIMULATE, this.mySrc);
+                if (available >= required) {
+                    choice = candidate;
+                    reserved.add(candidate.what(), amount);
+                    break;
+                }
+            }
+            if (choice == null) {
+                return null;
+            }
+            selected.add(choice);
+        }
+        // shortcut: use the first stocked combination; add a search if joint substitutions need alternatives.
+        return job.withInputs(selected, level);
+    }
+
+    @Unique
+    private int ema$maxCrafts(ExtendedQuantumCraftingJob originalJob, int upperBound) {
+        var job = this.ema$resolveJob(originalJob);
         var node = this.ema$self().getGridNode();
         if (node == null || job == null || job.pattern == null) {
             return 0;
         }
 
-        var inputs = job.pattern.getInputs();
         var outputs = job.pattern.getOutputs();
         if (outputs.isEmpty()) {
             return 0;
@@ -333,47 +400,6 @@ public abstract class QuantumCrafterEntityMixin {
         if (totalCrafts == 0) {
             return 0;
         }
-        for (var input : inputs) {
-            var minStock = job.minimumInputToKeep(input);
-            var success = false;
-            for (var genericInput : input.getPossibleInputs()) {
-                if (genericInput == null) {
-                    continue;
-                }
-
-                var inputAmount = input.getMultiplier() * genericInput.amount();
-                if (inputAmount <= 0) {
-                    continue;
-                }
-
-                var toExtract = job.requiredInputTotal(genericInput, totalCrafts);
-                if (job.isInputConsumed(genericInput)) {
-                    toExtract += minStock;
-                }
-
-                var extracted = grid.getStorageService()
-                        .getInventory()
-                        .extract(genericInput.what(), toExtract, Actionable.SIMULATE, this.mySrc);
-
-                if (!job.isInputConsumed(genericInput) && extracted >= toExtract) {
-                    success = true;
-                    break;
-                } else if (extracted > minStock) {
-                    success = true;
-                    if (extracted > Integer.MAX_VALUE) {
-                        extracted = Integer.MAX_VALUE;
-                    }
-                    var possibleCrafts = (int) Math.floor((double) (extracted - minStock) / inputAmount);
-                    totalCrafts = Math.min(possibleCrafts, totalCrafts);
-                    break;
-                }
-            }
-
-            if (!success) {
-                return 0;
-            }
-        }
-
         var output = outputs.getFirst();
         var maxStock = job.limitMaxOutput;
         if (maxStock > 0) {
@@ -394,7 +420,29 @@ public abstract class QuantumCrafterEntityMixin {
         }
 
         return QuantumCraftingBatch.maximumCrafts(totalCrafts,
-                crafts -> this.ema$canStoreLocalOutputs(job, crafts));
+                crafts -> this.ema$hasRequiredInputs(job, crafts) && this.ema$canStoreLocalOutputs(job, crafts));
+    }
+
+    @Unique
+    private boolean ema$hasRequiredInputs(ExtendedQuantumCraftingJob job, int crafts) {
+        var required = new KeyCounter();
+        var keep = new KeyCounter();
+        for (int i = 0; i < job.craftingInputs().size(); i++) {
+            var input = job.craftingInputs().get(i);
+            required.add(input.what(), job.requiredInputTotal(i, crafts));
+            if (job.isInputConsumed(input)) {
+                var minimum = job.minimumInputToKeep(job.pattern.getInputs()[i]);
+                keep.add(input.what(), Math.max(0, minimum - keep.get(input.what())));
+            }
+        }
+        var inventory = this.ema$self().getGridNode().getGrid().getStorageService().getInventory();
+        for (var entry : required) {
+            var amount = entry.getLongValue() + keep.get(entry.getKey());
+            if (inventory.extract(entry.getKey(), amount, Actionable.SIMULATE, this.mySrc) < amount) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Unique
@@ -503,7 +551,8 @@ public abstract class QuantumCrafterEntityMixin {
     }
 
     @Unique
-    private void ema$performCraft(ExtendedQuantumCraftingJob job, int toCraft) {
+    private void ema$performCraft(ExtendedQuantumCraftingJob originalJob, int toCraft) {
+        var job = this.ema$resolveJob(originalJob);
         var node = this.ema$self().getGridNode();
         if (node == null || job == null || job.pattern == null || toCraft <= 0) {
             return;
@@ -518,34 +567,21 @@ public abstract class QuantumCrafterEntityMixin {
         var energy = grid.getEnergyService();
         var storage = grid.getStorageService();
 
-        for (var input : inputs) {
-            var extractedInput = false;
-            for (var genericInput : input.getPossibleInputs()) {
-                if (genericInput == null) {
-                    continue;
-                }
-
-                var inputAmount = input.getMultiplier() * genericInput.amount();
-                var toExtract = job.requiredInputTotal(genericInput, toCraft);
-                if (inputAmount <= 0 || toExtract <= 0) {
-                    continue;
-                }
-
-                var extracted = StorageHelper.poweredExtraction(
-                        energy, storage.getInventory(), genericInput.what(), toExtract, this.mySrc);
-                if (extracted > 0) {
-                    requiredPerCraft.add(inputAmount);
-                    extractedItems.add(new GenericStack(genericInput.what(), extracted));
-                    extractions.add(new QuantumCraftingBatch.Extraction(toExtract, extracted));
-                    extractedInput = extracted == toExtract;
-                    break;
-                }
+        for (int inputIndex = 0; inputIndex < inputs.length; inputIndex++) {
+            var input = job.craftingInputs().get(inputIndex);
+            var inputAmount = inputs[inputIndex].getMultiplier() * input.amount();
+            var toExtract = job.requiredInputTotal(inputIndex, toCraft);
+            var extracted = StorageHelper.poweredExtraction(
+                    energy, storage.getInventory(), input.what(), toExtract, this.mySrc);
+            if (extracted > 0) {
+                requiredPerCraft.add(inputAmount);
+                extractedItems.add(new GenericStack(input.what(), extracted));
+                extractions.add(new QuantumCraftingBatch.Extraction(toExtract, extracted));
             }
-            if (!extractedInput) {
+            if (extracted != toExtract) {
                 break;
             }
         }
-
         var completeRecipes = QuantumCraftingBatch.completedCrafts(toCraft, inputs.length, extractions);
         if (completeRecipes > 0) {
             if (this.ema$isExportToMe()) {

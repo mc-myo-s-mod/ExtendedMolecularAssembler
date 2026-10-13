@@ -2,17 +2,70 @@ package me.myogoo.extendedmolecularassembler.integration.extendedae;
 
 import appeng.api.config.Actionable;
 import appeng.api.crafting.IPatternDetails;
+import appeng.api.networking.IGrid;
+import appeng.api.networking.crafting.ICraftingPlan;
+import appeng.api.networking.crafting.ICraftingProvider;
+import appeng.me.service.CraftingService;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.extendedae.common.tileentities.matrix.TileAssemblerMatrixBase;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 public final class ExtendedAEAssemblerMatrixBridge {
     private ExtendedAEAssemblerMatrixBridge() {
+    }
+
+    @Nullable
+    public static Component getPlanBlockReason(@Nullable IGrid grid, @Nullable ICraftingPlan plan) {
+        if (grid == null || plan == null || plan.simulation()
+                || !(grid.getCraftingService() instanceof CraftingService service)) {
+            return null;
+        }
+        for (var entry : plan.patternTimes().entrySet()) {
+            if (entry.getValue() > 0 && entry.getKey() instanceof ExtendedTableCraftingPattern pattern
+                    && !hasExecutableProvider(service.getProviders(pattern), pattern)) {
+                return Component.translatable("gui.extendedmolecularassembler.matrix_missing_crafting_core",
+                        pattern.tableSideLength(), pattern.tableSideLength());
+            }
+        }
+        return null;
+    }
+
+    static boolean hasExecutableProvider(Iterable<ICraftingProvider> providers,
+            ExtendedTableCraftingPattern pattern) {
+        var executable = false;
+        // AE2 shares this round-robin cursor with crafting dispatch; consume a full cycle.
+        for (var provider : providers) {
+            if (!(provider instanceof ExtendedAssemblerMatrixPatternCoreBlockEntity core)) {
+                executable = true;
+            } else if (!executable && !core.isRemoved() && core.getMainNode().isActive()
+                    && core.getAvailablePatterns().contains(pattern)
+                    && hasCraftingCore(core.getCluster(), pattern)) {
+                executable = true;
+            }
+        }
+        return executable;
+    }
+
+    static boolean hasCraftingCore(@Nullable ClusterAssemblerMatrix cluster, ExtendedTableCraftingPattern pattern) {
+        if (cluster == null || cluster.isDestroyed()) {
+            return false;
+        }
+        var iterator = cluster.getBlockEntities();
+        while (iterator.hasNext()) {
+            if (iterator.next() instanceof ExtendedAssemblerMatrixCraftingCoreBlockEntity core
+                    && !core.isRemoved()
+                    && pattern.tableSideLength() <= ExtendedTableCraftingPattern.MACHINE_GRID_SIDE) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int usedJobCount(ClusterAssemblerMatrix cluster) {

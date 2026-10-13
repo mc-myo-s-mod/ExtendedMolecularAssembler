@@ -41,46 +41,7 @@ public final class ExtendedPatternRecipeFinder {
         return matches;
     }
 
-    private static Optional<ExtendedPatternRecipeMatch> findWithLookup(List<ItemStack> machineGrid, Level level,
-            int[] sides, RecipeLookup lookup) {
-        if (machineGrid.size() != ExtendedTableCraftingPattern.MACHINE_GRID_SIZE || isEmpty(machineGrid)) {
-            return Optional.empty();
-        }
-
-        for (var side : sides) {
-            for (var offsetY : orderedOffsets(side)) {
-                for (var offsetX : orderedOffsets(side)) {
-                    if (!isOutsideWindowEmpty(machineGrid, side, offsetX, offsetY)) {
-                        continue;
-                    }
-
-                    var input = copyWindow(machineGrid, side, offsetX, offsetY);
-                    if (isEmpty(input)) {
-                        continue;
-                    }
-
-                    var holder = lookup.find(side, input, level).orElse(null);
-                    if (holder == null) {
-                        continue;
-                    }
-
-                    var adapter = TableRecipeAdapters.of(holder);
-                    if (adapter.sideLength() != side) {
-                        continue;
-                    }
-
-                    var result = adapter.assemble(input, level);
-                    if (!result.isEmpty()) {
-                        return Optional.of(new ExtendedPatternRecipeMatch(holder, toArray(input), result));
-                    }
-                }
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    private static List<ExtendedPatternRecipeMatch> findAllWithLookup(List<ItemStack> machineGrid, Level level,
+    static List<ExtendedPatternRecipeMatch> findAllWithLookup(List<ItemStack> machineGrid, Level level,
             int[] sides, RecipeLookupAll lookup) {
         var matches = new ArrayList<ExtendedPatternRecipeMatch>();
         if (machineGrid.size() != ExtendedTableCraftingPattern.MACHINE_GRID_SIZE || isEmpty(machineGrid)) {
@@ -106,7 +67,8 @@ public final class ExtendedPatternRecipeFinder {
                         }
 
                         var result = adapter.assemble(input, level);
-                        if (!result.isEmpty()) {
+                        if (!result.isEmpty() && matches.stream().noneMatch(match ->
+                                match.recipe().id().equals(holder.id()) && ItemStack.matches(match.result(), result))) {
                             matches.add(new ExtendedPatternRecipeMatch(holder, toArray(input), result));
                         }
                     }
@@ -186,6 +148,8 @@ public final class ExtendedPatternRecipeFinder {
         return result;
     }
 
+    /** @deprecated Use {@link RecipeLookupAll} to preserve all candidate results. */
+    @Deprecated(forRemoval = true)
     @FunctionalInterface
     public interface RecipeLookup {
         Optional<RecipeHolder<?>> find(int side, List<ItemStack> input, Level level);

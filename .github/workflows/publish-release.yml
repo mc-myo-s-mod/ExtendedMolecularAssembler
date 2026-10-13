@@ -75,9 +75,11 @@ jobs:
 
           forge_properties="forge-1-20-1/gradle.properties"
           neoforge_properties="neoforge-1-21-1/gradle.properties"
+          native26_properties="neoforge-26-1-2/gradle.properties"
 
           forge_mc_version="$(read_property minecraft_version "$forge_properties")"
           neoforge_mc_version="$(read_property minecraft_version "$neoforge_properties")"
+          native26_mc_version="$(read_property minecraft_version "$native26_properties")"
           release_version="${RELEASE_TAG#v}"
 
           case "$release_version" in
@@ -89,9 +91,13 @@ jobs:
               module="neoforge-1-21-1"
               properties_file="$neoforge_properties"
               ;;
+            "${native26_mc_version}-"*)
+              module="neoforge-26-1-2"
+              properties_file="$native26_properties"
+              ;;
             *)
               echo "::error::Unsupported release tag '${RELEASE_TAG}'."
-              echo "::error::Use v${forge_mc_version}-<mod-version> or v${neoforge_mc_version}-<mod-version>."
+              echo "::error::Use v${forge_mc_version}-<mod-version>, v${neoforge_mc_version}-<mod-version>, or v${native26_mc_version}-<mod-version>."
               exit 1
               ;;
           esac
@@ -168,13 +174,25 @@ jobs:
           re-avaritia(optional){modrinth:QeB3NRC5}{curseforge:623969}
           EOF
             )
+          elif [[ "$module" == "neoforge-26-1-2" ]]; then
+            dependencies=$(cat <<'EOF'
+          ae2(required){modrinth:XxWD5pD3}{curseforge:223794}
+          myotus(required){modrinth:32YA23Pp}{curseforge:1496024}
+          ae2wtlib(optional){modrinth:pNabrMMw}{curseforge:459929}
+          extendedcrafting(optional){modrinth:5JMG1gql}{curseforge:268387}
+          extendedae(optional){modrinth:JiOqfoFM}{curseforge:892005}
+          advancedae(optional){modrinth:rxYaglEe}{curseforge:1084104}
+          re-avaritia(optional){modrinth:QeB3NRC5}{curseforge:623969}
+          EOF
+            )
           else
             dependencies=$(cat <<'EOF'
           ae2(required){modrinth:XxWD5pD3}{curseforge:223794}
           myotus(required){modrinth:32YA23Pp}{curseforge:1496024}
-          ae2wtlib(required){modrinth:pNabrMMw}{curseforge:459929}
+          ae2wtlib(optional){modrinth:pNabrMMw}{curseforge:459929}
           extendedcrafting(optional){modrinth:5JMG1gql}{curseforge:268387}
           extendedae(optional){modrinth:JiOqfoFM}{curseforge:892005}
+          advancedae(optional){modrinth:rxYaglEe}{curseforge:1084104}
           extended-terminal(optional){modrinth:SwdQUhgJ}{curseforge:1302078}
           avaritianeo(optional){modrinth:j5gjLUvf}{curseforge:1083158}
           re-avaritia(optional){modrinth:QeB3NRC5}{curseforge:623969}
@@ -228,7 +246,7 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
-          distribution: microsoft
+          distribution: ${{ steps.metadata.outputs.module == 'neoforge-26-1-2' && 'temurin' || 'microsoft' }}
           java-version: ${{ steps.metadata.outputs.java_version }}
 
       - name: Set up Gradle
@@ -242,13 +260,12 @@ jobs:
           RELEASE_MOD_VERSION: ${{ steps.metadata.outputs.mod_version }}
           TARGET_MODULE: ${{ steps.metadata.outputs.module }}
         run: |
-          chmod +x ./gradlew
-          ./gradlew ":${TARGET_MODULE}:build" \
-            -Pmod_version="${RELEASE_MOD_VERSION}" \
-            --build-cache \
-            --no-configuration-cache \
-            --no-daemon \
-            --console=plain
+          if [[ "$TARGET_MODULE" == "neoforge-26-1-2" ]]; then
+            cd "$TARGET_MODULE"
+            bash ./gradlew build -Pmod_version="${RELEASE_MOD_VERSION}" --build-cache --no-daemon --console=plain
+          else
+            bash ./gradlew ":${TARGET_MODULE}:build" -Pmod_version="${RELEASE_MOD_VERSION}" --build-cache --no-configuration-cache --no-daemon --console=plain
+          fi
 
       - name: Collect release artifact
         shell: bash

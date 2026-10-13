@@ -36,6 +36,7 @@ import me.myogoo.extendedmolecularassembler.menu.ExtendedMolecularAssemblerMenu.
 import me.myogoo.extendedmolecularassembler.menu.slot.ExtendedMolecularAssemblerPatternSlot;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinder;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinderChecks;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeMatch;
 import me.myogoo.extendedmolecularassembler.pattern.EncodedExtendedCraftingPattern;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedPatternTableTypes;
@@ -78,6 +79,11 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = ExtendedMolecularAssembler.MODID)
 public final class ExtendedPatternGameTests {
     private static final List<TestCase> TESTS = List.of(
+            new TestCase("upgrade_kit_registration", 20, AssemblerUpgradeGameTests::exUpgradeKitRegistrationFollowsExtendedAE),
+            new TestCase("upgrade_kit_success", 60, AssemblerUpgradeGameTests::exUpgradeReturnsPatternToPlayer),
+            new TestCase("upgrade_kit_overflow", 50, AssemblerUpgradeGameTests::fullInventoryUpgradeDropsPatternAtPlayerForSurvivalAndCreative),
+            new TestCase("upgrade_kit_busy", 30, AssemblerUpgradeGameTests::exUpgradeKitRefusesWrongBlockAndBusyAssembler),
+            new TestCase("upgrade_kit_rollback", 40, AssemblerUpgradeGameTests::failedBlockReplacementRestoresAssembler),
             new TestCase("optional_registrations", 20, ExtendedPatternGameTests::optionalRegistrationsFollowMyotusIntegrations),
             new TestCase("pattern_view_layout", 20, ExtendedPatternGameTests::extendedPatternViewCentersSevenBySevenGrid),
             new TestCase("wireless_recipes", 20, ExtendedPatternGameTests::wirelessTerminalRecipesFollowAE2WTLib),
@@ -95,6 +101,8 @@ public final class ExtendedPatternGameTests {
             new TestCase("extended_quantum_accepts_extended", 40, ExtendedPatternGameTests::extendedQuantumCrafterMenuAcceptsExtendedPattern),
             new TestCase("matrix_pattern_filter", 40, ExtendedPatternGameTests::extendedAEPatternCoreAcceptsOnlyExtendedEncodedPatterns),
             new TestCase("matrix_pattern_upload", 40, ExtendedPatternGameTests::extendedAEPatternUploaderUploadsIntoExtendedPatternCore),
+            new TestCase("matrix_request_guard", 240, ExtendedPatternGameTests::extendedAEMatrixRequestsRequireLocalWorker),
+            new TestCase("recipe_candidate_dedup", 20, ExtendedPatternGameTests::recipeCandidatesPreserveDistinctResults),
             new TestCase("matrix_job_cancellation", 40, ExtendedPatternGameTests::extendedAEMatrixCraftingCoreTracksAndCancelsExtendedJobs),
             new TestCase("matrix_job_dispatch", 40, ExtendedPatternGameTests::extendedAEMatrixClusterDispatchesExtendedJob),
             new TestCase("matrix_job_drops", 40, ExtendedPatternGameTests::extendedAEMatrixCraftingCoreDropsActiveExtendedJobInputs),
@@ -117,7 +125,7 @@ public final class ExtendedPatternGameTests {
         for (var test : TESTS) {
             var id = ExtendedMolecularAssembler.makeId(test.name());
             event.registerTest(id, new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id),
-                    new TestData<>(environment, ExtendedMolecularAssembler.makeId("empty"), test.timeout(), 0, true)));
+                    new TestData<>(environment, ExtendedMolecularAssembler.makeId(test.name().equals("matrix_request_guard") ? "matrix_request_gate" : "empty"), test.timeout(), 0, true)));
         }
     }
 
@@ -222,6 +230,11 @@ public final class ExtendedPatternGameTests {
     }
 
     public static void optionalRegistrationsFollowMyotusIntegrations(GameTestHelper helper) {
+        if (Boolean.getBoolean("ema.requireGameTestIntegrations")) {
+            helper.assertTrue(MyotusAPI.integrations().isLoaded(ExtendedAE.class), "CI requires ExtendedAE");
+            helper.assertTrue(MyotusAPI.integrations().isLoaded(AdvancedAE.class), "CI requires AdvancedAE");
+            helper.assertTrue(MyotusAPI.integrations().isLoaded(ExtendedCrafting.class), "CI requires Extended Crafting");
+        }
         boolean extendedAE = MyotusAPI.integrations().isLoaded(ExtendedAE.class);
         boolean extendedAEPlusStyleContent = extendedAE
                 && (MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)
@@ -461,7 +474,8 @@ public final class ExtendedPatternGameTests {
 
         var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
         AdvancedAEGameTestHelper.assertExtendedQuantumCrafterAcceptsExtendedPattern(helper, patternStack);
-        helper.succeed();
+        me.myogoo.extendedmolecularassembler.integration.advancedae.QuantumCraftingGameTestChecks
+                .assertCraftingAndPower(helper);
     }
 
     public static void extendedAEPatternCoreAcceptsOnlyExtendedEncodedPatterns(GameTestHelper helper) {
@@ -485,6 +499,25 @@ public final class ExtendedPatternGameTests {
 
         var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
         ExtendedAEGameTestHelper.assertPatternUploaderUploadsIntoExtendedPatternCore(helper, patternStack);
+        helper.succeed();
+    }
+
+    public static void extendedAEMatrixRequestsRequireLocalWorker(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+        ExtendedAEGameTestHelper.assertCraftingPlanRequiresLocalCore(helper,
+                List.of(decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.getFirst())));
+    }
+
+    public static void recipeCandidatesPreserveDistinctResults(GameTestHelper helper) {
+        ExtendedPatternRecipeFinderChecks.assertDistinctCandidates(helper);
+        if (MyotusAPI.integrations().isLoaded(ExtendedAE.class)) {
+            me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAMatrixPatternCoreUpdatePacketChecks
+                    .assertPacketBounds(helper);
+        }
         helper.succeed();
     }
 
