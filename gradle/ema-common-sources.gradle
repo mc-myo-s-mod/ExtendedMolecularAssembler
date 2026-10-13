@@ -23,3 +23,14 @@ sourceSets.main {
 tasks.named('processResources', ProcessResources).configure {
     duplicatesStrategy = DuplicatesStrategy.FAIL
 }
+
+// Development runs use source-set output; release jars must not contain test classes or fixtures.
+tasks.named('jar', Jar).configure {
+    exclude 'me/myogoo/extendedmolecularassembler/gametest/**'
+    exclude '**/*GameTestHelper*.class', '**/QuantumCraftingGameTestChecks*.class'
+    exclude '**/ExtendedPatternRecipeFinderChecks*.class', '**/EMAMatrixPatternCoreUpdatePacketChecks*.class'
+    exclude 'data/extendedmolecularassembler/recipe/gametest/**'
+    exclude 'data/extendedmolecularassembler/recipes/gametest/**'
+    exclude 'data/extendedmolecularassembler/recipe/dev/**', 'data/extendedmolecularassembler/recipes/dev/**'
+    exclude 'data/extendedmolecularassembler/structure/**', 'data/extendedmolecularassembler/structures/**'
+}

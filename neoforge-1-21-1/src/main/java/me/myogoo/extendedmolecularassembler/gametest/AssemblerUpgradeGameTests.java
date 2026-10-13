@@ -1,6 +1,8 @@
 package me.myogoo.extendedmolecularassembler.gametest;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.orientation.IOrientationStrategy;
@@ -42,6 +44,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -289,6 +294,75 @@ public final class AssemblerUpgradeGameTests {
             helper.assertTrue(helper.getBlockState(pos).getBlock() == EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get(),
                     "Busy assembler was replaced");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 40)
+    public static void failedBlockReplacementRestoresAssembler(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+        var pos = new BlockPos(1, 1, 1);
+        var state = EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get().defaultBlockState();
+        helper.setBlock(pos, IOrientationStrategy.get(state).setOrientation(state, Direction.NORTH, 1));
+        var source = (ExtendedMolecularAssemblerBlockEntity) helper.getBlockEntity(pos);
+        source.getMainNode().setOwningPlayerId(42);
+        source.setName("Rollback Test");
+        var pattern = encodeTierOnePattern(helper);
+        source.getPatternInventory().setItemDirect(0, pattern.copy());
+        source.getUpgrades().setItemDirect(0, new ItemStack(AEItems.SPEED_CARD.asItem()));
+        var oldState = helper.getBlockState(pos);
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "ema_rollback_test"));
+        var kit = new ItemStack(EMAItems.EX_EXTENDED_ASSEMBLER_UPGRADE_KIT.get(), 2);
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(source.getMainNode().isReady(), "Source node did not initialize");
+            var injectedFailure = new IllegalStateException("Expected upgrade replacement failure");
+            var injected = new AtomicBoolean();
+            Consumer<BlockEvent.NeighborNotifyEvent> listener = event -> {
+                if (event.getLevel() == helper.getLevel() && event.getPos().equals(helper.absolutePos(pos))
+                        && event.getState().is(EMABlocks.EX_EXTENDED_MOLECULAR_ASSEMBLER.get())
+                        && injected.compareAndSet(false, true)) {
+                    throw injectedFailure;
+                }
+            };
+            NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, false, BlockEvent.NeighborNotifyEvent.class, listener);
+            try {
+                useKit(helper, player, pos, kit);
+                helper.fail("Replacement exception did not propagate");
+            } catch (RuntimeException failure) {
+                helper.assertTrue(failure == injectedFailure, "Unexpected upgrade exception: " + failure);
+            } finally {
+                NeoForge.EVENT_BUS.unregister(listener);
+            }
+            helper.assertTrue(injected.get(), "Replacement failure was not injected");
+            helper.assertTrue(helper.getBlockState(pos).equals(oldState), "Failed upgrade changed block or orientation");
+            var restored = (ExtendedMolecularAssemblerBlockEntity) helper.getBlockEntity(pos);
+            helper.assertTrue(ItemStack.matches(restored.getPatternInventory().getStackInSlot(0), pattern),
+                    "Failed upgrade lost pattern components");
+            helper.assertTrue(restored.getUpgrades().getStackInSlot(0).is(AEItems.SPEED_CARD.asItem()),
+                    "Failed upgrade lost speed card");
+            helper.assertTrue(restored.getCustomName() != null
+                    && "Rollback Test".equals(restored.getCustomName().getString()), "Failed upgrade lost name");
+            helper.assertTrue(kit.getCount() == 2, "Failed upgrade consumed kit");
+            assertNoPatternInInventory(helper, player.getInventory());
+            helper.assertTrue(helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                    new AABB(helper.absolutePos(pos)).inflate(2)).isEmpty(), "Failed upgrade dropped inventory");
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(restored.getMainNode().isReady(), "Restored node did not initialize");
+                helper.assertTrue(restored.getMainNode().getNode().getOwningPlayerId() == 42,
+                        "Failed upgrade lost node owner");
+                helper.assertTrue(useKit(helper, player, pos, kit) == InteractionResult.CONSUME,
+                        "Restored assembler could not be upgraded");
+                helper.assertTrue(kit.getCount() == 1, "Retried upgrade did not consume exactly one kit");
+                assertPatternStackInInventory(helper, player.getInventory(), pattern);
+                helper.assertTrue(useKit(helper, player, pos, kit) == InteractionResult.PASS,
+                        "Kit converted an already upgraded assembler");
+                helper.assertTrue(kit.getCount() == 1, "Repeated use consumed another kit");
+                assertPatternStackInInventory(helper, player.getInventory(), pattern);
+                helper.succeed();
+            });
         });
     }
 

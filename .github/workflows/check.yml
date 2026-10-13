@@ -1,0 +1,68 @@
+name: Check Extended Molecular Assembler
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: forge-1-20-1
+            java: 21
+          - module: neoforge-1-21-1
+            java: 21
+          - module: neoforge-26-1-2
+            java: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Check shared crafting logic
+        if: matrix.module != 'neoforge-26-1-2'
+        run: bash ./gradlew :common:check --no-configuration-cache --no-daemon --max-workers=2 --console=plain
+      - name: Compile, test and build
+        env:
+          TARGET_MODULE: ${{ matrix.module }}
+        run: |
+          if [[ "$TARGET_MODULE" == "neoforge-26-1-2" ]]; then
+            cd "$TARGET_MODULE"
+            bash ./gradlew compileJava test build --no-daemon --max-workers=2 --console=plain
+          else
+            bash ./gradlew ":${TARGET_MODULE}:compileJava" ":${TARGET_MODULE}:test" ":${TARGET_MODULE}:build" --no-configuration-cache --no-daemon --max-workers=2 --console=plain
+          fi
+      - name: Run server integration regressions
+        env:
+          TARGET_MODULE: ${{ matrix.module }}
+          JAVA_TOOL_OPTIONS: -Dema.requireGameTestIntegrations=true
+        run: |
+          set -euo pipefail
+          mkdir -p "$TARGET_MODULE/build/reports"
+          test_log="$PWD/$TARGET_MODULE/build/reports/ema-gametest.log"
+          if [[ "$TARGET_MODULE" == "neoforge-26-1-2" ]]; then
+            cd "$TARGET_MODULE"
+            bash ./gradlew runGameTestServer -Penable_extendedae=true -Penable_advancedae=true -Penable_excrafting=true --no-configuration-cache --no-daemon --max-workers=2 --console=plain 2>&1 | tee "$test_log"
+          else
+            bash ./gradlew ":${TARGET_MODULE}:runGameTestServer" -Penable_extendedae=true -Penable_advancedae=true -Penable_excrafting=true --no-configuration-cache --no-daemon --max-workers=2 --console=plain 2>&1 | tee "$test_log"
+          fi
+          grep -Eq 'All [1-9][0-9]* required tests passed' "$test_log"
+      - name: Upload verification logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: check-${{ matrix.module }}
+          path: |
+            ${{ matrix.module }}/build/reports/
+            ${{ matrix.module }}/run*/logs/
+          if-no-files-found: warn

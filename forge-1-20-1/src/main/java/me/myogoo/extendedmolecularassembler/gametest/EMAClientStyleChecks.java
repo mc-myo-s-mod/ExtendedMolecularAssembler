@@ -26,7 +26,8 @@ public final class EMAClientStyleChecks {
 
     @SubscribeEvent
     public static void onScreenOpening(ScreenEvent.Opening event) {
-        if (!Boolean.getBoolean("ema.checkClientStyles") || checked || !(event.getNewScreen() instanceof TitleScreen)) {
+        if ((!Boolean.getBoolean("ema.checkClientStyles") && !Boolean.getBoolean("ema.clientSmoke"))
+                || checked || !(event.getNewScreen() instanceof TitleScreen)) {
             return;
         }
         checked = true;
@@ -115,6 +116,11 @@ public final class EMAClientStyleChecks {
             count += 3;
         }
         ExtendedMolecularAssembler.LOGGER.info("EMA client style checks passed: {} native styles", count);
+        if (Boolean.getBoolean("ema.clientSmoke")) {
+            org.spongepowered.asm.mixin.MixinEnvironment.getCurrentEnvironment().audit();
+            ExtendedMolecularAssembler.LOGGER.info("EMA client style and mixin audit PASS");
+            net.minecraft.client.Minecraft.getInstance().stop();
+        }
     }
 
     private static ScreenStyle checkStyle(String name, String gridSemantic) {

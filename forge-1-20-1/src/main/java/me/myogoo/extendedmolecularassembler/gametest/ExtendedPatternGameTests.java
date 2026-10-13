@@ -81,6 +81,15 @@ import java.util.Optional;
 @GameTestHolder(ExtendedMolecularAssembler.MODID)
 @PrefixGameTestTemplate(false)
 public final class ExtendedPatternGameTests {
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void recipeCandidatesPreserveDistinctResults(GameTestHelper helper) {
+        me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinderChecks
+                .assertDistinctCandidates(helper);
+        me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAMatrixPatternCoreUpdatePacketChecks
+                .assertPacketBounds(helper);
+        helper.succeed();
+    }
+
     private static final List<PatternCase> EXTENDED_CRAFTING_CASES = List.of(
             new PatternCase("Extended Crafting tier 1", "ec_tier_1", ExtendedPatternTableTypes.extendedCrafting(1), 1,
                     Items.DIAMOND,
@@ -224,6 +233,11 @@ public final class ExtendedPatternGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 20)
     public static void optionalRegistrationsFollowMyotusIntegrations(GameTestHelper helper) {
+        if (Boolean.getBoolean("ema.requireGameTestIntegrations")) {
+            helper.assertTrue(MyotusAPI.integrations().isLoaded(ExPatternProvider.class), "CI requires ExtendedAE");
+            helper.assertTrue(MyotusAPI.integrations().isLoaded(AdvancedAE.class), "CI requires AdvancedAE");
+            helper.assertTrue(MyotusAPI.integrations().isLoaded(ExtendedCrafting.class), "CI requires Extended Crafting");
+        }
         boolean extendedAE = MyotusAPI.integrations().isLoaded(ExPatternProvider.class);
         boolean extendedAEPlusStyleContent = extendedAE
                 && (MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)
@@ -795,7 +809,8 @@ public final class ExtendedPatternGameTests {
 
         var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.get(0));
         AdvancedAEGameTestHelper.assertExtendedQuantumCrafterAcceptsExtendedPattern(helper, patternStack);
-        helper.succeed();
+        me.myogoo.extendedmolecularassembler.integration.advancedae.QuantumCraftingGameTestChecks
+                .assertCraftingAndPower(helper);
     }
 
     @GameTest(template = "empty", timeoutTicks = 40)

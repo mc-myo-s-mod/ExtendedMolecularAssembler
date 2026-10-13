@@ -2,6 +2,7 @@ package me.myogoo.extendedmolecularassembler.init;
 
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.block.AEBaseBlockItem;
+import me.myogoo.extendedmolecularassembler.item.AssemblerUpgradeKitItem;
 import me.myogoo.extendedmolecularassembler.ExtendedMolecularAssembler;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.world.item.BlockItem;
@@ -18,6 +19,8 @@ public final class EMAItems {
                     properties -> new AEBaseBlockItem(EMABlocks.EXTENDED_MOLECULAR_ASSEMBLER.get(), properties.useBlockDescriptionPrefix()));
     @Nullable
     public static DeferredItem<BlockItem> EX_EXTENDED_MOLECULAR_ASSEMBLER;
+    @Nullable
+    public static DeferredItem<AssemblerUpgradeKitItem> EX_EXTENDED_ASSEMBLER_UPGRADE_KIT;
 
     public static final DeferredItem<BlockItem> BASIC_ME_CRAFTING_PROVIDER =
             ITEMS.registerItem("basic_me_crafting_provider",
@@ -54,6 +57,10 @@ public final class EMAItems {
     }
 
     public static void registerExtendedAEDeferred() {
+        if (EX_EXTENDED_ASSEMBLER_UPGRADE_KIT == null) {
+            EX_EXTENDED_ASSEMBLER_UPGRADE_KIT = ITEMS.registerItem(
+                    "ex_extended_molecular_assembler_upgrade_kit", AssemblerUpgradeKitItem::new);
+        }
         if (EX_EXTENDED_MOLECULAR_ASSEMBLER == null) {
             EX_EXTENDED_MOLECULAR_ASSEMBLER = ITEMS.registerItem(
                     "ex_extended_molecular_assembler",

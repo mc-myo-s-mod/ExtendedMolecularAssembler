@@ -1,8 +1,9 @@
 package me.myogoo.extendedmolecularassembler.integration.advancedae;
 
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKey;
+import appeng.api.stacks.KeyCounter;
 import appeng.api.stacks.GenericStack;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import net.minecraft.core.NonNullList;
@@ -10,8 +11,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public final class ExtendedQuantumCraftingJob {
     private final List<Long> keepMinInput = new ArrayList<>();
     public long limitMaxOutput = DEFAULT_KEEP_OUTPUT;
     public boolean consumesDurability = false;
-    private boolean hasDataChange = false;
+    private List<GenericStack> craftingInputs = List.of();
     private final HashMap<AEItemKey, Integer> keysThatConsumeDurability = new HashMap<>();
 
     public ExtendedQuantumCraftingJob(@Nullable ExtendedTableCraftingPattern pattern) {
@@ -52,7 +53,12 @@ public final class ExtendedQuantumCraftingJob {
         this.remainingItems = pattern == null ? List.of() : createRemainingItems(pattern);
         this.keysThatConsumeDurability.clear();
         this.consumesDurability = false;
-        this.hasDataChange = false;
+        this.craftingInputs = new ArrayList<>();
+        if (pattern != null) {
+            for (var input : pattern.getInputs()) {
+                this.craftingInputs.add(input.getPossibleInputs()[0]);
+            }
+        }
         this.alignKeepInputSize(pattern == null ? 0 : pattern.getInputs().length);
         this.analyzePattern();
     }
@@ -71,15 +77,16 @@ public final class ExtendedQuantumCraftingJob {
             return;
         }
 
-        for (var input : this.pattern.getInputs()) {
-            var possibleInputs = input.getPossibleInputs();
-            if (possibleInputs.length == 0 || !(possibleInputs[0].what() instanceof AEItemKey inputKey)) {
+        for (var input : this.craftingInputs) {
+            if (!(input.what() instanceof AEItemKey inputKey)) {
                 continue;
             }
 
             var inputStack = inputKey.toStack();
             if (!this.keysThatConsumeDurability.containsKey(inputKey)) {
-                var remainingStack = this.findMatchingRemainingItem(possibleInputs[0]);
+                var remainingStack = this.remainingItems.stream()
+                        .filter(stack -> isDurabilityRemainder(inputStack, stack))
+                        .findFirst().orElse(ItemStack.EMPTY);
                 if (remainingStack != ItemStack.EMPTY) {
                     var damage = remainingStack.getDamageValue() - inputStack.getDamageValue();
                     if (damage > 0) {
@@ -90,15 +97,18 @@ public final class ExtendedQuantumCraftingJob {
                 }
             }
 
-            if (!this.hasDataChange) {
-                var outputStack = this.findMatchingOutput(possibleInputs[0]);
-                if (outputStack != ItemStack.EMPTY
-                        && !ItemStack.isSameItemSameComponents(
-                                inputStack.copyWithCount(outputStack.getCount()), outputStack)) {
-                    this.hasDataChange = true;
-                }
-            }
         }
+    }
+
+    private static boolean isDurabilityRemainder(ItemStack input, ItemStack remainder) {
+        if (!input.isDamageableItem() || !remainder.isDamageableItem()
+                || remainder.getDamageValue() <= input.getDamageValue()) {
+            return false;
+        }
+        // Tool wear changes Damage alone; all other item data must retain the input key.
+        var wornInput = input.copy();
+        wornInput.setDamageValue(remainder.getDamageValue());
+        return java.util.Objects.equals(AEItemKey.of(wornInput), AEItemKey.of(remainder));
     }
 
     public long minimumInputToKeep(IPatternDetails.IInput stack) {
@@ -130,50 +140,41 @@ public final class ExtendedQuantumCraftingJob {
         return 0;
     }
 
+    public long requiredInputTotal(int inputIndex, int toCraft) {
+        if (this.pattern == null) {
+            return 0;
+        }
+        var input = this.craftingInputs.get(inputIndex);
+        long amount = this.pattern.getInputs()[inputIndex].getMultiplier() * input.amount();
+        return this.requiredInputTotal(input, amount, toCraft);
+    }
+
+    /**
+     * @deprecated Use {@link #requiredInputTotal(int, int)} to select an unambiguous input group.
+     * This overload retains the legacy first matching group's multiplier and the supplied stack amount.
+     */
+    @Deprecated(forRemoval = true)
     public long requiredInputTotal(GenericStack input, int toCraft) {
         if (this.pattern == null) {
             return 0;
         }
-
-        long multiplier = 0;
-        for (var patternInput : this.pattern.getInputs()) {
-            var found = false;
-            for (var genericInput : patternInput.getPossibleInputs()) {
-                if (genericInput != null && input.what().matches(genericInput)) {
-                    multiplier = patternInput.getMultiplier() * input.amount();
-                    found = true;
-                    break;
-                }
+        var inputs = this.pattern.getInputs();
+        for (int i = 0; i < inputs.length; i++) {
+            if (input.what().equals(this.craftingInputs.get(i).what())
+                    || java.util.Arrays.stream(inputs[i].getPossibleInputs())
+                            .anyMatch(possible -> possible != null && input.what().equals(possible.what()))) {
+                return this.requiredInputTotal(input, inputs[i].getMultiplier() * input.amount(), toCraft);
             }
-
-            if (found) {
-                break;
-            }
-        }
-
-        var durability = this.requiredDurability(input);
-        if (durability > 0) {
-            return durability * multiplier * toCraft;
-        }
-
-        var remainingItem = this.findMatchingRemainingItem(input);
-        if (input.amount() <= remainingItem.getCount()) {
-            return multiplier;
-        }
-
-        if (input.what() instanceof AEItemKey key) {
-            var stack = key.toStack();
-            for (var item : this.remainingItems) {
-                if (item.is(stack.getItem())) {
-                    return multiplier;
-                }
-            }
-            return multiplier * toCraft;
-        }
-        if (input.what() instanceof AEFluidKey) {
-            return multiplier * toCraft;
         }
         return 0;
+    }
+
+    private long requiredInputTotal(GenericStack input, long amount, int toCraft) {
+        var durability = this.requiredDurability(input);
+        if (durability > 0) {
+            return durability * amount * toCraft;
+        }
+        return this.isInputConsumed(input) ? amount * toCraft : amount;
     }
 
     private ItemStack findMatchingOutput(GenericStack input) {
@@ -181,11 +182,10 @@ public final class ExtendedQuantumCraftingJob {
             return ItemStack.EMPTY;
         }
 
-        var inputStack = inputKey.toStack();
         for (var output : this.pattern.getOutputs()) {
             if (output.what() instanceof AEItemKey outputKey) {
                 var outputStack = outputKey.toStack((int) output.amount());
-                if (inputStack.is(outputStack.getItem())) {
+                if (inputKey.equals(outputKey)) {
                     return outputStack;
                 }
             }
@@ -195,17 +195,17 @@ public final class ExtendedQuantumCraftingJob {
 
     public boolean isInputConsumed(GenericStack input) {
         var remaining = this.findMatchingRemainingItem(input);
-        if (remaining.getCount() >= input.amount()) {
+        if (remaining.getCount() >= Math.max(input.amount(), this.inputAmountPerCraft(input.what()))) {
             return false;
         }
 
         var output = this.findMatchingOutput(input);
-        return !(!output.isEmpty() && !this.hasDataChange);
+        return output.isEmpty();
     }
 
     private ItemStack findMatchingRemainingItem(GenericStack input) {
         for (var item : this.remainingItems) {
-            if (input.what() instanceof AEItemKey inputKey && inputKey.is(item.getItem())) {
+            if (input.what().equals(AEItemKey.of(item))) {
                 return item;
             }
         }
@@ -217,11 +217,9 @@ public final class ExtendedQuantumCraftingJob {
             return false;
         }
 
-        for (var input : this.pattern.getInputs()) {
-            for (var genericInput : input.getPossibleInputs()) {
-                if (genericInput != null && genericInput.what().wrapForDisplayOrFilter().is(stack.getItem())) {
-                    return true;
-                }
+        for (var input : this.craftingInputs) {
+            if (input.what().equals(AEItemKey.of(stack)) && !this.isInputConsumed(input)) {
+                return true;
             }
         }
         return false;
@@ -232,14 +230,52 @@ public final class ExtendedQuantumCraftingJob {
             return stack.amount();
         }
 
-        for (var input : this.pattern.getInputs()) {
-            for (var genericInput : input.getPossibleInputs()) {
-                if (genericInput != null && stack.what().matches(genericInput)) {
-                    return stack.amount() - genericInput.amount();
-                }
+        return Math.max(0, stack.amount() - this.inputAmountPerCraft(stack.what()));
+    }
+
+    public List<GenericStack> craftingInputs() {
+        return this.craftingInputs;
+    }
+
+    private long inputAmountPerCraft(AEKey key) {
+        long amount = 0;
+        for (int i = 0; i < this.craftingInputs.size(); i++) {
+            var input = this.craftingInputs.get(i);
+            if (key.equals(input.what())) {
+                amount += input.amount() * this.pattern.getInputs()[i].getMultiplier();
             }
         }
-        return stack.amount();
+        return amount;
+    }
+
+    @Nullable
+    public ExtendedQuantumCraftingJob withInputs(List<GenericStack> selectedInputs, Level level) {
+        if (this.pattern == null || selectedInputs.size() != this.pattern.getInputs().length) {
+            return null;
+        }
+        var counters = new KeyCounter[selectedInputs.size()];
+        for (int i = 0; i < counters.length; i++) {
+            var input = selectedInputs.get(i);
+            var patternInput = this.pattern.getInputs()[i];
+            if (input == null || input.amount() <= 0 || !patternInput.isValid(input.what(), level)) {
+                return null;
+            }
+            counters[i] = new KeyCounter();
+            counters[i].add(input.what(), input.amount() * patternInput.getMultiplier());
+        }
+        var grid = NonNullList.withSize(ExtendedTableCraftingPattern.MACHINE_GRID_SIZE, ItemStack.EMPTY);
+        this.pattern.fillCraftingGrid(counters, grid::set);
+        if (this.pattern.assembleFromMachineGrid(grid::get, level).isEmpty()) {
+            return null;
+        }
+        var resolved = new ExtendedQuantumCraftingJob(null);
+        resolved.pattern = this.pattern;
+        resolved.craftingInputs = List.copyOf(selectedInputs);
+        resolved.remainingItems = condenseRemainingItems(this.pattern.getRemainingItemsFromMachineGrid(grid::get));
+        resolved.keepMinInput.addAll(this.keepMinInput);
+        resolved.limitMaxOutput = this.limitMaxOutput;
+        resolved.analyzePattern();
+        return resolved.consumesDurability ? null : resolved;
     }
 
     private void alignKeepInputSize(int size) {
@@ -271,13 +307,17 @@ public final class ExtendedQuantumCraftingJob {
         }
 
         var remainingItems = pattern.getRemainingItemsFromMachineGrid(machineInput::get);
-        var condensed = new HashMap<Item, ItemStack>();
+        return condenseRemainingItems(remainingItems);
+    }
+
+    private static List<ItemStack> condenseRemainingItems(List<ItemStack> remainingItems) {
+        var condensed = new HashMap<AEItemKey, ItemStack>();
         for (var item : remainingItems) {
             if (item.isEmpty()) {
                 continue;
             }
 
-            condensed.compute(item.getItem(), (ignored, current) -> {
+            condensed.compute(AEItemKey.of(item), (ignored, current) -> {
                 if (current == null) {
                     return item.copy();
                 }

@@ -89,6 +89,9 @@ public class ExtendedAssemblerMatrixPatternCoreMenu extends AEBaseMenu {
     }
 
     public void applyPatternCoreUpdate(long coreId, int slotCount, boolean full, Map<Integer, ItemStack> changes) {
+        if (slotCount < 0 || slotCount > 72 || changes.size() > slotCount) {
+            return;
+        }
         var stacks = this.clientPatternStacks.computeIfAbsent(coreId, ignored -> emptyStackList(slotCount));
         if (full || stacks.size() != slotCount) {
             stacks.clear();

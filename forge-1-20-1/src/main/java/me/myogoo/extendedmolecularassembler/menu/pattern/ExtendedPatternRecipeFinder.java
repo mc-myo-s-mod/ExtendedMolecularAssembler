@@ -10,13 +10,11 @@ import me.myogoo.extendedmolecularassembler.menu.pattern.integration.reavaritia.
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedTableCraftingPattern;
 import me.myogoo.myotus.api.MyotusAPI;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,50 +50,7 @@ public final class ExtendedPatternRecipeFinder {
         return matches;
     }
 
-    private static Optional<ExtendedPatternRecipeMatch> findWithLookup(List<ItemStack> machineGrid, Level level,
-            int[] sides, RecipeLookup lookup) {
-        var machineSide = getMachineSide(machineGrid);
-        if (machineSide < 0 || isEmpty(machineGrid)) {
-            return Optional.empty();
-        }
-
-        for (var side : sides) {
-            if (side > machineSide) {
-                continue;
-            }
-            for (var offsetY : orderedOffsets(side, machineSide)) {
-                for (var offsetX : orderedOffsets(side, machineSide)) {
-                    if (!isOutsideWindowEmpty(machineGrid, side, offsetX, offsetY, machineSide)) {
-                        continue;
-                    }
-
-                    var input = copyWindow(machineGrid, side, offsetX, offsetY, machineSide);
-                    if (isEmpty(input)) {
-                        continue;
-                    }
-
-                    var holder = lookup.find(side, input, level).orElse(null);
-                    if (holder == null) {
-                        continue;
-                    }
-
-                    var adapter = TableRecipeAdapters.of(holder);
-                    if (adapter.sideLength() != side) {
-                        continue;
-                    }
-
-                    var result = adapter.assemble(input, level);
-                    if (!result.isEmpty()) {
-                        return Optional.of(new ExtendedPatternRecipeMatch(holder, toArray(input), result));
-                    }
-                }
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    private static List<ExtendedPatternRecipeMatch> findAllWithLookup(List<ItemStack> machineGrid, Level level,
+    static List<ExtendedPatternRecipeMatch> findAllWithLookup(List<ItemStack> machineGrid, Level level,
             int[] sides, RecipeLookupAll lookup) {
         var matches = new ArrayList<ExtendedPatternRecipeMatch>();
         var machineSide = getMachineSide(machineGrid);
@@ -103,7 +58,6 @@ public final class ExtendedPatternRecipeFinder {
             return matches;
         }
 
-        var matchedRecipeIds = new HashSet<ResourceLocation>();
         for (var side : sides) {
             if (side > machineSide) {
                 continue;
@@ -120,17 +74,14 @@ public final class ExtendedPatternRecipeFinder {
                     }
 
                     for (var holder : lookup.findAll(side, input, level)) {
-                        if (matchedRecipeIds.contains(holder.getId())) {
-                            continue;
-                        }
                         var adapter = TableRecipeAdapters.of(holder);
                         if (adapter.sideLength() != side) {
                             continue;
                         }
 
                         var result = adapter.assemble(input, level);
-                        if (!result.isEmpty()) {
-                            matchedRecipeIds.add(holder.getId());
+                        if (!result.isEmpty() && matches.stream().noneMatch(match ->
+                                match.recipe().getId().equals(holder.getId()) && ItemStack.matches(match.result(), result))) {
                             matches.add(new ExtendedPatternRecipeMatch(holder, toArray(input), result));
                         }
                     }
@@ -210,6 +161,8 @@ public final class ExtendedPatternRecipeFinder {
         return result;
     }
 
+    /** @deprecated Use {@link RecipeLookupAll} to preserve all candidate results. */
+    @Deprecated(forRemoval = true)
     @FunctionalInterface
     public interface RecipeLookup {
         Optional<Recipe<?>> find(int side, List<ItemStack> input, Level level);

@@ -37,6 +37,7 @@ import me.myogoo.extendedmolecularassembler.menu.ExtendedMolecularAssemblerMenu.
 import me.myogoo.extendedmolecularassembler.menu.slot.ExtendedMolecularAssemblerPatternSlot;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternEncodingTermMenu.RecipeProvider;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinder;
+import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeFinderChecks;
 import me.myogoo.extendedmolecularassembler.menu.pattern.ExtendedPatternRecipeMatch;
 import me.myogoo.extendedmolecularassembler.pattern.EncodedExtendedCraftingPattern;
 import me.myogoo.extendedmolecularassembler.pattern.ExtendedPatternTableTypes;
@@ -187,6 +188,11 @@ public final class ExtendedPatternGameTests {
 
     @GameTest(template = "empty", timeoutTicks = 20)
     public static void optionalRegistrationsFollowMyotusIntegrations(GameTestHelper helper) {
+        if (Boolean.getBoolean("ema.requireGameTestIntegrations")) {
+            helper.assertTrue(MyotusAPI.integrations().isLoaded(ExtendedAE.class), "CI requires ExtendedAE");
+            helper.assertTrue(MyotusAPI.integrations().isLoaded(AdvancedAE.class), "CI requires AdvancedAE");
+            helper.assertTrue(MyotusAPI.integrations().isLoaded(ExtendedCrafting.class), "CI requires Extended Crafting");
+        }
         boolean extendedAE = MyotusAPI.integrations().isLoaded(ExtendedAE.class);
         boolean extendedAEPlusStyleContent = extendedAE
                 && (MyotusAPI.integrations().isLoaded(ExtendedAEPlus.class)
@@ -407,6 +413,41 @@ public final class ExtendedPatternGameTests {
         helper.assertFalse(assembler.acceptsPlans(), "full Ex assembler should not advertise free lanes");
         helper.assertFalse(assembler.pushPattern(pattern, countersForPattern(pattern), Direction.NORTH),
                 "full Ex assembler accepted a ninth job");
+        var registry = helper.getLevel().registryAccess();
+        var saved = new net.minecraft.nbt.CompoundTag();
+        assembler.saveAdditional(saved, registry);
+        var restored = (ExtendedMolecularAssemblerBlockEntity) assembler.getType()
+                .create(assembler.getBlockPos(), assembler.getBlockState());
+        restored.setLevel(helper.getLevel());
+        restored.loadTag(saved, registry);
+        for (int lane = 0; lane < restored.getLaneCount(); lane++) {
+            assertLaneGrid(helper, restored, lane, testCase, "restored Ex assembler lane " + lane);
+            helper.assertTrue(ItemStack.matches(restored.getCurrentPatternStack(lane), assembler.getCurrentPatternStack(lane)),
+                    "Restored Ex lane lost its encoded pattern " + lane);
+        }
+        helper.assertFalse(restored.acceptsPlans(), "Restored full Ex assembler lost its active jobs");
+        helper.assertFalse(restored.canUpgrade(), "Restored full Ex assembler accepted an upgrade");
+        helper.succeed();
+    }
+
+    @GameTest(template = "matrix_request_gate", timeoutTicks = 240)
+    public static void extendedAEMatrixRequestsRequireLocalWorker(GameTestHelper helper) {
+        if (!MyotusAPI.integrations().isLoaded(ExtendedAE.class)
+                || !MyotusAPI.integrations().isLoaded(ExtendedCrafting.class)) {
+            helper.succeed();
+            return;
+        }
+        ExtendedAEGameTestHelper.assertCraftingPlanRequiresLocalCore(helper,
+                List.of(decodePatternForCase(helper, EXTENDED_CRAFTING_CASES.getFirst())));
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 20)
+    public static void recipeCandidatesPreserveDistinctResults(GameTestHelper helper) {
+        ExtendedPatternRecipeFinderChecks.assertDistinctCandidates(helper);
+        if (MyotusAPI.integrations().isLoaded(ExtendedAE.class)) {
+            me.myogoo.extendedmolecularassembler.integration.extendedae.network.EMAMatrixPatternCoreUpdatePacketChecks
+                    .assertPacketBounds(helper);
+        }
         helper.succeed();
     }
 
@@ -433,7 +474,8 @@ public final class ExtendedPatternGameTests {
 
         var patternStack = encodePatternStackForCase(helper, EXTENDED_CRAFTING_CASES.getFirst());
         AdvancedAEGameTestHelper.assertExtendedQuantumCrafterAcceptsExtendedPattern(helper, patternStack);
-        helper.succeed();
+        me.myogoo.extendedmolecularassembler.integration.advancedae.QuantumCraftingGameTestChecks
+                .assertCraftingAndPower(helper);
     }
 
     @GameTest(template = "empty", timeoutTicks = 40)
